@@ -5,8 +5,11 @@ I got the idea for this from my 1989 HP 48SX calculator which also uses RPN.
 
 ## Bytecode
 
-Instructions
-A 1-byte command that controls the computer’s hardware. These may use arguments from the stack.
+# Instructions
+
+1-byte commands that control the computer’s hardware. These may use arguments from the stack.
+
+Here's the current list of them, but I will likely add more:
 
 0. Hardware function call
 1. Push following object literal to stack
@@ -22,10 +25,6 @@ The “Push” instruction will interpret the following bytes of the program as 
 # Objects
 
 The term “object” refers to a piece of information which can be stored and transported between different parts of the computer. Every object consists of a header which is 2 bytes representing the size (in bytes) of the whole object. For example an object representing an 8-bit integer would be `0x03 0x00 0xxx` where `0x03` represents the length of the whole thing and `0xxx` is the actual piece of data.
-
-## Object header
-
-An object consists of a header and a body, the header will always be 4 bytes.
 
 # The Stack
 
