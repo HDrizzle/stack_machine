@@ -1,37 +1,47 @@
 # Overview
 
-The stack-based processor is an 8-bit little-endian computer using Reverse Polish Notation (RPN) to call functions. The whole computer has a LIFO (Last In First Out) single stack which can be used to store arguments and return values for functions. Memory pointers will be 16 bits. I am considering another piece of memory that will be sort of like the heap and can be written to and read from however the program wants.
+The stack-based processor is an 8-bit little-endian computer using Reverse Polish Notation (RPN). The whole computer has a LIFO (Last In First Out) single stack which stores individual bytes. Memory pointers will be 16 bits. I am considering another piece of memory that will be sort of like the heap and can be written to and read from however the program wants.
 I got the idea for this from my 1989 HP 48SX calculator which also uses RPN.
-
-## Bytecode
 
 # Instructions
 
-1-byte commands that control the computer’s hardware. These may use arguments from the stack.
+1 or more byte instructions interpreted by the control unit. These may use arguments from the stack.
 
-Here's the current list of them, but I will likely add more:
+Here's the current list of them:
 
-0. Hardware function call
-1. Push following object literal to stack
-2. Pop from stack
-3. GOTO - Pops 16-bit integer from stack and sets the execution pointer
-4. GOTO-IF - Pops 1 byte from stack, if the LSB is 1 then does a GOTO, otherwise does nothing
-5. Stops the clock
+0. Bus usage command - The next byte of program memory will be interpreted as follows: bits 0 - 3 address the device which will set the state of the bus and bits 4 - 7 will address the device to read from it.
+1. Push following byte to stack
+2. GOTO - Uses the next 2 bytes of the program memory to set the execution pointer (I decided to not use arguments from the stack because all GOTO pointers will be determined by the compiler and won't need to be calculated at runtime.)
+3. GOTO-IF - Pops 1 byte from stack, if the LSB is 1 then does a GOTO, otherwise does nothing
+4. Stops the clock
 
-## Object Literals
+# Bus
 
-The “Push” instruction will interpret the following bytes of the program as an object and it will be pushed to the stack. This will be used for things like constant values hardcoded into the program.
+Up to 15 devices can read the bus and 16 write to it.
+Devices that can read the bus:
 
-# Objects
+1. Control unit
+2. Stack controller
+3. ALU register A
+4. ALU register B
 
-The term “object” refers to a piece of information which can be stored and transported between different parts of the computer. Every object consists of a header which is 2 bytes representing the size (in bytes) of the whole object. For example an object representing an 8-bit integer would be `0x03 0x00 0xxx` where `0x03` represents the length of the whole thing and `0xxx` is the actual piece of data.
+Note: read address 0 will not be used so that bytes can be poped from the stack without them going anywhere.
+
+Devices that can set the state of the bus:
+
+0. Control unit
+1. Stack controller (Don't pop)
+2. Stack controller (pop)
+3. ALU output
 
 # The Stack
 
-The stack will simply be a list of objects managed by hardware. The hardware responsible for the stack memory will keep a table with pointers pointing to where each object starts in the memory. I may decide to have the stack be in the same memory as the program which would allow the program execution pointer to point to the stack and therefor make lambda functions possible, but I'm not certain of this yet.
+The stack will simply be a piece of memory seperate from the program memory managed by hardware. Whenever the stack controller is given write access to the bus it will write the byte that is currently at the top-of-stack pointer and then it will decrement the pointer.
 
 # Flow Control
 
-The program execution pointer (16 bits) is used to address the program memory, it is incremented to the next statement when a statement is finished and can be explicitly set by GOTO and GOTO-IF instructions.
+In the actual machine code there are no such things as functions, loops, if-statements, etc. Instead, these will be converted by the compiler into GOTO and GOTO-IF instructions which explicitly set the program execution pointer.
 
-In the actual machine code there are no such things as functions, loops, if-statements, etc. The only flow control consists of GOTO and GOTO-IF instructions that set the program execution pointer. Control flow such as functions, if-statements and loops will be converted by the compiler to use GOTO and GOTO-IF.
+# I/O
+
+TODO
