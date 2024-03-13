@@ -5,9 +5,9 @@ I got the idea for this from my 1989 HP 48SX calculator which also uses RPN.
 
 # Instructions
 
-1 or more byte instructions interpreted by the control unit. These may use arguments from the stack.
+1 or more byte instructions interpreted by the control unit. These may use arguments from the stack. The first 4 bits of the first instruction byte will address the below list of instructions. The next 4 bits will be used for addressing the ALU functions when using the ALU, and possibly other things.
 
-Here's the current list of them:
+Here's the current list of instructions:
 
 0. Bus usage command - The next byte of program memory will be interpreted as follows: bits 0 - 3 address the device which will set the state of the bus and bits 4 - 7 will address the device to read from it.
 1. Push following byte to stack
@@ -22,8 +22,8 @@ Devices that can read the bus:
 
 1. Control unit
 2. Stack controller
-3. ALU register A
-4. ALU register B
+3. ALU latch A
+4. ALU latch B
 
 Note: read address 0 will not be used so that bytes can be poped from the stack without them going anywhere.
 
