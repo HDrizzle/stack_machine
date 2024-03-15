@@ -5,7 +5,7 @@ I got the idea for this from my 1989 HP 48SX calculator which also uses RPN.
 
 # Instructions
 
-1 or more byte instructions interpreted by the control unit. These may use arguments from the stack. The first 4 bits of the first instruction byte will address the below list of instructions. The next 4 bits will be used for addressing the ALU functions when using the ALU, and possibly other things.
+1 or more byte instructions interpreted by the control unit. These may use arguments from the stack. The first 4 bits of the first instruction byte will address the below list of instructions. The next 4 bits will be used for addressing the ALU functions.
 
 Here's the current list of instructions:
 
@@ -13,7 +13,8 @@ Here's the current list of instructions:
 1. Push following byte to stack
 2. GOTO - Uses the next 2 bytes of the program memory to set the execution pointer (I decided to not use arguments from the stack because all GOTO pointers will be determined by the compiler and won't need to be calculated at runtime.)
 3. GOTO-IF - Pops 1 byte from stack, if the LSB is 1 then does a GOTO, otherwise does nothing
-4. Stops the clock
+4. Set stack offset TODO
+7. Stops the clock
 
 # Bus
 
@@ -37,6 +38,10 @@ Devices that can set the state of the bus:
 # The Stack
 
 The stack will simply be a piece of memory seperate from the program memory managed by hardware. Whenever the stack controller is given write access to the bus it will write the byte that is currently at the top-of-stack pointer and then it will decrement the pointer.
+
+## Stack offset
+
+The stack offset will be a 16-bit number subtracted from the top-of-stack pointer **only during non-pop reads**. It will be set by the main controller from program memory.
 
 # Flow Control
 
