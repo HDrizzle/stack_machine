@@ -13,7 +13,7 @@ Here's the current list of instructions:
 1. `PUSH` - Push following byte to stack
 2. `GOTO` - Saves the 2 execution pointer GOTO latches (each of them are 1 byte) to the execution pointer
 3. `STACK-OFFSET` - Set stack offset TODO
-4. `STACK-OFFSET-CLR` Clear stack offset
+4. `STACK-OFFSET-CLR` - Clear stack offset
 5. `HALT` - Stops the clock, usefull for debugging
 
 # Bus
@@ -21,6 +21,7 @@ Here's the current list of instructions:
 Up to 15 devices can read the bus and 16 write to it.
 Devices that can read the bus:
 
+0. `NONE` - Nothing reads this so that bytes can be poped from the stack without them going anywhere.
 1. `STACK` - Stack controller (Push)
 2. `ALU-A` - ALU latch A
 3. `ALU-B` - ALU latch B
@@ -31,8 +32,8 @@ Devices that can read the bus:
 8. `SRAM-INC-ADDR` - General SRAM - Write (++ address)
 9. `SRAM-ADDR-A` - General SRAM - Address latch A
 10. `SRAM-ADDR-B` - General SRAM - Address latch B
-
-Note: read address 0 will not be used so that bytes can be poped from the stack without them going anywhere.
+11. `GPIO-CONFIG` - Each bit corresponds with a GPIO pin where a 1 is an output and a 0 is an input
+13. `GPIO-WRITE` - Writes to GPIO pins configured as outputs
 
 Devices that can set the state of the bus:
 
@@ -46,6 +47,8 @@ Devices that can set the state of the bus:
 7. `SRAM-INC-ADDR` - General SRAM - Read (++ address)
 8. `SRAM-ADDR-A` - General SRAM - Address bits 0 - 7
 9. `SRAM-ADDR-B` - General SRAM - Address bits 8 - 15
+10. `GPIO-READ` - Reads all the GPIO pins including the ones set to outputs
+11. Control unit next byte, used for the `PUSH` instruction
 
 # The Stack
 
@@ -87,7 +90,7 @@ There is no actual GOTO-IF instruction. Instead, use the bus usage instruction t
 
 # I/O
 
-TODO
+There will be 8 GPIO pins, each can be configured as an input or output.
 
 # General usage static-RAM
 
