@@ -4,7 +4,7 @@
 
 If-statement which pops a boolean from the stack and then runs some code
 
-````
+```
 // Prepare GOTO latches
 PUSH 0x01// upper byte of end addr
 MOVE STACK-POP GOTO-B
@@ -18,7 +18,7 @@ MOVE STACK-POP ALU-A
 Contents of if-statement
 */
 // Rest of program starting at, for example, location `0x0102`
-````
+```
 
 ## Fibonacci sequence
 

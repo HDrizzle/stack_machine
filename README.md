@@ -48,7 +48,7 @@ Devices that can set the state of the bus:
 8. `SRAM-ADDR-A` - General SRAM - Address bits 0 - 7
 9. `SRAM-ADDR-B` - General SRAM - Address bits 8 - 15
 10. `GPIO-READ` - Reads all the GPIO pins including the ones set to outputs
-11. Control unit next byte, used for the `PUSH` instruction
+11. Control unit next program byte, used for the `PUSH` instruction
 
 # The Stack
 
@@ -94,6 +94,6 @@ There will be 8 GPIO pins, each can be configured as an input or output.
 
 # General usage static-RAM
 
-This piece of memory will not have any hardware protection like the stack and can be writen to and read from at any location (If the address is incremented then the read/write will happen first, then the incrementation). It will have a 16-bit address by 8-bit word size (65,536 bytes) just like the stack.
+This piece of memory will not have any hardware protection like the stack and can be writen to and read from at any location. It will have a 16-bit address by 8-bit word size (65,536 bytes) just like the stack.
 
-It's address latch can be optionally incremented upon reads/writes and can be directly set by 2 8-bit latches from the bus.
+It's address latch can be optionally incremented upon reads/writes and can be directly set by 2 8-bit latches from the bus. If the address is incremented then the read/write will happen first, then the incrementation.
