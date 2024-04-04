@@ -4,11 +4,14 @@ pub mod assembler;
 pub mod compiler;
 pub mod emulator;
 pub mod resources;
+#[cfg(test)]
+mod tests;
 
 /// Prelude
 pub mod prelude {
     pub use crate::assembler::{AssemblyWord, Opcode, AssemblerConfig};
     pub use crate::resources;
+    pub use crate::emulator::Machine;
     pub fn to_string_err<T, E: ToString>(result: Result<T, E>) -> Result<T, String> {
 		match result {
 			Ok(t) => Ok(t),

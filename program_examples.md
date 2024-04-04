@@ -6,14 +6,13 @@ If-statement which pops a boolean from the stack and then runs some code
 
 ```
 // Prepare GOTO latches
-PUSH 0x01// upper byte of end addr
-MOVE STACK-POP GOTO-B
-PUSH 0x02// lower byte of end addr
-MOVE STACK-POP GOTO-A
+WRITE 0x01 GOTO-B// upper byte of end addr
+WRITE 0x02 GOTO-A// lower byte of end addr
 
 // Pop boolean to be used for this if-statement from stack into ALU latch A
 MOVE STACK-POP ALU-A
-(NOT) MOVE ALU GOTO-DECIDE// Inverts byte and might execute GOTO to skip the contents of the if-statement
+MOVE (NOT) ALU GOTO-DECIDE// Inverts byte and might execute GOTO to skip the contents of the if-statement
+GOTO-IF
 /*
 Contents of if-statement
 */
@@ -26,14 +25,12 @@ Computes the first 10 fibonacci numbers and puts them into the general static-ra
 
 ```
 // Set sram pointer
-PUSH 0x00
-PUSH 0x00
-MOVE STACK-POP SRAM-ADDR-A
-MOVE STACK-POP SRAM-ADDR-B
+WRITE 0x00 SRAM-ADDR-A
+WRITE 0x00 SRAM-ADDR-B
 
 // Starting numbers
-PUSH 0x01
-PUSH 0x01
+WRITE 0x01 STACK
+WRITE 0x01 STACK
 MOVE STACK-NO-POP SRAM-INC-ADDR
 MOVE STACK-NO-POP SRAM-INC-ADDR
 MOVE STACK-POP ALU-A
@@ -41,28 +38,24 @@ MOVE STACK-POP ALU-B
 
 // While loop decision
 // Prepare GOTO latches with end address
-PUSH 0x00// TODO: upper byte of end addr
-MOVE STACK-POP GOTO-B
-PUSH 0x00// TODO: lower byte of end addr
-MOVE STACK-POP GOTO-A
+WRITE 0x00 GOTO-B// TODO: upper byte of end addr
+WRITE 0x00 GOTO-A// TODO: lower byte of end addr
 // Compare SRAM pointer and limit 
 MOVE SRAM-ADDR-A ALU-A
-PUSH 0x0A
-MOVE STACK-POP ALU-B
-(GREATER-THEN) MOVE ALU GOTO-DECIDE
+WRITE 0x0A ALU-B
+MOVE (GREATER-THEN) ALU GOTO-DECIDE
+GOTO-IF
 
 // Math
 MOVE STACK-POP ALU-A
 MOVE STACK-POP ALU-B
-(A) MOVE ALU STACK
-(ADD) MOVE ALU SRAM-INC-ADDR
-(ADD) MOVE ALU STACK
+MOVE (A) ALU STACK
+MOVE (ADD) ALU SRAM-INC-ADDR
+MOVE (ADD) ALU STACK
 
 // Goto beginning of loop
-PUSH 0x00// TODO: upper byte of start addr
-MOVE STACK-POP GOTO-B
-PUSH 0x00// TODO: lower byte of start addr
-MOVE STACK-POP GOTO-A
+WRITE 0x00 GOTO-A// TODO: upper byte of start addr
+WRITE 0x00 GOTO-B// TODO: lower byte of start addr
 GOTO
 
 // End

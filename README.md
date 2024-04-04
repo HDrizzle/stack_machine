@@ -1,20 +1,19 @@
 # Overview
 
-The stack-based processor is an 8-bit little-endian computer using Reverse Polish Notation (RPN). The whole computer has a LIFO (Last In First Out) single stack which stores individual bytes. Memory pointers will be 16 bits. I am considering another piece of memory that will be sort of like the heap and can be written to and read from however the program wants.
+This stack-based processor will be an 8-bit computer using Reverse Polish Notation (RPN). The whole computer has a LIFO (Last In First Out) single stack which stores individual bytes. Memory pointers will be 16 bits. There will be another piece of memory that will be sort of like the heap and can be written to and read from without hardware protection.
 I got the idea for this from my 1989 HP 48SX calculator which also uses RPN.
 
 # Program instructions
 
-1 or more byte instructions interpreted by the control unit. These may use arguments from the stack. The first 4 bits of the first instruction byte will address the below list of instructions. The next 4 bits will be used for addressing the ALU functions.
+Each instruction will be 16 bits and interpreted by the control unit. The first 4 bits of the instruction will address the below list of operations (opcodes). The next 4 bits (bits 4 - 7) will be used for addressing the ALU functions or possibly other things in the future. The second byte (bits 8 - 15) may be ignored or used for different things depending on the opcode.
 
-Here's the current list of instructions:
+Here's the current list of the operation codes (opcodes):
 
-0. `MOVE` - Bus usage - The next byte of program memory will be interpreted as follows: bits 0 - 3 address the device which will set the state of the bus and bits 4 - 7 will address the device to read from it.
-1. `PUSH` - Push following byte to stack
+0. `MOVE` - Bus usage - The rest of the instruction will be interpreted as follows: bits 8 - 11 address the device which will set the state of the bus and bits 12 - 15 will address the device to read from it. Bits 4 - 7 are sent to the ALU as it's opcode incase the data is comming from it.
+1. `WRITE` - Similar to `MOVE` exept writes instruction bits 4 - 11 to the bus. Bits 12 - 15 address the device to read from it. To push a byte to the stack, use `WRITE 0xAB STACK`.
 2. `GOTO` - Saves the 2 execution pointer GOTO latches (each of them are 1 byte) to the execution pointer
-3. `STACK-OFFSET` - Set stack offset TODO
-4. `STACK-OFFSET-CLR` - Clear stack offset
-5. `HALT` - Stops the clock, usefull for debugging
+3. `GOTO-IF` - Reads the LSB of the value in the goto decider latch and does a GOTO only if it is 1, otherwise does nothing
+4. `HALT` - Stops the clock, usefull for debugging
 
 # Bus
 
@@ -27,36 +26,35 @@ Devices that can read the bus:
 3. `ALU-B` - ALU latch B
 4. `GOTO-A` - Control unit - Execution pointer GOTO latch A (first byte)
 5. `GOTO-B` - Control unit - Execution pointer GOTO latch B (second byte)
-6. `GOTO-DECIDE` - Control unit - GOTO decider (For GOTO-IF)
+6. `GOTO-DECIDER` - Control unit - GOTO decider latch (For GOTO-IF)
 7. `SRAM` - General SRAM - Write
 8. `SRAM-INC-ADDR` - General SRAM - Write (++ address)
 9. `SRAM-ADDR-A` - General SRAM - Address latch A
 10. `SRAM-ADDR-B` - General SRAM - Address latch B
-11. `GPIO-CONFIG` - Each bit corresponds with a GPIO pin where a 1 is an output and a 0 is an input
-13. `GPIO-WRITE` - Writes to GPIO pins configured as outputs
+11. `GPIO-WRITE` - Writes to GPIO output pins
+12. `STACK-OFFSET` - Sets the stack offset
 
 Devices that can set the state of the bus:
 
 0. `STACK-NO-POP` - Stack controller (Don't pop)
 1. `STACK-POP` - Stack controller (pop)
 2. `ALU` - ALU output
-3. `PROG-CONST` - Control unit - Const program byte
-4. `PROG-ADDR-A` - Control unit - Execution pointer first byte
+3. Control unit instruction bits 4 - 11, used for the `WRITE` instruction
+4. `PROG-ADDR-A` - Control unit - Execution pointer first byte. This along with the second one will be needed for putting function return addresses on the stack.
 5. `PROG-ADDR-B` - Control unit - Execution pointer second byte
 6. `SRAM` - General SRAM - Read
 7. `SRAM-INC-ADDR` - General SRAM - Read (++ address)
 8. `SRAM-ADDR-A` - General SRAM - Address bits 0 - 7
 9. `SRAM-ADDR-B` - General SRAM - Address bits 8 - 15
-10. `GPIO-READ` - Reads all the GPIO pins including the ones set to outputs
-11. Control unit next program byte, used for the `PUSH` instruction
+10. `GPIO-READ` - Reads GPIO input pins
 
 # The Stack
 
-The stack will simply be a piece of memory seperate from the program memory managed by hardware. Whenever the stack controller is given write access to the bus it will write the byte that is currently at the top-of-stack pointer and then it will decrement the pointer.
+The stack will simply be a piece of memory seperate from the program memory managed by hardware. Whenever the stack controller is given write access to the bus it will write the byte that is currently at the top-of-stack pointer and then it may decrement the pointer.
 
 ## Stack offset
 
-The stack offset will be a 16-bit number subtracted from the top-of-stack pointer **only during non-pop reads**. It will be set by the main controller from program memory.
+The stack offset will be an 8-bit number subtracted from the top-of-stack pointer **only during non-pop reads**. It will be written to from the bus.
 
 # ALU
 
@@ -84,13 +82,13 @@ In the actual machine code there are no such things as functions, loops, if-stat
 
 ## GOTO and GOTO-IF
 
-A goto will first need to use the bus usage instruction (Instruction 0) twice to set both of the execution pointer A and B goto latches, probably comming from the stack. (This is for returning from a function using the return address, but if calling a function, the compiler will have to push those bytes onto the stack first.) Then the GOTO instruction will be used which uses the A and B goto latches to set the execution pointer.
+A goto will first need to use the bus usage instruction (Instruction 0) twice to set both of the execution pointer A and B goto latches, probably comming from the stack. This is for returning from a function using the return address, but if calling a function, the compiler can just `WRITE` the hardcoded values directly to the A and B latches. Then the GOTO instruction will be used which uses the A and B goto latches to set the execution pointer.
 
-There is no actual GOTO-IF instruction. Instead, use the bus usage instruction to read a given value (probably from the ALU or stack) into the control unit GOTO decider. This will do the same as the GOTO instruction described above ONLY if the LSB of the bus is 1.
+GOTO-IF: First, move a value into the control unit GOTO decider latch, then use the GOTO-IF instruction. This will do the same as the GOTO instruction described above ONLY if the LSB of the latch is 1.
 
 # I/O
 
-There will be 8 GPIO pins, each can be configured as an input or output.
+There will be 8 input and 8 seperate output pins.
 
 # General usage static-RAM
 
