@@ -1,6 +1,6 @@
 # Overview
 
-This stack-based processor will be an 8-bit computer using Reverse Polish Notation (RPN). The whole computer has a LIFO (Last In First Out) single stack which stores individual bytes. Memory pointers will be 16 bits. There will be another piece of memory that will be sort of like the heap and can be written to and read from without hardware protection.
+This will be an 8-bit stack-based computer processor based off of Reverse Polish Notation (RPN). The whole computer has a LIFO (Last In First Out) single stack which stores individual bytes. Memory pointers will be 16 bits. There will be another piece of memory that will be sort of like the heap and can be written to and read from without hardware protection.
 I got the idea for this from my 1989 HP 48SX calculator which also uses RPN.
 
 # Program instructions

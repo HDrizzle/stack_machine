@@ -164,7 +164,9 @@ pub struct Machine {
 	gpio_output: GpioOutputState,
 	execution_pointer: u16,
 	goto_latch_a: u8,
-	goto_latch_b: u8
+	goto_latch_b: u8,
+	goto_decider_latch: bool,
+	program_size: u16
 }
 
 impl Machine {
@@ -185,21 +187,27 @@ impl Machine {
 			gpio_output: GpioOutputState::new(),
 			execution_pointer: 0,
 			goto_latch_a: 0,
-			goto_latch_b: 0
+			goto_latch_b: 0,
+			goto_decider_latch: false,
+			program_size: prog.len() as u16
 		}
 	}
 	/// Executes 1 instruction
 	/// Returns: Ok(whether to stop the clock (HALT)) or Err(EmulationError)
 	pub fn execute_instruction(&mut self, gpio_in: u8) -> Result<bool, EmulationError> {
-		// Get first instruction byte
+		// Check that execution pointer is within limits
+		if self.execution_pointer >= self.program_size {
+			return Err(self.err_enum_to_err(EmulationErrorEnum::ExecutionPointerExceededProgramSize));
+		}
+		// Get instruction
 		let instruction: u16 = self.prog_mem[self.execution_pointer as usize];
-		let first_byte: u8 = (instruction % 256) as u8;
-		let second_byte: u8 = ((instruction - (first_byte as u16)) / 256) as u8;
+		let second_byte: u8 = ((instruction >> 8) & 255u16) as u8;
+		let opcode: u8 = (instruction & 15u16) as u8;
+		let instruction_bits_4_7: u8 = ((instruction >> 4) & 15u16) as u8;
+		// Debug print
+		debug_print(&format!("Instruction={:#X}(#{:#X}), opcode={:#X}", instruction, self.execution_pointer, opcode));
 		// Match opcode
-		let opcode_u16: u16 = instruction % 16;
-		let opcode = opcode_u16 as u8;
-		let instruction_bits_4_7: u8 = ((instruction - opcode_u16) / 16) as u8;
-		match opcode_u16 {
+		match opcode {
 			0 => {// MOVE
 				// Get next value
 				// Match opcode
@@ -208,32 +216,35 @@ impl Machine {
 				// Get bus value
 				let res = self.get_bus_value(write_addr, gpio_in, instruction_bits_4_7);
 				let bus_value: u8 = self.err_enum_result_to_err_result(res)?;
+				debug_print(&format!("  MOVE read_addr={:#X}, write_addr={:#X}, bus_value={:#X}", read_addr, write_addr, bus_value));
 				// Send bus value
 				let res = self.send_bus_value(read_addr, bus_value);
 				self.err_enum_result_to_err_result(res)?;
 			},
-			1 => {// MOVE
+			1 => {// WRITE
 				let read_addr = second_byte >> 4 & 0x0F;
 				let bus_value = (instruction >> 4 & 0x00FF) as u8;
+				debug_print(&format!("  WRITE read_addr={:#X}, bus_value={:#X}", read_addr, bus_value));
 				let res = self.send_bus_value(read_addr, bus_value);
 				self.err_enum_result_to_err_result(res)?;
 			},
 			2 => {// GOTO
-				self.execution_pointer = self.goto_latch_a as u16 + ((self.goto_latch_a as u16) * 256);
+				self.goto()
 			},
-			3 => {// STACK-OFFSET
-				// TODO
+			3 => {// GOTO-IF
+				debug_print(&format!("  GOTO-IF"));
+				if self.goto_decider_latch {
+					self.goto()
+				}
 			},
-			4 => {// STACK-OFFSET-CLR
-				// TODO
-			},
-			5 => {// HALT
+			4 => {// HALT
 				return Ok(true);
 			},
 			n => return Err(EmulationError::new(EmulationErrorEnum::InvalidOpcode(opcode), self.execution_pointer))
 		};
 		// Increment execution pointer
 		self.execution_pointer += 1;
+		debug_print("");
 		// Done
 		Ok(false)
 	}
@@ -255,8 +266,8 @@ impl Machine {
 			5 => {// GOTO-B
 				self.goto_latch_b = bus_value;
 			},
-			6 => {// GOTO-DECIDE
-				self.execution_pointer = (((self.goto_latch_b as u16) * 256) + (self.goto_latch_a as u16)) - 2;// - 2 because execution pointer will be incremented by 2 after this
+			6 => {// GOTO-DECIDER
+				self.goto_decider_latch = (bus_value & 1u8) == 1
 			},
 			7 => {// SRAM
 				self.general_mem_controller.write(bus_value, &mut self.general_mem, false);
@@ -318,6 +329,11 @@ impl Machine {
 			_ => return Err(EmulationErrorEnum::InvalidBusWriteAddr(write_addr))
 		})
 	}
+	fn goto(&mut self) {
+		let next_pointer = self.goto_latch_a as u16 + ((self.goto_latch_b as u16) * 256);
+		debug_print(&format!("  GOTO curr pointer={:#X}, next={:#X}", self.execution_pointer, next_pointer));
+		self.execution_pointer = next_pointer - 1;// The execute instruction function will then increment this
+	}
 	fn err_enum_to_err(&self, enum_: EmulationErrorEnum) -> EmulationError {
 		EmulationError::new(enum_, self.execution_pointer)
 	}
@@ -344,7 +360,8 @@ pub enum EmulationErrorEnum {
 	InvalidBusReadAddr(u8),
 	InvalidBusWriteAddr(u8),
 	InvalidAluOpcode(u8),
-	AttemptedReadFromControlUnit
+	AttemptedReadFromControlUnit,
+	ExecutionPointerExceededProgramSize
 }
 
 #[derive(Debug)]
@@ -363,4 +380,10 @@ impl EmulationError {
 			prog_addr
 		}
 	}
+}
+
+#[inline]
+fn debug_print(msg: &str) {
+	#[cfg(feature = "emulator_debug")]
+	println!("{}", msg);
 }
