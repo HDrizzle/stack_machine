@@ -14,7 +14,8 @@ trait MachineComponent {
 // Structs
 
 struct StackController {
-	top_pointer: u16
+	top_pointer: u16,
+	offset: u8// May be u16 in the future
 }
 
 impl StackController {
@@ -25,10 +26,13 @@ impl StackController {
 	}
 	/// Pops of the top of the stack, optionaly deletes the value afterwards
 	pub fn pop(&mut self, delete: bool, mem: &[u8; POWER_16]) -> u8 {
-		let out = mem[self.top_pointer as usize];
-		if delete {
+		let out: u8 = if delete {
 			self.top_pointer -= 1;
+			mem[self.top_pointer as usize + 1]
 		}
+		else {
+			mem[(self.top_pointer - (self.offset as u16)) as usize]
+		};
 		// Done
 		out
 	}
@@ -37,7 +41,8 @@ impl StackController {
 impl MachineComponent for StackController {
 	fn new() -> Self {
 		Self {
-			top_pointer: 0
+			top_pointer: 0,
+			offset: 0
 		}
 	}
 }
@@ -281,11 +286,11 @@ impl Machine {
 			10 => {// SRAM-ADDR-B
 				// TODO
 			},
-			11 => {// GPIO-CONFIG
-				self.gpio_output.io_mask = bus_value;
-			},
-			12 => {// GPIO-WRITE
+			11 => {// GPIO-WRITE
 				self.gpio_output.out = bus_value;
+			},
+			12 => {// STACK-OFFSET
+				self.stack_controller.offset = bus_value;
 			},
 			_ => return Err(EmulationErrorEnum::InvalidBusReadAddr(read_addr))
 		}

@@ -5,12 +5,12 @@ I got the idea for this from my 1989 HP 48SX calculator which also uses RPN.
 
 # Program instructions
 
-Each instruction will be 16 bits and interpreted by the control unit. The first 4 bits of the instruction will address the below list of operations (opcodes). The next 4 bits (bits 4 - 7) will be used for addressing the ALU functions or possibly other things in the future. The second byte (bits 8 - 15) may be ignored or used for different things depending on the opcode.
+Each instruction will be 16 bits and interpreted by the control unit. The first 4 bits (0 - 3) of the instruction will address the below list of operations. The rest of the instruction (bits 4 - 15) may be ignored or used for different things depending on the specific operation.
 
 Here's the current list of the operation codes (opcodes):
 
 0. `MOVE` - Bus usage - The rest of the instruction will be interpreted as follows: bits 8 - 11 address the device which will set the state of the bus and bits 12 - 15 will address the device to read from it. Bits 4 - 7 are sent to the ALU as it's opcode incase the data is comming from it.
-1. `WRITE` - Similar to `MOVE` exept writes instruction bits 4 - 11 to the bus. Bits 12 - 15 address the device to read from it. To push a byte to the stack, use `WRITE 0xAB STACK`.
+1. `WRITE` - Similar to `MOVE` exept writes instruction bits 4 - 11 to the bus. Bits 12 - 15 address the device to read from it. To push a byte to the stack, use `WRITE 0x42 STACK`.
 2. `GOTO` - Saves the 2 execution pointer GOTO latches (each of them are 1 byte) to the execution pointer
 3. `GOTO-IF` - Reads the LSB of the value in the goto decider latch and does a GOTO only if it is 1, otherwise does nothing
 4. `HALT` - Stops the clock, usefull for debugging
@@ -34,7 +34,7 @@ Devices that can read the bus:
 11. `GPIO-WRITE` - Writes to GPIO output pins
 12. `STACK-OFFSET` - Sets the stack offset
 
-Devices that can set the state of the bus:
+Devices that can set the state of (write to) the bus:
 
 0. `STACK-NO-POP` - Stack controller (Don't pop)
 1. `STACK-POP` - Stack controller (pop)
@@ -47,6 +47,9 @@ Devices that can set the state of the bus:
 8. `SRAM-ADDR-A` - General SRAM - Address bits 0 - 7
 9. `SRAM-ADDR-B` - General SRAM - Address bits 8 - 15
 10. `GPIO-READ` - Reads GPIO input pins
+
+First iteration of how the bus timing will work
+<img src="bus_timing_drawing.jpg"></img>
 
 # The Stack
 
@@ -75,6 +78,7 @@ The ALU uses 2 8-bit latches for input and has 1 output. The specific operation 
 12. `GREATER-THEN` - Whether A > B
 13. `A` - Contents of A latch
 14. `B` - Contents of B latch
+15. `ADD-WITH-CARRY` - Add with incomming carry bit set to 1
 
 # Flow Control
 
@@ -94,4 +98,4 @@ There will be 8 input and 8 seperate output pins.
 
 This piece of memory will not have any hardware protection like the stack and can be writen to and read from at any location. It will have a 16-bit address by 8-bit word size (65,536 bytes) just like the stack.
 
-It's address latch can be optionally incremented upon reads/writes and can be directly set by 2 8-bit latches from the bus. If the address is incremented then the read/write will happen first, then the incrementation.
+It's address latch can be optionally incremented upon reads/writes and can be directly set by 2 8-bit latches (`SRAM-ADDR-A` and `SRAM-ADDR-B`) from the bus. If the address is incremented, the read/write will happen first, then the incrementation.
