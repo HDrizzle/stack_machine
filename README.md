@@ -1,7 +1,9 @@
 # Overview
 
-This will be an 8-bit stack-based computer processor based off of Reverse Polish Notation (RPN). The whole computer has a LIFO (Last In First Out) single stack which stores individual bytes. Memory pointers will be 16 bits. There will be another piece of memory that will be sort of like the heap and can be written to and read from without hardware protection.
+This is the design and specifications for an 8-bit stack-based computer processor designed to support programming Reverse Polish Notation (RPN). The computer has a LIFO (Last In First Out) single stack which stores individual bytes. The Top of Stack (ToS) will be a 16-bit number which can be incremented and decremented for Pushes and Pops. It will also be possible to read/write the stack below the ToS. There will be another piece of memory, the general purpose static-RAM (GPRAM), that will be sort of like the heap and can be written to and read from without hardware protection.
 I got the idea for this from my 1989 HP 48SX calculator which also uses RPN.
+
+<img src="images/main_block_diagram.png"></img>
 
 # Program instructions
 
@@ -14,10 +16,10 @@ Here's the current list of the operation codes (opcodes):
 2. `GOTO` - Saves the 2 execution pointer GOTO latches (each of them are 1 byte) to the execution pointer
 3. `GOTO-IF` - Reads the LSB of the value in the goto decider latch and does a GOTO only if it is 1, otherwise does nothing
 4. `HALT` - Stops the clock, usefull for debugging
-5. `CALL` - Effectively the same as `GOTO` but creates a new stack frame by pushing the return address and stack frame pointer onto the call stack. The stack frame pointer will be calculated as `ToS - (NArgs - 1)` where `ToS` is the current top-of-stack pointer, and `NArgs` is the number of arguments passed to the function on the stack (bits 4 - 11 of this instruction). This calculation will ensure that the bottum of the newly called function's stack frame will be at the first of its arguments.
-6. `RETURN` - The program counter will be set to bits 16 - 31 of the 32-bit word poped off the call stack (this is the return address). The stack-frame pointer will be ignored as it is no longer needed.
-7. `READ-VAR` - Reads from the stack at the current stack frame pointer + bits 4 - 11 of this instruction. Bits 12 - 15 address device to read the bus.
-8. `WRITE-VAR` - Similar to `READ-VAR` except writes to stack. Bits 8 - 11 address device to write to the bus, bits 4 - 7 & 12 - 15 are the variable offset.
+5. `CALL` - Effectively the same as `GOTO` but also pushes the return address (current value of program counter) onto the call stack. Note: The return address can be copied as-is and does not need to be incremented because it will be incremented normally after each `RETURN` instruction when it is used.
+6. `RETURN` - The program counter will be set to the return address popped off the top of the call stack.
+7. `OFFSET-READ` - Reads value from below the ToS. Bits 4 - 11 are the offset to be subtracted from the ToS pointer. Bits 12 - 15 address device to read the bus.
+8. `OFFSET-WRITE` - Writes value below the ToS. Bits 4 - 7 & 12 - 15 are the stack offset. Bits 8 - 11 address device to write to the bus.
 
 # Bus
 
@@ -36,12 +38,11 @@ Devices that can read the bus:
 9. `GPRAM-ADDR-A` - GPRAM - Address latch A
 10. `GPRAM-ADDR-B` - GPRAM - Address latch B
 11. `GPIO-WRITE` - Writes to GPIO output pins
-12. Replaces value at current stack frame pointer + given variable offset. Used by the `WRITE-VAR` instruction.
+12. Replaces value from stack at ToS - offset. Used by the `OFFSET-WRITE` instruction.
 
 Devices that can set the state of (write to) the bus:
 
-0. `STACK-NO-POP` - Stack controller (Don't pop)
-1. `STACK-POP` - Stack controller (pop)
+0. `STACK-POP` - Stack controller (pop)
 2. `ALU` - ALU output
 3. Control unit instruction bits 4 - 11, used for the `WRITE` instruction
 4. `GPRAM` - GPRAM - Read
@@ -49,10 +50,10 @@ Devices that can set the state of (write to) the bus:
 6. `GPRAM-ADDR-A` - GPRAM - Address bits 0 - 7
 7. `GPRAM-ADDR-B` - GPRAM - Address bits 8 - 15
 8. `GPIO-READ` - Reads GPIO input pins
-9. Reads value at current stack frame pointer + given variable offset. Used by the `READ-VAR` instruction.
+9. Reads value from stack at ToS - offset. Used by the `OFFSET-READ` instruction.
 
 First iteration of how the bus timing will work
-<img src="bus_timing_drawing.jpg"></img>
+<img src="images/bus_timing_drawing.jpg"></img>
 
 # The Stack
 
@@ -63,13 +64,9 @@ There will be two ways to access the stack:
 1. Push, Read (No-pop), and Read (Pop)
 2. Using the current stack frame pointer + variable offset
 
-## Stack variable offset
+# Call stack
 
-The stack variable offset will be an 8-bit number added to the current stack-frame pointer. It will be sent by the control unit during both `READ-VAR` and `WRITE-VAR` instructions.
-
-# Call stack & stack frames
-
-Whenever a "function" is called (using the `CALL` instruction), the first bytes on the stack are the function's parameters. After that it's whatever local variables/operands that the function uses. To keep track of where a function's stack frame begins, there will be a seperate stack memory (the Call Stack) containing 256 (1 byte address size) 32-bit words. The 1st 16 bits of each call stack word will be the pointer to the start of each corresppnding stack frame, the 2nd 16 bits will be the return address - where to set the program counter during a `RETURN` instruction.
+Whenever a "function" is called (using the `CALL` instruction), the current program counter will be pushed onto the call stack. The call stack will be a seperate stack memory containing 256 (1 byte address size) 16-bit words. Each word will be a return address - where to set the program counter during a `RETURN` instruction.
 
 # ALU
 
