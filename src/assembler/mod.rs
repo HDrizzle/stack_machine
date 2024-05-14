@@ -1,11 +1,13 @@
 //! Functionality to turn assembly into binary
+use std::fmt::Debug;
 use serde::{Serialize, Deserialize};
 use hex;
+use serde_json::error;
 
 use crate::prelude::*;
 
 /// For each "unit" of the assembly code, names of opcodes and devices to read/write the bus, etc.
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct AssemblyWord<const BIT_SIZE: u8> {
 	/// May be represented by less then 8 bits
 	pub id_: u8,
@@ -13,17 +15,10 @@ pub struct AssemblyWord<const BIT_SIZE: u8> {
 	pub name: String
 }
 
-/// Beginning of each instruction
-#[derive(Serialize, Deserialize, Clone)]
-pub struct Opcode {
-	/// Assembly word
-	pub word: AssemblyWord<8>,
-	/// The number of program bytes following this opcode
-	pub following_bytes: u8
-}
-
-pub enum AssemblerConfig4BitWords {
-	PreOpcode,
+#[derive(Clone, Copy, Debug)]
+pub enum Assembler4BitWordContext {
+	Opcode,
+	AluOpcode,
 	ToBus,
 	FromBus
 }
@@ -31,43 +26,49 @@ pub enum AssemblerConfig4BitWords {
 /// All the data about the assembly words
 #[derive(Serialize, Deserialize)]
 pub struct AssemblerConfig {
-	pub opcodes: Vec<Opcode>,
-	pub pre_opcodes: Vec<AssemblyWord<4>>,
+	pub opcodes: Vec<AssemblyWord<4>>,
+	pub alu_opcodes: Vec<AssemblyWord<4>>,
 	pub to_bus: Vec<AssemblyWord<4>>,
 	pub from_bus: Vec<AssemblyWord<4>>
 }
 
 impl AssemblerConfig {
-	pub fn encode_opcode(&self, opcode_raw: &str) -> Option<Opcode> {
-		for opcode_config in &self.opcodes {
-			if opcode_config.word.name == opcode_raw {
-				return Some(opcode_config.clone());
-			}
-		}
-		// Done
-		None
-	}
-	pub fn encode_4_bit_word(&self, word_type: AssemblerConfig4BitWords, raw: &str) -> Option<AssemblyWord<4>> {
+	pub fn encode_4_bit_word(&self, word_type: Assembler4BitWordContext, raw: &str) -> Option<AssemblyWord<4>> {
 		self.encode_generic_4_bit_word(
 			match word_type {
-				AssemblerConfig4BitWords::PreOpcode => &self.pre_opcodes,
-				AssemblerConfig4BitWords::ToBus => &self.to_bus,
-				AssemblerConfig4BitWords::FromBus => &self.from_bus
+				Assembler4BitWordContext::Opcode => &self.opcodes,
+				Assembler4BitWordContext::AluOpcode => &self.alu_opcodes,
+				Assembler4BitWordContext::ToBus => &self.to_bus,
+				Assembler4BitWordContext::FromBus => &self.from_bus
 			},
 			raw
 		)
 	}
 	fn encode_generic_4_bit_word(&self, words: &Vec<AssemblyWord<4>>, raw: &str) -> Option<AssemblyWord<4>> {
 		for word_config in words {
-			if word_config.name == raw {
+			if word_config.name.to_lowercase() == raw.to_lowercase() {
 				return Some(word_config.clone());
 			}
 		}
 		// Done
 		None
 	}
+	pub fn get_4_bit_assembly_word(&self, token: &Token, correct_context: Assembler4BitWordContext) -> Result<AssemblyWord<4>, AssemblerErrorEnum> {
+		if let TokenEnum::AssemblyWord(word_raw) = &token.enum_ {
+			match self.encode_4_bit_word(correct_context, word_raw) {
+				Some(word) =>Ok(word),
+				None => {
+					Err(AssemblerErrorEnum::TokenWordInWrongContext{token_raw: token.raw.clone(), correct_context})
+				}
+			}
+		}
+		else {// Token is not an assembly word
+			Err(AssemblerErrorEnum::TokenWordInWrongContext{token_raw: token.raw.clone(), correct_context})
+		}
+	}
 }
 
+#[derive(Debug)]
 pub enum AssemblerErrorEnum {
 	HexLiteralInvalid(hex::FromHexError),
 	HexLiteralWrongLength {
@@ -75,14 +76,28 @@ pub enum AssemblerErrorEnum {
 		actual_len_bits: u32
 	},
 	InvalidToken(String),
-	TokenInWrongPlace(String)
+	IncorrectNumberOfTokensForOpcode {
+		opcode: AssemblyWord<4>,
+		n_tokens_in_line: usize
+	},
+	TokenWordInWrongContext {
+		token_raw: String,
+		correct_context: Assembler4BitWordContext
+	},
+	LiteralTokenInWrongContext {
+		token: Token
+	}
 }
 
 /// Assembler error
 pub struct AssemblerError {
 	/// Line numbers will start at 1 :(
 	pub line_n: usize,
+	/// Raw text of line
 	pub line: String,
+	/// Specific message
+	pub message_opt: Option<String>,
+	/// Specific error
 	pub enum_: AssemblerErrorEnum
 }
 
@@ -90,27 +105,42 @@ impl AssemblerError {
 	pub fn new(
 		line_n: usize,
 		line: String,
+		message_opt: Option<String>,
 		enum_: AssemblerErrorEnum
 	) -> Self {
 		Self {
 			line_n,
 			line,
+			message_opt,
 			enum_
 		}
+	}
+	pub fn format(&self) -> String {
+		format!(
+			"Error on line {}: {:?}\n\t{}{}\n",
+			self.line_n,
+			self.enum_,
+			self.line,
+			match &self.message_opt {
+				Some(msg) => format!("\n\n\t{}", msg.clone()),
+				None => "".to_owned()
+			}
+		)
 	}
 }
 
 /// Parts of the assembly syntax, seperated by spaces and newlines
-enum TokenEnum {
+#[derive(Clone, Debug)]
+pub enum TokenEnum {
 	/// Hexadecimal literal
 	Literal {
+		/// Number
 		n: u8,
+		/// Length in bits, NOTE: this is not the minimum number of bits used to represent the number, it is (length of the raw value - `0x`) * 4
 		bit_size: u8
 	},
 	/// Regular assembly word
-	AssemblyWord(String),
-	/// Assembly word (in perentheses)
-	ParenAssemblyWord(String)
+	AssemblyWord(String)
 }
 
 impl TokenEnum {
@@ -121,24 +151,20 @@ impl TokenEnum {
 				Ok(data) => data,
 				Err(e) => return Err(AssemblerErrorEnum::HexLiteralInvalid(e))
 			};
-			let n_bits: usize = hex_decode.len() * 4;
+			let n_bits: usize = (in_.len() - 2) * 4;//hex_decode.len() * 4;
 			if n_bits != 8 {
 				return Err(AssemblerErrorEnum::HexLiteralWrongLength{correct_len_bits: 8, actual_len_bits: n_bits as u32});
 			}
 			Ok(Self::Literal{n: hex_decode[0], bit_size: n_bits as u8})
 		}
 		else {
-			if in_.starts_with("(") && in_.ends_with(")") {
-				Ok(Self::ParenAssemblyWord(in_[1..in_.len()-1].to_owned()))
-			}
-			else {
-				Ok(Self::AssemblyWord(in_.to_owned()))
-			}
+			Ok(Self::AssemblyWord(in_.to_owned()))
 		}
 	}
 }
 
-struct Token {
+#[derive(Clone, Debug)]
+pub struct Token {
 	pub enum_: TokenEnum,
 	pub raw: String
 }
@@ -153,51 +179,120 @@ impl Token {
 }
 
 /// Turn raw string (probably from assembly source file) into machine code
-pub fn assembler_pipeline(in_: &str, config: &AssemblerConfig) -> Result<Vec<u8>, Vec<AssemblerError>> {
-	let mut out = Vec::<u8>::new();
+pub fn assembler_pipeline(in_: &str, config: &AssemblerConfig) -> Result<Vec<u16>, Vec<AssemblerError>> {
+	let mut out = Vec::<u16>::new();
 	let mut errors = Vec::<AssemblerError>::new();
 	// Split into lines
 	let raw_lines: Vec<&str> = in_.split("\n").collect();
+	// Convienience closure function
+	let mut add_error = |line_index: usize, message_opt: Option<String>, error_enum: AssemblerErrorEnum| {
+		errors.push(AssemblerError::new(line_index+1, raw_lines[line_index].to_owned(), message_opt, error_enum));
+	};
 	// Tokenize
-	let token_lines = tokenize(in_, config)?;
+	let token_lines: Vec<Vec<Token>> = tokenize(in_, config)?;
 	// Assemble
 	for (i, line) in token_lines.iter().enumerate() {
 		if line.len() >= 1 {
 			// Opcode
-			let opcode: Opcode = if let TokenEnum::AssemblyWord(word) = &line[0].enum_ {
-				match config.encode_opcode(&word) {
+			let opcode: AssemblyWord<4> = if let TokenEnum::AssemblyWord(word) = &line[0].enum_ {
+				match config.encode_4_bit_word(Assembler4BitWordContext::Opcode, &word) {
 					Some(opc) => opc,
 					None => {
-						errors.push(AssemblerError::new(i+1, raw_lines[i].to_owned(), AssemblerErrorEnum::InvalidToken(line[0].raw.clone())));
+						add_error(i, None, AssemblerErrorEnum::InvalidToken(line[0].raw.clone()));
 						continue;
 					}
 				}
 			}
-			else {
-				errors.push(AssemblerError::new(i+1, raw_lines[i].to_owned(), AssemblerErrorEnum::TokenInWrongPlace(line[0].raw.clone())));
+			else {// First token in line is not an assembly word
+				add_error(i, Some("First token in line must be an assembly word corresponding to an opcode".to_owned()), AssemblerErrorEnum::InvalidToken(line[0].raw.clone()));
 				continue;
 			};
+			let mut instruction: u16 = (opcode.id_ & 0x0Fu8) as u16;
 			// Anything after it
-			let mut full_first_byte: u8 = opcode.word.id_;// TODO: push to `out`
-			if line.len() >= 2 {
-				// Next token may be (in parens) meaning it represents 4 bits (currently only ALU instruction addressing) to be places at bits 4 - 7 in the first instruction byte
-				let next_token_index: usize = if let TokenEnum::ParenAssemblyWord(word) = &line[1].enum_ {
-					let pre_opcode_byte: AssemblyWord<4> = match config.encode_4_bit_word(AssemblerConfig4BitWords::PreOpcode, &word) {
-						Some(word) => word,
-						None => {
-							errors.push(AssemblerError::new(i+1, raw_lines[i].to_owned(), AssemblerErrorEnum::InvalidToken(line[0].raw.clone())));
+			match &opcode.name[..] {
+				"move" => {
+					// ALU opcode
+					let alu_opcode_included = match line.len() {
+						3 => false,// MOVE <source> <destination>
+						4 => true,// MOVE <ALU opcode> <source> <destination>
+						n => {
+							add_error(i, Some("There must be either 3 or 4 tokens in a `MOVE` line".to_owned()), AssemblerErrorEnum::IncorrectNumberOfTokensForOpcode{opcode: opcode.clone(), n_tokens_in_line: n});
 							continue;
 						}
 					};
-					full_first_byte |= pre_opcode_byte.id_ << 4;
-					2
-				}
-				else {
-					1
-				};
-				// Finally done w/ first byte
-				out.push(full_first_byte);
+					let alu_opcode: u8 = match alu_opcode_included {
+						true => {
+							match config.get_4_bit_assembly_word(&line[1], Assembler4BitWordContext::AluOpcode) {
+								Ok(word) => word.id_,
+								Err(err_enum) => {
+									add_error(i, None, err_enum);
+									continue;
+								}
+							}
+						},
+						false => {// default ALU opcode, TODO: warning if this instruction is moving data from the ALU
+							0x00
+						}
+					};
+					// From and to address
+					let (write_addr_token, read_addr_token): (&Token, &Token) = match alu_opcode_included {
+						true => (&line[2], &line[3]),
+						false => (&line[1], &line[2])
+					};
+					let write_addr: u8 = match config.get_4_bit_assembly_word(write_addr_token, Assembler4BitWordContext::ToBus) {
+						Ok(word) => word.id_,
+						Err(err_enum) => {
+							add_error(i, None, err_enum);
+							continue;
+						}
+					};
+					let read_addr: u8 = match config.get_4_bit_assembly_word(read_addr_token, Assembler4BitWordContext::FromBus) {
+						Ok(word) => word.id_,
+						Err(err_enum) => {
+							add_error(i, None, err_enum);
+							continue;
+						}
+					};
+					// Add to instruction
+					instruction |= (alu_opcode << 4) as u16 | (((write_addr | ((read_addr << 4) & 0xF0u8)) as u16) << 8);
+				},
+				"write" => {
+					// Check number of tokens
+					if line.len() != 3 {
+						add_error(i, None, AssemblerErrorEnum::IncorrectNumberOfTokensForOpcode{opcode, n_tokens_in_line: line.len()});
+						continue;
+					}
+					// Bits 4 - 11 raw hex value
+					let write_value_token = &line[1];
+					let write_value: u8 = if let TokenEnum::Literal{n, bit_size} = &write_value_token.enum_ {
+						if *bit_size == 8 {
+							*n
+						}
+						else {
+							add_error(i, None, AssemblerErrorEnum::HexLiteralWrongLength{correct_len_bits: 8, actual_len_bits: *bit_size as u32});
+							continue;
+						}
+					}
+					else {
+						add_error(i, None, AssemblerErrorEnum::LiteralTokenInWrongContext{token: write_value_token.clone()});
+						continue;
+					};
+					// Bus read addr
+					let read_addr_token = &line[2];
+					let read_addr: u8 = match config.get_4_bit_assembly_word(read_addr_token, Assembler4BitWordContext::FromBus) {
+						Ok(word) => word.id_,
+						Err(err_enum) => {
+							add_error(i, None, err_enum);
+							continue;
+						}
+					};
+					// Add to instruction
+					instruction |= ((write_value as u16) << 4) | ((read_addr as u16) << 12);
+				},
+				_ => {}// All other instructions don't require any additional information besides the opcode
 			}
+			// Add instruction to program
+			out.push(instruction);
 		}
 	}
 	// Done
@@ -209,29 +304,38 @@ pub fn assembler_pipeline(in_: &str, config: &AssemblerConfig) -> Result<Vec<u8>
 	}
 }
 
-/// Assembles 2 tokens after a `MOVE` instruction
-fn assemble_move_addressing_byte(tokens: [&str; 2], config: &AssemblerConfig) -> Result<u8, AssemblerErrorEnum> {
-	Ok(0u8)// TODO
+pub fn assembler_pipeline_formated_errors(in_: &str, config: &AssemblerConfig) -> Result<Vec<u16>, String> {
+	match assembler_pipeline(in_, config) {
+		Ok(program) => Ok(program),
+		Err(errors) => {
+			let mut out = String::new();
+			for error in &errors {
+				out += &error.format();
+			}
+			out += &format!("\nCould not complete assembly due to {} error(s)", errors.len());
+			// Done
+			Err(out)
+		}
+	}
 }
 
 fn tokenize(in_: &str, config: &AssemblerConfig) -> Result<Vec<Vec<Token>>, Vec<AssemblerError>> {
 	// TODO: ignore comments
 	let mut errors = Vec::<AssemblerError>::new();
-	let mut lines = Vec::<Vec<Token>>::new();
-	let mut block_comment_depth: usize = 0;// TODO: use
+	let mut token_lines = Vec::<Vec<Token>>::new();
 	for (i, line) in in_.split("\n").enumerate() {
 		let mut tokens = Vec::<Token>::new();
 		for token_raw in line.split(" ") {
 			match Token::decode(token_raw) {
 				Ok(token) => tokens.push(token),
-				Err(err_enum) => errors.push(AssemblerError::new(i+1, line.to_owned(), err_enum))
+				Err(err_enum) => errors.push(AssemblerError::new(i+1, line.to_owned(), None, err_enum))
 			}
 		}
-		lines.push(tokens);
+		token_lines.push(tokens);
 	}
 	// Done
 	if errors.len() == 0 {
-		Ok(lines)
+		Ok(token_lines)
 	}
 	else {
 		Err(errors)

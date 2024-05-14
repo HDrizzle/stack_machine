@@ -1,0 +1,186 @@
+{
+    "opcodes": [
+        {
+            "id_": 0,
+            "name": "move"
+        },
+        {
+            "id_": 1,
+            "name": "write"
+        },
+        {
+            "id_": 2,
+            "name": "goto"
+        },
+        {
+            "id_": 3,
+            "name": "goto-if"
+        },
+        {
+            "id_": 4,
+            "name": "halt"
+        },
+        {
+            "id_": 5,
+            "name": "call"
+        },
+        {
+            "id_": 6,
+            "name": "return"
+        }
+    ],
+    "alu_opcodes": [
+        {
+            "id_": 0,
+            "name": "add"
+        },
+        {
+            "id_": 1,
+            "name": "sub"
+        },
+        {
+            "id_": 2,
+            "name": "mult"
+        },
+        {
+            "id_": 3,
+            "name": "not"
+        },
+        {
+            "id_": 4,
+            "name": "or"
+        },
+        {
+            "id_": 5,
+            "name": "and"
+        },
+        {
+            "id_": 6,
+            "name": "xor"
+        },
+        {
+            "id_": 7,
+            "name": "shift-l"
+        },
+        {
+            "id_": 8,
+            "name": "shift-r"
+        },
+        {
+            "id_": 9,
+            "name": "add-overflow"
+        },
+        {
+            "id_": 10,
+            "name": "eq"
+        },
+        {
+            "id_": 11,
+            "name": "bool-eq"
+        },
+        {
+            "id_": 12,
+            "name": "greater-then"
+        },
+        {
+            "id_": 13,
+            "name": "a"
+        },
+        {
+            "id_": 14,
+            "name": "b"
+        },
+        {
+            "id_": 15,
+            "name": "add-with-carry"
+        }
+    ],
+    "to_bus": [
+        {
+            "id_": 0,
+            "name": "stack-pop"
+        },
+        {
+            "id_": 1,
+            "name": "offset-read"
+        },
+        {
+            "id_": 2,
+            "name": "alu"
+        },
+        {
+            "id_": 4,
+            "name": "GPRAM"
+        },
+        {
+            "id_": 5,
+            "name": "GPRAM-inc-addr"
+        },
+        {
+            "id_": 6,
+            "name": "GPRAM-addr-a"
+        },
+        {
+            "id_": 7,
+            "name": "GPRAM-addr-b"
+        },
+        {
+            "id_": 8,
+            "name": "GPIO-READ"
+        }
+    ],
+    "from_bus": [
+        {
+            "id_": 1,
+            "name": "stack-push"
+        },
+        {
+            "id_": 2,
+            "name": "alu-a"
+        },
+        {
+            "id_": 3,
+            "name": "alu-b"
+        },
+        {
+            "id_": 4,
+            "name": "goto-a"
+        },
+        {
+            "id_": 5,
+            "name": "goto-b"
+        },
+        {
+            "id_": 6,
+            "name": "goto-decider"
+        },
+        {
+            "id_": 7,
+            "name": "GPRAM"
+        },
+        {
+            "id_": 8,
+            "name": "GPRAM-inc-addr"
+        },
+        {
+            "id_": 9,
+            "name": "GPRAM-addr-a"
+        },
+        {
+            "id_": 10,
+            "name": "GPRAM-addr-b"
+        },
+        {
+            "id_": 11,
+            "name": "gpio-write"
+        },
+        {
+            "id_": 12,
+            "name": "offset-write"
+        },
+        {
+            "id_": 13,
+            "name": "set-stack-offset"
+        }
+    ]
+}

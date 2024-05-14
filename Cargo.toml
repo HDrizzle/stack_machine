@@ -5,6 +5,15 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+# https://stackoverflow.com/questions/26946646/package-with-both-a-library-and-a-binary
+[lib]
+name = "stack_machine"
+path = "src/lib.rs"
+
+[[bin]]
+name = "stack_machine"
+path = "src/bin.rs"
+
 [features]
 default = ["emulator_debug"]
 emulator_debug = []

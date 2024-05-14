@@ -1,7 +1,13 @@
 # Assembly language
 
-Each line in an assembly program will correspond with 1 instruction (16 bits). Lines will have the format:
+Each line in an assembly program will correspond with 1 instruction (16 bits). Lines will be split by spaces into tokens which can either be assembly words or literal hex values starting with `0x`. The order of tokens will always correspond with the order that their corresponding bits will be concatenated to form the instruction, this means that the opcode (bits 0 - 3) will always come first.
 
-`<opcode (4-bits)> <(4 or 8-bit data (optional))> <4 or 8-bit data (optional)>`
+For example:
 
-Where `opcode` must be a word in the instruction list in README. `data` may be a hexadecimal representation (like `0x0F`) or binary (like `b00001111`). The first data (4 bits) will be used for addressing ALU operations and other things (described in README), if it is not given then it defalts to `0x0`. ALU operation names can be used only if this is a bus usage instruction taking data from the ALU. The second piece data of (if needed) will consist of names of devices to write to and read from the bus.
+`WRITE 0x42 STACK-PUSH`
+
+will push the byte `0x42` onto the stack.
+
+## Comments
+
+Anything after `//` on a line will be ignored. Block comments have not been implemented yet.
