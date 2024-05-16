@@ -5,7 +5,7 @@
 Computes the first 10 fibonacci numbers and puts them into the general static-ram starting at address `0x0000`. This example is also used in one of the assembly and emulator tests.
 
 ```
-// Set sram pointer
+// Set gpram pointer
 WRITE 0x00 GPRAM-ADDR-A
 WRITE 0x00 GPRAM-ADDR-B
 
@@ -24,8 +24,8 @@ WRITE 0x00 GOTO-B// Upper byte of end addr
 WRITE 0x15 GOTO-A// Lower byte of end addr
 // Compare GPRAM pointer and limit 
 MOVE GPRAM-ADDR-A ALU-A
-WRITE 0x0A ALU-B
-MOVE (GREATER-THEN) ALU GOTO-DECIDER
+WRITE 0x0B ALU-B
+MOVE GREATER-THEN ALU GOTO-DECIDER
 GOTO-IF
 
 // Math
@@ -36,8 +36,8 @@ MOVE ADD ALU GPRAM-INC-ADDR
 MOVE ADD ALU STACK-PUSH
 
 // Goto beginning of loop
-WRITE 0x07 GOTO-A// Upper byte of start addr
-WRITE 0x00 GOTO-B// Lower byte of start addr
+WRITE 0x07 GOTO-A// Lower byte of start addr
+WRITE 0x00 GOTO-B// Upper byte of start addr
 GOTO
 
 // End

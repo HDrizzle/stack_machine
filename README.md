@@ -13,7 +13,7 @@ Here's the current list of the operation codes (opcodes):
 
 0. `MOVE` - Bus usage - The rest of the instruction will be interpreted as follows: bits 8 - 11 address the device which will set the state of the bus and bits 12 - 15 will address the device to read from it. Bits 4 - 7 are sent to the ALU as it's opcode incase the data is comming from it.
 1. `WRITE` - Writes instruction bits 4 - 11 to the bus. Bits 12 - 15 address the device to read from it.
-2. `GOTO` - Saves the 2 execution pointer GOTO latches (each of them are 1 byte) to the execution pointer
+2. `GOTO` - Saves the 2 execution pointer GOTO latches (each of them are 1 byte) to the program counter
 3. `GOTO-IF` - Reads the LSB of the value in the goto decider latch and does a GOTO only if it is 1, otherwise does nothing
 4. `HALT` - Stops the clock, usefull for debugging
 5. `CALL` - Effectively the same as `GOTO` but also pushes the return address (current value of program counter) onto the call stack. Note: The return address can be copied as-is and does not need to be incremented because it will be incremented normally after each `RETURN` instruction when it is used.
@@ -24,17 +24,17 @@ Here's the current list of the operation codes (opcodes):
 Up to 15 devices can read the bus and 16 write to it.
 Devices that can read the bus:
 
-0. `NONE` - Nothing reads this so that bytes can be poped from the stack without them going anywhere.
+0. `NONE` - Nothing reads this so that bytes can be popped from the stack without them going anywhere.
 1. `STACK-PUSH` - Stack controller (Push)
 2. `ALU-A` - ALU latch A
 3. `ALU-B` - ALU latch B
-4. `GOTO-A` - Control unit - Execution pointer GOTO latch A (first byte)
-5. `GOTO-B` - Control unit - Execution pointer GOTO latch B (second byte)
+4. `GOTO-A` - Control unit - Program counter GOTO latch A (first byte)
+5. `GOTO-B` - Control unit - Program counter GOTO latch B (second byte)
 6. `GOTO-DECIDER` - Control unit - GOTO decider latch (For GOTO-IF)
 7. `GPRAM` - GPRAM - Write
 8. `GPRAM-INC-ADDR` - GPRAM - Write (++ address)
-9. `GPRAM-ADDR-A` - GPRAM - Address latch A
-10. `GPRAM-ADDR-B` - GPRAM - Address latch B
+9. `GPRAM-ADDR-A` - GPRAM - Address bits 0 - 7
+10. `GPRAM-ADDR-B` - GPRAM - Address bits 8 - 15
 11. `GPIO-WRITE` - Writes to GPIO output pins
 12. `OFFSET-WRITE` - Replaces value in stack at `ToS - offset`
 13. `SET-STACK-OFFSET` - Sets the stack offset byte
@@ -61,7 +61,7 @@ The stack will simply be a piece of memory seperate from the program memory and 
 There will be two ways to access the stack:
 
 1. Push and Pop
-2. Using the current stack frame pointer - stck offset (`STACK-OFFSET-WRITE` and `STACK-OFFSET-READ`) (does not change ToS). The stack offset will be a 1-byte number set from the bus (`SET-STACK-OFFSET`) and will not affect pushes and pops.
+2. Using the current ToS pointer - stack offset (`OFFSET-WRITE` and `OFFSET-READ`) (does not change ToS). The stack offset will be a 1-byte number set from the bus (`SET-STACK-OFFSET`) and will not affect pushes and pops.
 
 # Call stack
 

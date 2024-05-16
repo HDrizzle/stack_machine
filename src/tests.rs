@@ -47,7 +47,7 @@ MOVE OFFSET-READ GPRAM-INC-ADDR
 WRITE 0x00 GOTO-B
 WRITE 0x15 GOTO-A
 MOVE GPRAM-ADDR-A ALU-A
-WRITE 0x0A ALU-B
+WRITE 0x0B ALU-B
 MOVE GREATER-THEN ALU GOTO-DECIDER
 GOTO-IF
 MOVE STACK-POP ALU-A
@@ -79,8 +79,8 @@ HALT";
 		0x5001,// End pointer part B
 		0x4151,// end pointer: 21 or 0x15
 		0x2600,// MOVE GPRAM-ADDR-A ALU-A
-		0x30A1,// WRITE 0x0A ALU-B
-		0x62C0,// MOVE (GREATER-THEN) ALU GOTO-DECIDER
+		0x30B1,// WRITE 0x0B ALU-B
+		0x62C0,// MOVE GREATER-THEN ALU GOTO-DECIDER
 		0x0003,// GOTO-IF
 		// Math
 		0x2000,
@@ -100,5 +100,5 @@ HALT";
 	let mut machine = Machine::new(program);
 	machine.run(|_| -> u8 {0x00}).unwrap();
 	// Check for fibonacci sequence in GPRAM
-	assert_eq!(machine.general_mem[0..9], [1, 1, 2, 3, 5, 8, 13, 21, 34]);
+	assert_eq!(machine.general_mem[0..10], [1, 1, 2, 3, 5, 8, 13, 21, 34, 55]);
 }
