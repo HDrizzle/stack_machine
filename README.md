@@ -51,9 +51,6 @@ Devices that can set the state of (write to) the bus:
 7. `GPRAM-ADDR-B` - GPRAM - Address bits 8 - 15
 8. `GPIO-READ` - Reads GPIO input pins
 
-First iteration of how the bus timing will work
-<img src="images/bus_timing_drawing.jpg"></img>
-
 # The Stack
 
 The stack will simply be a piece of memory seperate from the program memory and managed by hardware.
