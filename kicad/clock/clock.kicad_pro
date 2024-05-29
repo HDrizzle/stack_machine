@@ -239,7 +239,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "cad.kicad_pro",
+    "filename": "clock.kicad_pro",
     "version": 1
   },
   "net_settings": {
@@ -383,7 +383,7 @@
   },
   "sheets": [
     [
-      "20dc4252-637c-4a67-bc8f-a96a5b14afcf",
+      "fbc1e8a9-03ae-4e71-b7bf-bc3afbbe9077",
       "Root"
     ]
   ],
