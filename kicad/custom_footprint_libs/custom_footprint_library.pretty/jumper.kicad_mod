@@ -78,6 +78,16 @@
 		(uuid "9b76a2c5-9382-4549-84c9-8d24ce1a8046")
 	)
 	(fp_line
+		(start -4.318 -2.54)
+		(end -3.302 -2.54)
+		(stroke
+			(width 0.2)
+			(type default)
+		)
+		(layer "F.Cu")
+		(uuid "1f4db6cb-092f-4e29-bee1-f415272e4618")
+	)
+	(fp_line
 		(start 3.302 -5.08)
 		(end 6.858 -5.08)
 		(stroke
@@ -86,6 +96,28 @@
 		)
 		(layer "F.Cu")
 		(uuid "c8e5df5f-d035-4597-86cc-d09e7d71d1d3")
+	)
+	(fp_rect
+		(start -5.08 -7.62)
+		(end 7.62 0)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(fill none)
+		(layer "F.SilkS")
+		(uuid "864a7a74-d340-4f04-a45a-a4d566c44ccc")
+	)
+	(fp_rect
+		(start -5.08 -7.62)
+		(end 7.62 0)
+		(stroke
+			(width 0.05)
+			(type default)
+		)
+		(fill none)
+		(layer "F.CrtYd")
+		(uuid "da988134-8141-4002-8ea9-9c834299c357")
 	)
 	(fp_text user "${REFERENCE}"
 		(at 0 2.5 0)
@@ -98,6 +130,14 @@
 				(thickness 0.15)
 			)
 		)
+	)
+	(pad "" thru_hole circle
+		(at -2.54 -2.54)
+		(size 1.524 1.524)
+		(drill 0.762)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "75a34e9b-34b7-4e86-86ef-eff31f7e686f")
 	)
 	(pad "" thru_hole circle
 		(at 0 -5.08)
@@ -138,33 +178,5 @@
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 		(uuid "d18fac95-65b6-4fde-85c2-01dc7f362d05")
-	)
-	(zone
-		(net 0)
-		(net_name "")
-		(layer "F.CrtYd")
-		(uuid "d272a36e-b915-48d0-89a0-06a783003558")
-		(hatch edge 0.5)
-		(connect_pads
-			(clearance 0)
-		)
-		(min_thickness 0.25)
-		(filled_areas_thickness no)
-		(keepout
-			(tracks not_allowed)
-			(vias not_allowed)
-			(pads not_allowed)
-			(copperpour allowed)
-			(footprints not_allowed)
-		)
-		(fill
-			(thermal_gap 0.5)
-			(thermal_bridge_width 0.5)
-		)
-		(polygon
-			(pts
-				(xy -5.08 -7.62) (xy 7.62 -7.62) (xy 7.62 0) (xy -5.08 0)
-			)
-		)
 	)
 )

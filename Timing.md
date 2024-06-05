@@ -13,7 +13,7 @@ Various devices in the computer will interact with each other using strictly dif
 
 ## Control unit
 
-The control unit will use the A clock to send information
+The control unit will use the A clock to communicate with the bus arbiter
 
 1. Load instruction into instruction register
 
@@ -25,9 +25,9 @@ The call stack will use the B clock
 
 | Line(s) | Controlled by | Clock set | Read by | Clock read |
 | - | - | - | - | - |
-| Write | Control unit | A | Writing device | B |
-| Read | Control unit and `Read ready` signal | B | Reading device | A |
-| Read ready | Writing device | B | Control unit | - |
+| Write | Bus arbiter | A | Writing device | B |
+| Read | Bus arbiter | B | Reading device | A |
+| Read ready | Writing device | B | Bus arbiter | - |
 | D0 - D7 | Writing device | B | Reading device | A |
 
 <img src="images/bus_timing.png"></img>
@@ -37,13 +37,3 @@ The call stack will use the B clock
 All instructions are meant to take the same amount of cycles except for `MOVE` which could take arbitrarily long depending on the sending device.
 
 1. Load & latch instruction into instruction register
-
-## Stack controller internal timing
-
-### Pop
-
-1. Select memory chip, enable memory output, clock current pointer into adder input latch(es)
-2. Clock mem-bus value into output latch, enable latch output, set bus read ready high, set pointer arithmetic to decrement
-3. Disable memory output, clock new pointer value into pointer latch(es)
-4. Set bus read ready low
-
