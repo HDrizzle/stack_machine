@@ -1644,8 +1644,8 @@
 					)
 				)
 			)
-			(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x22_P2.54mm_Vertical"
-				(at -0.254 -28.194 0)
+			(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x23_P2.54mm_Vertical"
+				(at -0.254 -31.242 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -1674,7 +1674,7 @@
 			(symbol "bus_edge_connector_0_1"
 				(rectangle
 					(start -8.89 27.94)
-					(end 8.89 -25.4)
+					(end 8.89 -27.94)
 					(stroke
 						(width 0)
 						(type default)
@@ -1956,6 +1956,24 @@
 						)
 					)
 					(number "22"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin bidirectional line
+					(at -11.43 -26.67 0)
+					(length 2.54)
+					(name "SET"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "23"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -5351,6 +5369,10 @@
 		(uuid "6b5296a3-7b4d-408d-9801-4c2aea8648d4")
 	)
 	(no_connect
+		(at 115.57 210.82)
+		(uuid "86b99bb1-6c7f-4427-8635-e67201c6005a")
+	)
+	(no_connect
 		(at 167.64 281.94)
 		(uuid "886424f8-aac8-4f5a-803b-62bedf709dc8")
 	)
@@ -7374,16 +7396,6 @@
 	)
 	(wire
 		(pts
-			(xy 115.57 210.82) (xy 115.57 213.36)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "298a7eb3-03f2-47f4-861e-242c68f93690")
-	)
-	(wire
-		(pts
 			(xy 289.56 294.64) (xy 287.02 294.64)
 		)
 		(stroke
@@ -7841,6 +7853,16 @@
 			(type default)
 		)
 		(uuid "355c6118-1346-4724-957e-ca5959d1acd0")
+	)
+	(wire
+		(pts
+			(xy 115.57 213.36) (xy 118.11 213.36)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3562ade8-49be-4c5d-96b5-9f04d6ad5bd5")
 	)
 	(wire
 		(pts
@@ -12804,6 +12826,16 @@
 	)
 	(wire
 		(pts
+			(xy 118.11 213.36) (xy 118.11 210.82)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a69dbf7c-d349-49bd-b415-3c2b968087c0")
+	)
+	(wire
+		(pts
 			(xy 166.37 217.17) (xy 490.22 217.17)
 		)
 		(stroke
@@ -14584,7 +14616,7 @@
 	)
 	(wire
 		(pts
-			(xy 170.18 210.82) (xy 115.57 210.82)
+			(xy 170.18 210.82) (xy 118.11 210.82)
 		)
 		(stroke
 			(width 0)
@@ -17207,7 +17239,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 369.57 265.43 0)
 			(effects
 				(font
@@ -17279,7 +17311,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 158.75 252.73 0)
 			(effects
 				(font
@@ -17383,7 +17415,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 354.33 314.96 0)
 			(effects
 				(font
@@ -17453,7 +17485,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 369.57 257.81 0)
 			(effects
 				(font
@@ -17524,7 +17556,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 344.17 237.49 0)
 			(effects
 				(font
@@ -17596,7 +17628,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 279.4 294.64 0)
 			(effects
 				(font
@@ -17700,7 +17732,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 369.57 261.62 0)
 			(effects
 				(font
@@ -17772,7 +17804,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 170.18 125.73 0)
 			(effects
 				(font
@@ -17895,7 +17927,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 195.58 127 0)
 			(effects
 				(font
@@ -18006,7 +18038,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 414.02 121.92 0)
 			(effects
 				(font
@@ -18116,7 +18148,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 455.93 115.57 0)
 			(effects
 				(font
@@ -18202,7 +18234,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 354.33 311.15 0)
 			(effects
 				(font
@@ -18274,7 +18306,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 358.14 179.07 0)
 			(effects
 				(font
@@ -18385,7 +18417,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 419.1 243.84 0)
 			(effects
 				(font
@@ -18490,7 +18522,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 220.98 116.84 0)
 			(effects
 				(font
@@ -18593,14 +18625,14 @@
 		(fields_autoplaced yes)
 		(uuid "69f82be4-9681-483b-8053-a7ad5ddff387")
 		(property "Reference" "U5"
-			(at 104.14 209.55 0)
+			(at 104.14 207.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 113.03 246.38 0)
 			(effects
 				(font
@@ -18608,8 +18640,8 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x22_P2.54mm_Vertical"
-			(at 104.394 209.296 0)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x23_P2.54mm_Vertical"
+			(at 104.394 206.248 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -18701,6 +18733,9 @@
 		(pin "22"
 			(uuid "6e8fca7a-8620-4d62-bb7b-4fb9751d7c3c")
 		)
+		(pin "23"
+			(uuid "4d05450e-ca0c-456b-8fea-31de57ba5977")
+		)
 		(instances
 			(project "stack_controller"
 				(path "/20dc4252-637c-4a67-bc8f-a96a5b14afcf"
@@ -18728,7 +18763,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 344.17 233.68 0)
 			(effects
 				(font
@@ -18799,7 +18834,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 440.69 198.12 0)
 			(effects
 				(font
@@ -18904,7 +18939,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 246.38 106.68 0)
 			(effects
 				(font
@@ -19015,7 +19050,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 419.1 185.42 0)
 			(effects
 				(font
@@ -19161,7 +19196,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 344.17 245.11 0)
 			(effects
 				(font
@@ -19233,7 +19268,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 271.78 96.52 0)
 			(effects
 				(font
@@ -19344,7 +19379,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 231.14 327.66 0)
 			(effects
 				(font
@@ -19467,7 +19502,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 204.47 175.26 0)
 			(effects
 				(font
@@ -19578,7 +19613,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 238.76 175.26 0)
 			(effects
 				(font
@@ -19688,7 +19723,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 344.17 229.87 0)
 			(effects
 				(font
@@ -19760,7 +19795,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 356.87 158.75 0)
 			(effects
 				(font
@@ -19870,7 +19905,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 344.17 241.3 0)
 			(effects
 				(font
@@ -19942,7 +19977,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 250.19 137.16 0)
 			(effects
 				(font
@@ -20065,7 +20100,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 180.34 194.31 0)
 			(effects
 				(font
@@ -20188,7 +20223,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 260.35 267.97 0)
 			(effects
 				(font
@@ -20293,7 +20328,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 355.6 138.43 0)
 			(effects
 				(font
@@ -20404,7 +20439,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 156.21 105.41 0)
 			(effects
 				(font
@@ -20526,7 +20561,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 369.57 273.05 0)
 			(effects
 				(font
@@ -20597,7 +20632,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 369.57 276.86 0)
 			(effects
 				(font
@@ -20669,7 +20704,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 273.05 175.26 0)
 			(effects
 				(font
@@ -20780,7 +20815,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 298.45 105.41 0)
 			(effects
 				(font
@@ -20903,7 +20938,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 471.17 180.34 0)
 			(effects
 				(font
@@ -21026,7 +21061,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 354.33 118.11 0)
 			(effects
 				(font
@@ -21137,7 +21172,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 419.1 157.48 0)
 			(effects
 				(font
@@ -21283,7 +21318,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 369.57 269.24 0)
 			(effects
 				(font
@@ -21354,7 +21389,7 @@
 				)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 476.25 152.4 0)
 			(effects
 				(font
@@ -21477,7 +21512,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 156.21 280.67 0)
 			(effects
 				(font
@@ -21582,7 +21617,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 308.61 175.26 0)
 			(effects
 				(font
@@ -21693,7 +21728,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 182.88 327.66 0)
 			(effects
 				(font
@@ -21816,7 +21851,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 193.04 271.78 0)
 			(effects
 				(font
