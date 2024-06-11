@@ -1,6 +1,6 @@
 # Overview
 
-This is the design and specifications for an 8-bit stack-based computer processor designed to support programming in Reverse Polish Notation (RPN). The computer has a LIFO (Last In First Out) stack which stores individual bytes. The Top of Stack (ToS) will be a 16-bit number which can be incremented and decremented for Pushes and Pops. It will also be possible to read/write the stack below the ToS. There will be another piece of memory, the general purpose static-RAM (GPRAM), that will be sort of like the heap and can be written to and read from without hardware protection.
+This is the design and specifications for an 8-bit stack-based computer processor designed to support programming in Reverse Polish Notation (RPN). The computer has a LIFO (Last In First Out) stack which stores individual bytes. The Top of Stack (ToS) will be a 16-bit pointer which can be incremented and decremented for Pushes and Pops. It will also be possible to read/write the stack below the ToS. There will be another piece of memory, the general purpose static-RAM (GPRAM), that will be sort of like the heap and can be written to and read from without hardware protection.
 I got the idea for this from my 1989 HP 48SX calculator which also uses RPN.
 
 <img src="images/main_block_diagram.png"></img>

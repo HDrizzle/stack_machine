@@ -11,12 +11,6 @@ There will be 3 clock signals: A, B, and combined (ORed). They can all be descri
 
 Various devices in the computer will interact with each other using strictly different clocks (A and B) so as to make it simple to prevent race conditions. Devices' internal logic can be run on the combined clock if necessary to make it faster.
 
-## Control unit
-
-The control unit will use the A clock to communicate with the bus arbiter
-
-1. Load instruction into instruction register
-
 ## Call stack
 
 The call stack will use the B clock
