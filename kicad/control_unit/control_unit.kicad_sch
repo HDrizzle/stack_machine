@@ -1461,8 +1461,8 @@
 					)
 				)
 			)
-			(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x23_P2.54mm_Vertical"
-				(at 0.254 -23.368 0)
+			(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x22_P2.54mm_Vertical"
+				(at 0.254 -19.558 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -1491,7 +1491,7 @@
 			(symbol "control_unit_to_call_stack_0_1"
 				(rectangle
 					(start -8.89 19.05)
-					(end 8.89 -20.32)
+					(end 8.89 -17.78)
 					(stroke
 						(width 0)
 						(type default)
@@ -1765,24 +1765,6 @@
 				(pin bidirectional line
 					(at -11.43 -16.51 0)
 					(length 2.54)
-					(name "B_CLK"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-					(number "22"
-						(effects
-							(font
-								(size 0.762 0.762)
-							)
-						)
-					)
-				)
-				(pin bidirectional line
-					(at -11.43 -19.05 0)
-					(length 2.54)
 					(name "OE"
 						(effects
 							(font
@@ -1790,7 +1772,7 @@
 							)
 						)
 					)
-					(number "23"
+					(number "22"
 						(effects
 							(font
 								(size 0.762 0.762)
@@ -9109,15 +9091,14 @@
 		(dnp no)
 		(uuid "573b9d9d-ebf4-4eb3-a8ac-dc0faf54f60e")
 		(property "Reference" "U3"
-			(at 138.43 269.8751 0)
+			(at 147.574 265.938 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
 			)
 		)
-		(property "Value" "~"
+		(property "Value" ""
 			(at 157.48 275.59 0)
 			(effects
 				(font
@@ -9125,8 +9106,8 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x23_P2.54mm_Vertical"
-			(at 148.336 247.142 0)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x22_P2.54mm_Vertical"
+			(at 148.336 250.952 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9217,9 +9198,6 @@
 		)
 		(pin "15"
 			(uuid "901a75c2-099e-408f-aa0f-934b5285ff46")
-		)
-		(pin "23"
-			(uuid "bed4c144-3f76-4653-a1ec-66023cf71c8d")
 		)
 		(instances
 			(project "control_unit"
