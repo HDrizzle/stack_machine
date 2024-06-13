@@ -4886,8 +4886,8 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x23_P2.54mm_Vertical"
-			(at 0.254 -21.844 0)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x24_P2.54mm_Vertical"
+			(at 0.254 -24.13 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4916,7 +4916,7 @@
 		(symbol "control_unit_to_call_stack_0_1"
 			(rectangle
 				(start -8.89 19.05)
-				(end 8.89 -20.32)
+				(end 8.89 -22.86)
 				(stroke
 					(width 0)
 					(type default)
@@ -4932,24 +4932,6 @@
 				(effects
 					(font
 						(size 1.27 1.27)
-					)
-				)
-			)
-			(pin bidirectional line
-				(at -11.43 -19.05 0)
-				(length 2.54)
-				(name "FAULT"
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-				(number ""
-					(effects
-						(font
-							(size 0.762 0.762)
-						)
 					)
 				)
 			)
@@ -5208,7 +5190,7 @@
 			(pin bidirectional line
 				(at -11.43 -16.51 0)
 				(length 2.54)
-				(name "OE"
+				(name "B_CLK"
 					(effects
 						(font
 							(size 1.016 1.016)
@@ -5216,6 +5198,42 @@
 					)
 				)
 				(number "22"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at -11.43 -19.05 0)
+				(length 2.54)
+				(name "OE"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "23"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at -11.43 -21.59 0)
+				(length 2.54)
+				(name "FAULT"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "24"
 					(effects
 						(font
 							(size 0.762 0.762)

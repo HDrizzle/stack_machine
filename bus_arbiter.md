@@ -50,7 +50,7 @@ Wavedrom source for delayed bus transfer
     {name: "Done", wave: "l.........h.l", node: "..........c"},
     {},
     {name: "Data save latch clock", wave: "l.....pl....."},
-    {name: "Data save latch output enable", wave: "l........h.l."},
+    {name: "Data save latch OE", wave: "l........h.l."},
     {},
     {name: "Read", wave: "l........h.l.", node: ".........e"},
     {name: "Write", wave: "l.h.....l...."},
