@@ -1,5 +1,5 @@
 //! Functionality to turn assembly into binary
-use std::fmt::Debug;
+use std::{fmt::Debug, fs};
 use serde::{Serialize, Deserialize};
 use hex;
 use serde_json::error;
@@ -340,4 +340,26 @@ fn tokenize(in_: &str, config: &AssemblerConfig) -> Result<Vec<Vec<Token>>, Vec<
 	else {
 		Err(errors)
 	}
+}
+
+/// Attempts to run assembler on given file in `assembly_sources`
+pub fn assemble_file(name: &str, assembler_config: &AssemblerConfig) -> Result<(), String> {
+	let path: String = resources::ASSEMBLY_SOURCES_DIR.to_owned() + name;
+	let file_raw = to_string_err(fs::read_to_string(&path))?;
+	match assembler_pipeline_formated_errors(&file_raw, assembler_config) {
+		Ok(program) => {
+			// Format list of numbers in decimal
+			let mut num_list = String::new();
+			for (i, n) in program.iter().enumerate() {
+				num_list += &format!("{}", n);
+				if i < program.len() - 1 {
+					num_list += ",";
+				}
+			}
+			// Put in file
+			to_string_err(fs::write(resources::OUTPUT_DIR.to_owned() + name + ".dec_list", &num_list))?;
+		},
+		Err(s) => println!("{}", s)
+	}
+	Ok(())
 }

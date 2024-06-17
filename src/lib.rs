@@ -41,6 +41,27 @@ pub fn ui_main() {
 			"-assemble" => {
 				println!("Not implemented");
 			},
+			"-assemble-line" => {
+				if args.len() < 3 {
+					println!("Plz include single line of assembly");
+				}
+				else {
+					let assembler_config = resources::load_assembler_config().expect("Unable to load assembler config");
+					match assembler::assembler_pipeline_formated_errors(&args[2..].join(" "), &assembler_config) {
+						Ok(program) => println!("Instruction: {}, {:#X}, {:#018b}", program[0], program[0], program[0]),
+						Err(s) => panic!("{}", s)
+					};
+				}
+			},
+			"-assemble-file" => {
+				if args.len() < 3 {
+					println!("Plz include name of file in `/assembly_sources`");
+				}
+				else {
+					let assembler_config = resources::load_assembler_config().expect("Unable to load assembler config");
+					assembler::assemble_file(&args[2], &assembler_config).unwrap();
+				}
+			},
 			"-compile" => {
 				println!("Not implemented");
 			},

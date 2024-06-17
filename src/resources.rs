@@ -6,6 +6,8 @@ use serde_json;
 use crate::prelude::*;
 
 const ASSEMBLER_CONFIG_DIR: &str = "assembler_config/";
+pub const ASSEMBLY_SOURCES_DIR: &str = "assembly_sources/";
+pub const OUTPUT_DIR: &str = "out/";
 
 pub fn load_assembler_config() -> Result<AssemblerConfig, String> {
     let path = format!("{}/config.json", ASSEMBLER_CONFIG_DIR);

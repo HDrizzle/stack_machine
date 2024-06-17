@@ -49,7 +49,8 @@ impl MachineComponent for StackController {
 
 pub struct ALU {
 	pub latch_a: u8,
-	pub latch_b: u8
+	pub latch_b: u8,
+	pub latch_c: u8
 }
 
 impl ALU {
@@ -84,20 +85,26 @@ impl ALU {
 			8 => {// shift R
 				b >> 1
 			},
-			10 => {// EQ
+			9 => {// EQ
 				(a == b) as u8
 			},
-			11 => {// BOOL-EQ (only uses LSB)
+			10 => {// BOOL-EQ (only uses LSB)
 				!((a & 0x01) ^ (b & 0x01))
 			},
-			12 => {// >
+			11 => {// >
 				(a > b) as u8
 			},
-			13 => {// A
+			12 => {// A
 				a
 			},
-			14 => {// B
+			13 => {// B
 				b
+			},
+			14 => {// C
+				(((a as u16) + (b as u16)) > 255) as u8
+			},
+			15 => {// TWOS-COMP
+				a.wrapping_neg()
 			},
 			_ => return Err(EmulationErrorEnum::InvalidAluOpcode(opcode))
 		})
@@ -108,7 +115,8 @@ impl MachineComponent for ALU {
 	fn new() -> Self {
 		Self {
 			latch_a: 0,
-			latch_b: 0
+			latch_b: 0,
+			latch_c: 0
 		}
 	}
 }
@@ -292,6 +300,9 @@ impl Machine {
 			},
 			13 => {// SET-STACK-OFFSET
 				self.stack_controller.offset = bus_value;
+			},
+			14 => {// ALU-C-IN
+				self.alu.latch_c = bus_value;
 			},
 			_ => return Err(EmulationErrorEnum::InvalidBusReadAddr(read_addr))
 		}

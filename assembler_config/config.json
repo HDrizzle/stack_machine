@@ -68,31 +68,31 @@
         },
         {
             "id_": 9,
-            "name": "add-overflow"
-        },
-        {
-            "id_": 10,
             "name": "eq"
         },
         {
-            "id_": 11,
+            "id_": 10,
             "name": "bool-eq"
         },
         {
-            "id_": 12,
+            "id_": 11,
             "name": "greater-then"
         },
         {
-            "id_": 13,
+            "id_": 12,
             "name": "a"
         },
         {
-            "id_": 14,
+            "id_": 13,
             "name": "b"
         },
         {
+            "id_": 14,
+            "name": "c"
+        },
+        {
             "id_": 15,
-            "name": "add-with-carry"
+            "name": "twos-comp"
         }
     ],
     "to_bus": [

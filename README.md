@@ -38,6 +38,7 @@ Devices that can read the bus:
 11. `GPIO-WRITE` - Writes to GPIO output pins
 12. `OFFSET-WRITE` - Replaces value in stack at `ToS - offset`
 13. `SET-STACK-OFFSET` - Sets the stack offset byte
+14. `ALU-C-IN` - ALU latch for carry and borrow
 
 Devices that can set the state of (write to) the bus:
 
@@ -79,13 +80,13 @@ The ALU uses 2 8-bit latches for input and has 1 output. The specific operation 
 6. `XOR` - Botwise XOR
 7. `SHIFT-L` - Bitshift Left (latch A)
 8. `SHIFT-R` - Bitshift Right (latch A)
-9. `ADD-OVERFLOW` - Whether adding will overflow
-10. `EQ` - Whether bytes are equal
-11. `BOOL-EQ` - Whether the LSBs are equal
-12. `GREATER-THEN` - Whether A > B
-13. `A` - Contents of A latch
-14. `B` - Contents of B latch
-15. `ADD-WITH-CARRY` - Add with incomming carry bit set to 1
+9. `EQ` - Whether bytes are equal
+10. `BOOL-EQ` - Whether the LSBs are equal
+11. `GREATER-THEN` - Whether A > B
+12. `A` - Contents of A latch
+13. `B` - Contents of B latch
+14. `C` - Addition carry
+15. `TWOS-COMP` - Convert to 2's complement (latch A)
 
 # Flow Control
 

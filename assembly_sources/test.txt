@@ -1,0 +1,6 @@
+write 0x01 goto-a
+write 0x00 goto-b
+move gpio-read alu-a
+move gpio-read alu-b
+move add alu gpio-write
+goto
