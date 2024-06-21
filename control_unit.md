@@ -24,7 +24,7 @@ Wavedrom source:
     {name: "Begin cycle", wave: "h.l......|h", node: "..........d"},
     {name: "Pre-adder latch CLK", wave: "h.l.......h"},
     {name: "Post-adder latch CLK", wave: "lpl........"},
-    {name: "Post-adder latch enable", wave: "lh.l......."},
+    {name: "Post-adder latch OE", wave: "lh.l......."},
     {name: "Memory read", wave: "lh.l.......", node: "..a"},
     {name: "Memory read done", wave: "l..|h.l....", node: "....b"},
     {},
@@ -93,7 +93,7 @@ These 2 instructions are performed identically by the control unit timing logic.
     {name: "Pre-adder latch CLK", wave: "l.h.l"},
     {name: "Begin instruction sequence (GOTO)", wave: "h.l.."},
     {},
-    {name: "GOTO latches OE", wave: "lh.l."}
+    {name: "GOTO latches OE", wave: "lhpl."}
   ],
   edge: []
 }
@@ -112,8 +112,8 @@ These 2 instructions are performed identically by the control unit timing logic.
     {name: "Pre-adder latch CLK", wave: "l.h.l"},
     {name: "Begin instruction sequence (GOTO-IF)", wave: "h.l.."},
     {},
-    {name: "GOTO latches OE", wave: "l2.l.", data: ["DECIDER"]},
-    {name: "Post-adder latch OE", wave: "l2.l.", data: ["!DECIDER"]}
+    {name: "GOTO latches OE", wave: "l2pl.", data: ["DECIDER"]},
+    {name: "Post-adder latch OE", wave: "l2pl.", data: ["!DECIDER"]}
   ],
   edge: []
 }
@@ -154,7 +154,7 @@ These 2 instructions are performed identically by the control unit timing logic.
     {},
     {name: "Post-adder latch OE", wave: "lh.l..."},
     {name: "Call stack - Push", wave: "lh.l..."},
-    {name: "GOTO latches OE", wave: "l..h.l."}
+    {name: "GOTO latches OE", wave: "l..npl."}
   ],
   edge: []
 }
@@ -173,8 +173,8 @@ These 2 instructions are performed identically by the control unit timing logic.
     {name: "Pre-adder latch CLK", wave: "l.h.l"},
     {name: "Begin instruction sequence (RETURN)", wave: "h.l.."},
     {},
-    {name: "Call stack - Pop", wave: "lh.l."},
-    {name: "Call stack - OE", wave: "lh.l."}
+    {name: "Call stack - Pop", wave: "lhpl."},
+    {name: "Call stack - OE", wave: "lhpl."}
   ],
   edge: []
 }

@@ -2,7 +2,6 @@
 use std::{fmt::Debug, fs};
 use serde::{Serialize, Deserialize};
 use hex;
-use serde_json::error;
 
 use crate::prelude::*;
 
@@ -319,7 +318,7 @@ pub fn assembler_pipeline_formated_errors(in_: &str, config: &AssemblerConfig) -
 	}
 }
 
-fn tokenize(in_: &str, config: &AssemblerConfig) -> Result<Vec<Vec<Token>>, Vec<AssemblerError>> {
+fn tokenize(in_: &str, _config: &AssemblerConfig) -> Result<Vec<Vec<Token>>, Vec<AssemblerError>> {
 	// TODO: ignore comments
 	let mut errors = Vec::<AssemblerError>::new();
 	let mut token_lines = Vec::<Vec<Token>>::new();

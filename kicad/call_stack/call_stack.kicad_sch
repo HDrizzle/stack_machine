@@ -9962,7 +9962,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x24_P2.54mm_Vertical"
-			(at 329.184 123.444 0)
+			(at 329.184 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10152,21 +10152,21 @@
 		(fields_autoplaced yes)
 		(uuid "314d6e6e-8bba-4d6e-8317-4c82dbb3c6b1")
 		(property "Reference" "U11"
-			(at 140.0459 73.66 0)
+			(at 144.5581 73.66 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 		(property "Value" "~"
-			(at 140.0459 76.2 0)
+			(at 144.5581 76.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-20_W7.62mm"
@@ -10276,7 +10276,7 @@
 		(fields_autoplaced yes)
 		(uuid "3d12c820-e897-49b2-bb48-9f159132cebd")
 		(property "Reference" "U7"
-			(at 257.81 129.9562 90)
+			(at 279.4 121.3798 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10284,7 +10284,7 @@
 			)
 		)
 		(property "Value" "~"
-			(at 257.81 128.0511 90)
+			(at 279.4 123.2849 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10399,21 +10399,21 @@
 		(fields_autoplaced yes)
 		(uuid "4450e89e-2b11-4317-a1e4-5e2421532c48")
 		(property "Reference" "U2"
-			(at 170.5259 62.23 0)
+			(at 175.7365 62.23 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 		(property "Value" "~"
-			(at 170.5259 64.77 0)
+			(at 175.7365 64.77 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-16_W7.62mm"
@@ -10660,21 +10660,21 @@
 		(fields_autoplaced yes)
 		(uuid "4e17184f-60c2-4a28-86bf-d08b79829b82")
 		(property "Reference" "U3"
-			(at 214.9759 63.5 0)
+			(at 219.4881 63.5 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 		(property "Value" "~"
-			(at 214.9759 66.04 0)
+			(at 219.4881 66.04 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-20_W7.62mm"
@@ -10785,7 +10785,7 @@
 		(fields_autoplaced yes)
 		(uuid "568183f8-4baf-4fe6-9d2e-6e28ae3106f1")
 		(property "Reference" "U5"
-			(at 254.9241 73.66 0)
+			(at 254.9241 45.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10794,7 +10794,7 @@
 			)
 		)
 		(property "Value" "~"
-			(at 254.9241 71.12 0)
+			(at 254.9241 48.26 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11147,7 +11147,7 @@
 		(fields_autoplaced yes)
 		(uuid "65ba41a9-a691-4fa8-a26f-5c73584c790d")
 		(property "Reference" "U8"
-			(at 280.67 121.5038 90)
+			(at 302.26 121.5038 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11155,7 +11155,7 @@
 			)
 		)
 		(property "Value" "~"
-			(at 280.67 123.4089 90)
+			(at 302.26 123.4089 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11270,21 +11270,21 @@
 		(fields_autoplaced yes)
 		(uuid "758b76cd-8579-494f-b009-b267ec366f33")
 		(property "Reference" "U10"
-			(at 189.5759 77.47 0)
+			(at 194.7865 77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 		(property "Value" "~"
-			(at 189.5759 80.01 0)
+			(at 194.7865 80.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
+				(justify right)
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-16_W7.62mm"
@@ -11949,7 +11949,7 @@
 		(fields_autoplaced yes)
 		(uuid "d270d02a-8377-4ec7-bb9a-5921690a31db")
 		(property "Reference" "U9"
-			(at 280.67 85.5062 90)
+			(at 302.26 76.9298 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11957,7 +11957,7 @@
 			)
 		)
 		(property "Value" "~"
-			(at 280.67 83.6011 90)
+			(at 302.26 78.8349 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12567,7 +12567,7 @@
 		(fields_autoplaced yes)
 		(uuid "fd1fa316-b967-4ecb-8cf2-4e6d2ed057fe")
 		(property "Reference" "U6"
-			(at 257.81 77.0538 90)
+			(at 279.4 77.0538 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12575,7 +12575,7 @@
 			)
 		)
 		(property "Value" "~"
-			(at 257.81 78.9589 90)
+			(at 279.4 78.9589 90)
 			(effects
 				(font
 					(size 1.27 1.27)

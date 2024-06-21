@@ -3664,7 +3664,7 @@
 			(pin bidirectional line
 				(at 10.16 -10.16 180)
 				(length 2.54)
-				(name "Set"
+				(name "Start"
 					(effects
 						(font
 							(size 1.016 1.016)
@@ -3845,8 +3845,8 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x22_P2.54mm_Vertical"
-			(at -0.254 -31.242 0)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x23_P2.54mm_Vertical"
+			(at -0.508 -28.448 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3875,7 +3875,7 @@
 		(symbol "bus_edge_connector_0_1"
 			(rectangle
 				(start -8.89 27.94)
-				(end 8.89 -25.4)
+				(end 8.89 -26.67)
 				(stroke
 					(width 0)
 					(type default)
@@ -4152,14 +4152,32 @@
 				(name "FAULT"
 					(effects
 						(font
-							(size 1.27 1.27)
+							(size 1.016 1.016)
 						)
 					)
 				)
 				(number "22"
 					(effects
 						(font
-							(size 1.27 1.27)
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at -11.43 -25.4 0)
+				(length 2.54)
+				(name "ENABLE"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "23"
+					(effects
+						(font
+							(size 0.762 0.762)
 						)
 					)
 				)
@@ -4286,6 +4304,203 @@
 					(effects
 						(font
 							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+		)
+	)
+	(symbol "bus_to_startup_ctrl"
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "U"
+			(at -2.54 -5.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" ""
+			(at 5.08 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Horizontal"
+			(at -0.254 -10.16 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 5.08 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 5.08 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "bus_to_startup_ctrl_0_1"
+			(rectangle
+				(start -10.16 8.89)
+				(end 8.89 -8.89)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "bus_to_startup_ctrl_1_1"
+			(text "BUS\n\nSTARTUP CTRL"
+				(at -3.048 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 11.43 7.62 180)
+				(length 2.54)
+				(name "V+"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 11.43 5.08 180)
+				(length 2.54)
+				(name "GND"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 11.43 2.54 180)
+				(length 2.54)
+				(name "A_CLK"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 11.43 0 180)
+				(length 2.54)
+				(name "B_CLK"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 11.43 -2.54 180)
+				(length 2.54)
+				(name "START"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 11.43 -5.08 180)
+				(length 2.54)
+				(name "ENABLE"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "6"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at 11.43 -7.62 180)
+				(length 2.54)
+				(name "FAULT"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "7"
+					(effects
+						(font
+							(size 0.762 0.762)
 						)
 					)
 				)
@@ -4886,8 +5101,8 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x23_P2.54mm_Vertical"
-			(at 0.254 -21.844 0)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x24_P2.54mm_Vertical"
+			(at 0.254 -24.13 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4916,7 +5131,7 @@
 		(symbol "control_unit_to_call_stack_0_1"
 			(rectangle
 				(start -8.89 19.05)
-				(end 8.89 -20.32)
+				(end 8.89 -22.86)
 				(stroke
 					(width 0)
 					(type default)
@@ -5190,7 +5405,7 @@
 			(pin bidirectional line
 				(at -11.43 -16.51 0)
 				(length 2.54)
-				(name "OE"
+				(name "B_CLK"
 					(effects
 						(font
 							(size 1.016 1.016)
@@ -5208,7 +5423,7 @@
 			(pin bidirectional line
 				(at -11.43 -19.05 0)
 				(length 2.54)
-				(name "FAULT"
+				(name "OE"
 					(effects
 						(font
 							(size 1.016 1.016)
@@ -5216,6 +5431,24 @@
 					)
 				)
 				(number "23"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at -11.43 -21.59 0)
+				(length 2.54)
+				(name "FAULT"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "24"
 					(effects
 						(font
 							(size 0.762 0.762)
@@ -6123,7 +6356,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(property "Reference" "U"
-			(at 0 -3.556 0)
+			(at 0 -2.286 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6131,15 +6364,15 @@
 			)
 		)
 		(property "Value" ""
-			(at -12.7 8.89 0)
+			(at -12.7 10.16 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x39_P2.54mm_Vertical"
-			(at 0 -32.004 0)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x40_P2.54mm_Vertical"
+			(at 0 -33.02 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6148,7 +6381,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at -12.7 8.89 0)
+			(at -12.7 10.16 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6157,7 +6390,7 @@
 			)
 		)
 		(property "Description" ""
-			(at -12.7 8.89 0)
+			(at -12.7 10.16 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6167,8 +6400,8 @@
 		)
 		(symbol "prog_mem_interface_0_1"
 			(rectangle
-				(start -12.7 30.48)
-				(end 12.7 -30.48)
+				(start -12.7 31.75)
+				(end 12.7 -31.75)
 				(stroke
 					(width 0)
 					(type default)
@@ -6180,7 +6413,7 @@
 		)
 		(symbol "prog_mem_interface_1_1"
 			(text "Program memory"
-				(at 0 3.81 0)
+				(at 0 1.524 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -6188,7 +6421,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 29.21 0)
+				(at -15.24 30.48 0)
 				(length 2.54)
 				(name "V+"
 					(effects
@@ -6206,7 +6439,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 8.89 0)
+				(at -15.24 10.16 0)
 				(length 2.54)
 				(name "A2"
 					(effects
@@ -6224,7 +6457,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 7.62 0)
+				(at -15.24 8.89 0)
 				(length 2.54)
 				(name "A3"
 					(effects
@@ -6242,7 +6475,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 6.35 0)
+				(at -15.24 7.62 0)
 				(length 2.54)
 				(name "A4"
 					(effects
@@ -6260,7 +6493,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 5.08 0)
+				(at -15.24 6.35 0)
 				(length 2.54)
 				(name "A5"
 					(effects
@@ -6278,7 +6511,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 3.81 0)
+				(at -15.24 5.08 0)
 				(length 2.54)
 				(name "A6"
 					(effects
@@ -6296,7 +6529,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 2.54 0)
+				(at -15.24 3.81 0)
 				(length 2.54)
 				(name "A7"
 					(effects
@@ -6314,7 +6547,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 1.27 0)
+				(at -15.24 2.54 0)
 				(length 2.54)
 				(name "A8"
 					(effects
@@ -6332,7 +6565,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 0 0)
+				(at -15.24 1.27 0)
 				(length 2.54)
 				(name "A9"
 					(effects
@@ -6350,7 +6583,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -1.27 0)
+				(at -15.24 0 0)
 				(length 2.54)
 				(name "A10"
 					(effects
@@ -6368,7 +6601,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -2.54 0)
+				(at -15.24 -1.27 0)
 				(length 2.54)
 				(name "A11"
 					(effects
@@ -6386,7 +6619,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 26.67 0)
+				(at -15.24 27.94 0)
 				(length 2.54)
 				(name "GND"
 					(effects
@@ -6404,7 +6637,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -3.81 0)
+				(at -15.24 -2.54 0)
 				(length 2.54)
 				(name "A12"
 					(effects
@@ -6422,7 +6655,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -5.08 0)
+				(at -15.24 -3.81 0)
 				(length 2.54)
 				(name "A13"
 					(effects
@@ -6440,7 +6673,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -6.35 0)
+				(at -15.24 -5.08 0)
 				(length 2.54)
 				(name "A14"
 					(effects
@@ -6458,7 +6691,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -7.62 0)
+				(at -15.24 -6.35 0)
 				(length 2.54)
 				(name "A15"
 					(effects
@@ -6476,7 +6709,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -10.16 0)
+				(at -15.24 -8.89 0)
 				(length 2.54)
 				(name "D0"
 					(effects
@@ -6494,7 +6727,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -11.43 0)
+				(at -15.24 -10.16 0)
 				(length 2.54)
 				(name "D1"
 					(effects
@@ -6512,7 +6745,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -12.7 0)
+				(at -15.24 -11.43 0)
 				(length 2.54)
 				(name "D2"
 					(effects
@@ -6530,7 +6763,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -13.97 0)
+				(at -15.24 -12.7 0)
 				(length 2.54)
 				(name "D3"
 					(effects
@@ -6548,7 +6781,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -15.24 0)
+				(at -15.24 -13.97 0)
 				(length 2.54)
 				(name "D4"
 					(effects
@@ -6566,7 +6799,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -16.51 0)
+				(at -15.24 -15.24 0)
 				(length 2.54)
 				(name "D5"
 					(effects
@@ -6584,7 +6817,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 24.13 0)
+				(at -15.24 25.4 0)
 				(length 2.54)
 				(name "CLK"
 					(effects
@@ -6602,7 +6835,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -17.78 0)
+				(at -15.24 -16.51 0)
 				(length 2.54)
 				(name "D6"
 					(effects
@@ -6620,7 +6853,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -19.05 0)
+				(at -15.24 -17.78 0)
 				(length 2.54)
 				(name "D7"
 					(effects
@@ -6638,7 +6871,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -20.32 0)
+				(at -15.24 -19.05 0)
 				(length 2.54)
 				(name "D8"
 					(effects
@@ -6656,7 +6889,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -21.59 0)
+				(at -15.24 -20.32 0)
 				(length 2.54)
 				(name "D9"
 					(effects
@@ -6674,7 +6907,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -22.86 0)
+				(at -15.24 -21.59 0)
 				(length 2.54)
 				(name "D10"
 					(effects
@@ -6692,7 +6925,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -24.13 0)
+				(at -15.24 -22.86 0)
 				(length 2.54)
 				(name "D11"
 					(effects
@@ -6710,7 +6943,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -25.4 0)
+				(at -15.24 -24.13 0)
 				(length 2.54)
 				(name "D12"
 					(effects
@@ -6728,7 +6961,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -26.67 0)
+				(at -15.24 -25.4 0)
 				(length 2.54)
 				(name "D13"
 					(effects
@@ -6746,7 +6979,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -27.94 0)
+				(at -15.24 -26.67 0)
 				(length 2.54)
 				(name "D14"
 					(effects
@@ -6764,7 +6997,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -29.21 0)
+				(at -15.24 -27.94 0)
 				(length 2.54)
 				(name "D15"
 					(effects
@@ -6782,7 +7015,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 21.59 0)
+				(at -15.24 22.86 0)
 				(length 2.54)
 				(name "W/R#"
 					(effects
@@ -6800,7 +7033,25 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 19.05 0)
+				(at -15.24 -30.48 0)
+				(length 2.54)
+				(name "ENABLE"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "40"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin bidirectional line
+				(at -15.24 20.32 0)
 				(length 2.54)
 				(name "W/R"
 					(effects
@@ -6818,7 +7069,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 16.51 0)
+				(at -15.24 17.78 0)
 				(length 2.54)
 				(name "Done"
 					(effects
@@ -6836,7 +7087,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 13.97 0)
+				(at -15.24 15.24 0)
 				(length 2.54)
 				(name "OE"
 					(effects
@@ -6854,7 +7105,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 11.43 0)
+				(at -15.24 12.7 0)
 				(length 2.54)
 				(name "A0"
 					(effects
@@ -6872,7 +7123,7 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 10.16 0)
+				(at -15.24 11.43 0)
 				(length 2.54)
 				(name "A1"
 					(effects

@@ -1,5 +1,6 @@
 //! Module for emulating the hardware
 
+#[allow(unused)]
 use crate::prelude::*;
 
 /// To prevent typoes
@@ -378,6 +379,7 @@ pub enum EmulationErrorEnum {
 #[derive(Debug)]
 pub struct EmulationError {
 	pub enum_: EmulationErrorEnum,
+	#[allow(unused)]
 	prog_addr: u16
 }
 
