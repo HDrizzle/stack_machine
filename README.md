@@ -51,8 +51,8 @@ Devices that can set the state of (write to) the bus:
 6. `GPRAM-ADDR-A` - GPRAM - Address bits 0 - 7
 7. `GPRAM-ADDR-B` - GPRAM - Address bits 8 - 15
 8. `GPIO-READ` - Reads GPIO input pins
-9. `CLK-A` - Lower byte of clock counter
-10. `CLK-B` - Upper byte of clock counter
+9. `CLK-COUNTER-A` - Lower byte of clock counter
+10. `CLK-COUNTER-B` - Upper byte of clock counter
 
 # The Stack
 
