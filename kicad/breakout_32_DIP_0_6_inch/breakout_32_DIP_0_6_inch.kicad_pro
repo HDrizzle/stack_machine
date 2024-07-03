@@ -70,7 +70,7 @@
         "extra_footprint": "warning",
         "footprint": "error",
         "footprint_symbol_mismatch": "warning",
-        "footprint_type_mismatch": "warning",
+        "footprint_type_mismatch": "ignore",
         "hole_clearance": "error",
         "hole_near_hole": "error",
         "invalid_outline": "error",
@@ -90,8 +90,8 @@
         "pth_inside_courtyard": "ignore",
         "shorting_items": "error",
         "silk_edge_clearance": "warning",
-        "silk_over_copper": "ignore",
-        "silk_overlap": "ignore",
+        "silk_over_copper": "warning",
+        "silk_overlap": "warning",
         "skew_out_of_range": "error",
         "solder_mask_bridge": "error",
         "starved_thermal": "error",
@@ -430,7 +430,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "bus.kicad_pro",
+    "filename": "breakout_32_DIP_0_6_inch.kicad_pro",
     "version": 1
   },
   "net_settings": {
@@ -465,11 +465,11 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "/Users/hward/Downloads/",
+      "plot": "",
       "pos_files": "",
       "specctra_dsn": "",
       "step": "",
-      "svg": "/Users/hward/Downloads/",
+      "svg": "",
       "vrml": ""
     },
     "page_layout_descr_file": ""
@@ -574,7 +574,7 @@
   },
   "sheets": [
     [
-      "106429cc-3bac-43b8-a679-36814c415b6f",
+      "014c1ba6-7346-455a-95b3-eae44c56b2c8",
       "Root"
     ]
   ],
