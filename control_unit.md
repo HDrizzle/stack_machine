@@ -23,7 +23,7 @@ Wavedrom source:
     {},
     {name: "Begin cycle", wave: "h.l......|h", node: "..........d"},
     {name: "Pre-adder latch CLK", wave: "h.l.......h"},
-    {name: "Post-adder latch CLK", wave: "lpl........"},
+    {name: "Post-adder latch CLK", wave: "lh.l......."},
     {name: "Post-adder latch OE", wave: "lh.l......."},
     {name: "Memory read", wave: "lh.l.......", node: "..a"},
     {name: "Memory read done", wave: "l..|h.l....", node: "....b"},
