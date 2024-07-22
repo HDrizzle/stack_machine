@@ -72,7 +72,7 @@ These 2 instructions are performed identically by the control unit timing logic.
     {name: "Pre-adder latch CLK", wave: "l.....h.l"},
     {name: "Begin instruction sequence (MOVE/WRITE)", wave: "h.l......"},
     {},
-    {name: "Bus arbiter move", wave: "lh.....l."},
+    {name: "Bus arbiter move", wave: "lh...l..."},
     {name: "Bus arbiter move done", wave: "l.|.h.l.."},
     {name: "Post-adder latch OE", wave: "l....h.l."}
   ],
