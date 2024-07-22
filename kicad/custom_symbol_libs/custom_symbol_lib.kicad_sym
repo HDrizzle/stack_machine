@@ -2890,7 +2890,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 8.89 -1.27 180)
 				(length 2.54)
 				(name "Y5"
@@ -2908,7 +2908,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 8.89 0 180)
 				(length 2.54)
 				(name "Y4"
@@ -2926,7 +2926,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 8.89 1.27 180)
 				(length 2.54)
 				(name "Y3"
@@ -2944,7 +2944,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 8.89 2.54 180)
 				(length 2.54)
 				(name "Y2"
@@ -2962,7 +2962,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 8.89 3.81 180)
 				(length 2.54)
 				(name "Y1"
@@ -2980,7 +2980,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 8.89 5.08 180)
 				(length 2.54)
 				(name "Y0"
@@ -3106,7 +3106,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 8.89 -3.81 180)
 				(length 2.54)
 				(name "Y7"
@@ -3142,7 +3142,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 8.89 -2.54 180)
 				(length 2.54)
 				(name "Y6"

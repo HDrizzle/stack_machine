@@ -2890,7 +2890,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 8.89 -1.27 180)
 				(length 2.54)
 				(name "Y5"
@@ -2908,7 +2908,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 8.89 0 180)
 				(length 2.54)
 				(name "Y4"
@@ -2926,7 +2926,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 8.89 1.27 180)
 				(length 2.54)
 				(name "Y3"
@@ -2944,7 +2944,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 8.89 2.54 180)
 				(length 2.54)
 				(name "Y2"
@@ -2962,7 +2962,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 8.89 3.81 180)
 				(length 2.54)
 				(name "Y1"
@@ -2980,7 +2980,7 @@
 					)
 				)
 			)
-			(pin input line
+			(pin output line
 				(at 8.89 5.08 180)
 				(length 2.54)
 				(name "Y0"
@@ -6069,8 +6069,8 @@
 				)
 			)
 		)
-		(property "Footprint" ""
-			(at -19.05 7.62 0)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x23_P2.54mm_Horizontal"
+			(at -0.254 4.826 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6110,6 +6110,14 @@
 			)
 		)
 		(symbol "control_unit_central_timing_interface_1_1"
+			(text "CONTROL UNIT\nCENTRAL TIMING"
+				(at 0 21.844 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
 			(pin bidirectional line
 				(at -24.13 33.02 0)
 				(length 2.54)
