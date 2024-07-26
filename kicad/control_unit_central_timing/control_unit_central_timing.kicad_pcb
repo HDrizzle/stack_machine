@@ -4287,6 +4287,153 @@
 			)
 		)
 	)
+	(footprint "custom_footprint_library:0.4_pitch_resistor"
+		(layer "F.Cu")
+		(uuid "6c3c9e9d-a259-4a89-ba22-d19fb3322200")
+		(at 154.94 110.49)
+		(property "Reference" "R2"
+			(at 0 -0.5 0)
+			(unlocked yes)
+			(layer "F.SilkS")
+			(uuid "8618f8ba-37ab-4a94-b830-e0ce9a68308c")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.1)
+				)
+			)
+		)
+		(property "Value" "10k"
+			(at 0 1 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(uuid "c907ef58-1a52-4aa5-8a45-94b178b2292b")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Footprint" "custom_footprint_library:0.4_pitch_resistor"
+			(at 0 0 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "fd9294d5-faea-4798-bc5c-74e98466cfe3")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "95a93f8c-434e-4890-ba41-93bb3605a3cb")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 0 0 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "6f3e0cb0-8bc4-4849-af91-fde76fc5802a")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property ki_fp_filters "R_*")
+		(path "/8e6c95d0-641e-43bf-a1d2-782175ad23e8")
+		(sheetname "Root")
+		(sheetfile "control_unit_central_timing.kicad_sch")
+		(attr through_hole)
+		(fp_line
+			(start 0 -3.81)
+			(end 0 -4.445)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "F.SilkS")
+			(uuid "65b2439a-446f-4561-9857-7b725486fd46")
+		)
+		(fp_line
+			(start 0 4.445)
+			(end 0 3.81)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "F.SilkS")
+			(uuid "bfcb0542-3973-48e0-addd-b93703beb31f")
+		)
+		(fp_rect
+			(start -1.27 -3.81)
+			(end 1.27 3.81)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(fill none)
+			(layer "F.SilkS")
+			(uuid "481cc457-3f66-4d43-972b-bf5cb89146ed")
+		)
+		(fp_rect
+			(start -1.27 -6.35)
+			(end 1.27 6.35)
+			(stroke
+				(width 0.05)
+				(type default)
+			)
+			(fill none)
+			(layer "F.CrtYd")
+			(uuid "be295d55-d742-43b1-ac52-c028d277716e")
+		)
+		(fp_text user "${REFERENCE}"
+			(at 0 2.5 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(uuid "c9bb8677-18de-4343-b02d-216f15e73828")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(pad "1" thru_hole circle
+			(at 0 -5.08)
+			(size 1.524 1.524)
+			(drill 0.762)
+			(layers "*.Cu" "*.Mask")
+			(remove_unused_layers no)
+			(net 14 "Net-(U1-BUS_MOVE_DONE)")
+			(pintype "passive")
+			(uuid "a0971386-117e-4054-abc2-c7bc98a24ebe")
+		)
+		(pad "2" thru_hole circle
+			(at 0 5.08)
+			(size 1.524 1.524)
+			(drill 0.762)
+			(layers "*.Cu" "*.Mask")
+			(remove_unused_layers no)
+			(net 21 "Net-(U1-GND)")
+			(pintype "passive")
+			(uuid "8fbd104a-326d-4a7c-bf50-a99e696e0066")
+		)
+	)
 	(footprint "custom_footprint_library:jumper"
 		(layer "F.Cu")
 		(uuid "6fe96641-ae3b-4178-b616-c05511c4af7b")
@@ -4862,7 +5009,7 @@
 		(descr "Through hole angled pin header, 1x23, 2.54mm pitch, 6mm pin length, single row")
 		(tags "Through hole angled pin header THT 1x23 2.54mm single row")
 		(property "Reference" "U1"
-			(at 4.385 -2.27 360)
+			(at 4.385 -2.27 0)
 			(layer "F.SilkS")
 			(uuid "282b7e4e-533c-40c5-842b-705dfdbfb249")
 			(effects
@@ -4873,7 +5020,7 @@
 			)
 		)
 		(property "Value" "~"
-			(at 4.385 58.15 360)
+			(at 4.385 58.15 0)
 			(layer "F.Fab")
 			(uuid "120aaab1-7652-49e3-8fa6-12359e7b7bca")
 			(effects
@@ -8329,6 +8476,153 @@
 			(pinfunction "OUT")
 			(pintype "output")
 			(uuid "371cf23d-7972-45d8-a594-1d589fd607b8")
+		)
+	)
+	(footprint "custom_footprint_library:0.4_pitch_resistor"
+		(layer "F.Cu")
+		(uuid "b6a62012-d3bc-4200-9e2b-c0f3ffae784a")
+		(at 151.3 110.49)
+		(property "Reference" "R1"
+			(at 0 -0.5 0)
+			(unlocked yes)
+			(layer "F.SilkS")
+			(uuid "be2ebdb2-de2e-43f9-8630-cdf5c0119350")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.1)
+				)
+			)
+		)
+		(property "Value" "10k"
+			(at 0 1 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(uuid "74324cf2-7824-4051-91ec-32a561ef797e")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Footprint" "custom_footprint_library:0.4_pitch_resistor"
+			(at 0 0 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "753e2a71-2a11-4ba2-816e-d657c507a2b1")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "1a48683e-c7a1-4091-85ea-fb9d00efcd61")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Description" "Resistor"
+			(at 0 0 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "5f9cf283-3b1f-41af-9174-6977315b1713")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property ki_fp_filters "R_*")
+		(path "/e2bda163-f017-4150-9529-a3598de93525")
+		(sheetname "Root")
+		(sheetfile "control_unit_central_timing.kicad_sch")
+		(attr through_hole)
+		(fp_line
+			(start 0 -3.81)
+			(end 0 -4.445)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "F.SilkS")
+			(uuid "78c3d83b-7b39-4d4a-9d07-6d40ed7da6fa")
+		)
+		(fp_line
+			(start 0 4.445)
+			(end 0 3.81)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(layer "F.SilkS")
+			(uuid "145d937e-b672-48c0-9cac-d1f2950df09c")
+		)
+		(fp_rect
+			(start -1.27 -3.81)
+			(end 1.27 3.81)
+			(stroke
+				(width 0.1)
+				(type default)
+			)
+			(fill none)
+			(layer "F.SilkS")
+			(uuid "08a4ce0a-952c-41e1-8e3a-9c37a0788ccb")
+		)
+		(fp_rect
+			(start -1.27 -6.35)
+			(end 1.27 6.35)
+			(stroke
+				(width 0.05)
+				(type default)
+			)
+			(fill none)
+			(layer "F.CrtYd")
+			(uuid "4f43c72c-7132-4f00-8349-d7c8437482e3")
+		)
+		(fp_text user "${REFERENCE}"
+			(at 0 2.5 0)
+			(unlocked yes)
+			(layer "F.Fab")
+			(uuid "b31b7f65-3e86-4c0a-a867-cab7cf2ff314")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(pad "1" thru_hole circle
+			(at 0 -5.08)
+			(size 1.524 1.524)
+			(drill 0.762)
+			(layers "*.Cu" "*.Mask")
+			(remove_unused_layers no)
+			(net 15 "Net-(U1-START)")
+			(pintype "passive")
+			(uuid "bc29356e-995a-4c78-b4d0-cc46c8e9a278")
+		)
+		(pad "2" thru_hole circle
+			(at 0 5.08)
+			(size 1.524 1.524)
+			(drill 0.762)
+			(layers "*.Cu" "*.Mask")
+			(remove_unused_layers no)
+			(net 21 "Net-(U1-GND)")
+			(pintype "passive")
+			(uuid "67e0d1bf-35c1-4d9e-99ee-eb7bab42f634")
 		)
 	)
 	(footprint "Package_DIP:DIP-20_W7.62mm"
