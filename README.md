@@ -76,17 +76,17 @@ The ALU uses 2 8-bit latches for input and has 1 output. The specific operation 
 2. `NOT` - Bitwise NOT (latch A)
 3. `OR` - Bitwise OR
 4. `AND` - Bitwise AND
-5. `XOR` - Bitwise XOR
-6. `SHIFT-L` - Bitshift Left (latch A)
-7. `SHIFT-R` - Bitshift Right (latch A)
-8. `EQ` - Whether bytes are equal
-9. `BOOL-EQ` - Whether the LSBs are equal
-10. `GREATER-THEN` - Whether A > B
-11. `A` - Contents of A latch
-12. `B` - Contents of B latch
-13. `TWOS-COMP` - Convert to 2's complement (latch A)
-14. `MULT-A` - Multiplication bits 0 - 7
-15. `MULT-B` - Multiplication bits 8 - 15
+5. `XNOR` - Bitwise XNOR, whether each pair of bits are equal
+6. `SHIFT` - Bitshifts A left by the first 3 bits of B
+7. `EQ` - Whether bytes are equal
+8. `A` - Contents of A latch
+9. `B` - Contents of B latch
+10. `EXT-10` - Extension (not implemented)
+11. `EXT-11` - Extension (not implemented)
+12. `EXT-12` - Extension (not implemented)
+13. `EXT-13` - Extension (not implemented)
+14. `EXT-14` - Extension (not implemented)
+15. `EXT-15` - Extension (not implemented)
 
 # Flow Control
 

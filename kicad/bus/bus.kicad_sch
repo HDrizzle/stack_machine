@@ -5087,10 +5087,6 @@
 		(uuid "1899d5aa-2708-4ea1-9f60-b8f3089f0139")
 	)
 	(no_connect
-		(at 237.49 294.64)
-		(uuid "1a1c0847-a75c-416c-a384-1bf22355e4df")
-	)
-	(no_connect
 		(at 476.25 227.33)
 		(uuid "1b994501-9abc-41b5-9994-276be9fa835d")
 	)
@@ -5105,10 +5101,6 @@
 	(no_connect
 		(at 138.43 173.99)
 		(uuid "250ab610-9abc-4319-b32a-74e89f976b0e")
-	)
-	(no_connect
-		(at 313.69 224.79)
-		(uuid "261be3e6-9b9a-4318-99af-1abb7826a5f8")
 	)
 	(no_connect
 		(at 516.89 215.9)
@@ -7525,6 +7517,16 @@
 			(type default)
 		)
 		(uuid "3b55c2ff-bfa2-4182-87a9-b85e426c3f62")
+	)
+	(wire
+		(pts
+			(xy 311.15 224.79) (xy 313.69 224.79)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3ba5606b-92f2-4877-946a-d8a79f9e862a")
 	)
 	(wire
 		(pts
@@ -13568,6 +13570,16 @@
 	)
 	(wire
 		(pts
+			(xy 237.49 294.64) (xy 311.15 294.64)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e79f766e-aed8-4329-958e-4b54d0a40499")
+	)
+	(wire
+		(pts
 			(xy 170.18 129.54) (xy 170.18 134.62)
 		)
 		(stroke
@@ -14028,6 +14040,16 @@
 	)
 	(wire
 		(pts
+			(xy 311.15 294.64) (xy 311.15 224.79)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f3fee13e-9b49-4828-b264-3b136ebd1006")
+	)
+	(wire
+		(pts
 			(xy 185.42 179.07) (xy 185.42 154.94)
 		)
 		(stroke
@@ -14414,9 +14436,9 @@
 		)
 		(uuid "e10efc8e-01ae-4f37-8bb5-3af19fd91b88")
 	)
-	(text "3\n2"
+	(text "14\n3\n2"
 		(exclude_from_sim no)
-		(at 299.72 228.6 0)
+		(at 299.72 227.33 0)
 		(effects
 			(font
 				(size 1.524 1.524)
