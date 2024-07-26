@@ -72,21 +72,21 @@ Whenever a "function" is called (using the `CALL` instruction), the current prog
 The ALU uses 2 8-bit latches for input and has 1 output. The specific operation it does is controlled by 4 bits (2^4 = 16 operations). All operations that result in a boolean output all `0`s except for the result which is the LSB.
 
 0. `ADD` - Add
-1. `SUB` - Subtract
-2. `MULT` - Multiply
-3. `NOT` - Bitwise NOT (latch A)
-4. `OR` - Bitwise OR
-5. `AND` - Bitwise AND
-6. `XOR` - Botwise XOR
-7. `SHIFT-L` - Bitshift Left (latch A)
-8. `SHIFT-R` - Bitshift Right (latch A)
-9. `EQ` - Whether bytes are equal
-10. `BOOL-EQ` - Whether the LSBs are equal
-11. `GREATER-THEN` - Whether A > B
-12. `A` - Contents of A latch
-13. `B` - Contents of B latch
-14. `C` - Addition carry
-15. `TWOS-COMP` - Convert to 2's complement (latch A)
+1. `ADD-C` - Addition carry
+2. `NOT` - Bitwise NOT (latch A)
+3. `OR` - Bitwise OR
+4. `AND` - Bitwise AND
+5. `XOR` - Bitwise XOR
+6. `SHIFT-L` - Bitshift Left (latch A)
+7. `SHIFT-R` - Bitshift Right (latch A)
+8. `EQ` - Whether bytes are equal
+9. `BOOL-EQ` - Whether the LSBs are equal
+10. `GREATER-THEN` - Whether A > B
+11. `A` - Contents of A latch
+12. `B` - Contents of B latch
+13. `TWOS-COMP` - Convert to 2's complement (latch A)
+14. `MULT-A` - Multiplication bits 0 - 7
+15. `MULT-B` - Multiplication bits 8 - 15
 
 # Flow Control
 
