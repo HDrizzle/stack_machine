@@ -22,14 +22,22 @@ List of outputs from timing logic:
 
 Clock:
 ```
-	match state {
-		0 => (Read ready && A-CLK) || ((Read (Write) || Read (Write ++addr)) && A-CLK),
-		1 => !Pre-adder latch CLK
-	}
+	(Read ready && A-CLK) || ((Read (Write) || Read (Write ++addr)) && A-CLK)
 ```
 Data:
 ```
 	Write (Read ++addr) || Read (Write ++addr)
+```
+
+### A(0) / B(1) latch
+
+Clock:
+```
+	(Write (Read addr A || B) && !A-CLK) || (Read (Write addr A || B) && B-CLK)
+```
+Data:
+```
+	Write (Read addr B) || Read (Write addr B)
 ```
 
 ### Write (Read / Read ++addr)
@@ -65,7 +73,7 @@ Data:
     {name: "Write (Read addr A / B)", wave: "lh...l.."},
     {name: "Read ready", wave: "l.h.l..."},
     {},
-    {name: "Post-adder address A/B OE to bus", wave: "l.h.l..."}
+    {name: "Pre-adder address A/B OE to bus", wave: "l.h.l..."}
   ]
 }
 ```
