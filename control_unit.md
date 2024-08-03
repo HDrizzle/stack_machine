@@ -2,7 +2,7 @@
 
 ## Startup
 
-1. Started by the `Set` input from the bus arbiter going high, which will disable the GOTO latches OE, post-adder latch OE, and the call stack OE. Pullup resistors will set the inputs to the pre-adder latch to 0xFFFF se when it is incremented it starts at instruction 0x0000.
+1. Started by the `Set` input from the startup controller going high, which will disable the GOTO latches OE, post-adder latch OE, and the call stack OE. Pullup resistors will set the inputs to the pre-adder latch to 0xFFFF so when it is incremented it starts at instruction 0x0000.
 2. Clock pre-adder address latch
 3. Begin regular cycle
 
