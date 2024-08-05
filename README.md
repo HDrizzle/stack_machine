@@ -35,10 +35,11 @@ Devices that can read the bus:
 8. `GPRAM-INC-ADDR` - GPRAM - Write (++ address)
 9. `GPRAM-ADDR-A` - GPRAM - Address bits 0 - 7
 10. `GPRAM-ADDR-B` - GPRAM - Address bits 8 - 15
-11. `GPIO-WRITE` - Writes to GPIO output pins
+11. `GPIO-WRITE-A` - Writes to GPIO output pins 0 - 7
 12. `OFFSET-WRITE` - Replaces value in stack at `ToS - offset`
 13. `SET-STACK-OFFSET` - Sets the stack offset byte
 14. `ALU-C-IN` - ALU latch for carry and borrow
+15. `GPIO-WRITE-B` - Writes to GPIO output pins 8 - 15
 
 Devices that can set the state of (write to) the bus:
 
@@ -50,9 +51,10 @@ Devices that can set the state of (write to) the bus:
 5. `GPRAM-INC-ADDR` - GPRAM - Read (++ address)
 6. `GPRAM-ADDR-A` - GPRAM - Address bits 0 - 7
 7. `GPRAM-ADDR-B` - GPRAM - Address bits 8 - 15
-8. `GPIO-READ` - Reads GPIO input pins
+8. `GPIO-READ-A` - Reads GPIO input pins 0 - 7
 9. `CLK-COUNTER-A` - Lower byte of clock counter
 10. `CLK-COUNTER-B` - Upper byte of clock counter
+11. `GPIO-READ-B` - Reads GPIO input pins 8 - 15
 
 # The Stack
 
