@@ -12,4 +12,4 @@
 | Clock | Done | Done | Done | Done | Done | Working on it | - | - |
 | Stack controller | Done | Done | Done | Done | Done | - | - | - |
 | GPRAM controller | Done | Done | - | - | - | - | - | - |
-| I/O controller | Not needed | Done | Done | - | - | - | - | - |
+| I/O controller | Not needed | Done | Done | Done | Done | - | - | - |
