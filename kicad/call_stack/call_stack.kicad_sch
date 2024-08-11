@@ -26,7 +26,7 @@
 				)
 			)
 			(property "Footprint" "Package_DIP:DIP-28_W15.24mm"
-				(at -1.016 -12.7 0)
+				(at 0.254 -23.368 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -34,8 +34,8 @@
 					(hide yes)
 				)
 			)
-			(property "Datasheet" ""
-				(at -3.81 -16.51 0)
+			(property "Datasheet" "https://www.alliancememory.com/wp-content/uploads/pdf/AS6C62256.pdf"
+				(at 0 -25.654 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -601,7 +601,7 @@
 				)
 			)
 			(property "Footprint" "Package_DIP:DIP-16_W7.62mm"
-				(at -4.318 -4.318 0)
+				(at -2.54 -14.224 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -609,8 +609,8 @@
 					(hide yes)
 				)
 			)
-			(property "Datasheet" ""
-				(at -5.08 -1.27 0)
+			(property "Datasheet" "https://www.ti.com/lit/ds/symlink/sn74f283.pdf?HQS=dis-dk-null-digikeymode-dsf-pf-null-wwe&ts=1723234691660&ref_url=https%253A%252F%252Fwww.ti.com%252Fgeneral%252Fdocs%252Fsuppproductinfo.tsp%253FdistId%253D10%2526gotoUrl%253Dhttps%253A%252F%252Fwww.ti.com%252Flit%252Fgpn%252Fsn74f283"
+				(at -2.54 -16.764 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -960,7 +960,7 @@
 				)
 			)
 			(property "Footprint" "Package_DIP:DIP-14_W7.62mm"
-				(at -1.778 -6.604 0)
+				(at 0.254 -16.764 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -968,8 +968,8 @@
 					(hide yes)
 				)
 			)
-			(property "Datasheet" ""
-				(at -2.54 0 0)
+			(property "Datasheet" "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/889/TC74HC04.pdf"
+				(at 0 -19.05 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -1891,7 +1891,7 @@
 				(pin output line
 					(at 10.16 -2.54 180)
 					(length 2.54)
-					(name "1Q3"
+					(name "1Q#"
 						(effects
 							(font
 								(size 1.016 1.016)
@@ -2232,7 +2232,7 @@
 				)
 			)
 			(property "Footprint" "Package_DIP:DIP-14_W7.62mm"
-				(at -1.524 -7.874 0)
+				(at 0 -16.51 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -2240,8 +2240,8 @@
 					(hide yes)
 				)
 			)
-			(property "Datasheet" ""
-				(at 0 -5.08 0)
+			(property "Datasheet" "https://www.jameco.com/Jameco/Products/ProdDS/13274.pdf"
+				(at 0 -18.796 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -2555,7 +2555,7 @@
 				)
 			)
 			(property "Footprint" "Package_DIP:DIP-14_W7.62mm"
-				(at -1.778 -10.414 0)
+				(at 0.254 -21.082 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -2563,8 +2563,8 @@
 					(hide yes)
 				)
 			)
-			(property "Datasheet" ""
-				(at 1.27 -1.27 0)
+			(property "Datasheet" "https://toshiba.semicon-storage.com/info/TC74HC08AP_datasheet_en_20140301.pdf?did=7565&prodName=TC74HC08AP"
+				(at 0 -23.368 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -2878,7 +2878,7 @@
 				)
 			)
 			(property "Footprint" "Package_DIP:DIP-20_W7.62mm"
-				(at -1.778 -10.414 0)
+				(at 0 -20.574 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -2886,8 +2886,8 @@
 					(hide yes)
 				)
 			)
-			(property "Datasheet" ""
-				(at -2.54 -12.7 0)
+			(property "Datasheet" "https://toshiba.semicon-storage.com/info/TC74HC574AP_datasheet_en_20140301.pdf?did=16423&prodName=TC74HC574AP"
+				(at -0.254 -22.86 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -9936,6 +9936,61 @@
 		)
 		(uuid "eedbfece-e694-4599-8a98-ebc1e72dfec2")
 	)
+	(text "Pre adder\nlatch CLK\n(B CLK)"
+		(exclude_from_sim no)
+		(at 87.63 151.13 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "2cbe236e-40cc-4014-b001-6e14834f54da")
+	)
+	(text "2 (B CLK)\n\nPush sequence\n\n1 (A CLK)"
+		(exclude_from_sim no)
+		(at 86.36 123.19 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "31feb6c6-e153-45e3-be82-4504ba182e91")
+	)
+	(text "Decrement\n(A CLK)"
+		(exclude_from_sim no)
+		(at 86.36 167.64 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "7c21b8a0-654e-4830-aebe-f88b749ecc97")
+	)
+	(text "Pop (!B)"
+		(exclude_from_sim no)
+		(at 87.63 143.51 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "cd905af3-9408-4e8c-a1d9-5ac6fb35b55e")
+	)
+	(text "Pre adder\nlatch CLK\n(A CLK)"
+		(exclude_from_sim no)
+		(at 87.63 175.26 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "e139f7a3-22d4-4d76-855e-e06d508e93e9")
+	)
 	(symbol
 		(lib_id "custom_symbol_lib:control_unit_to_call_stack")
 		(at 328.93 101.6 0)
@@ -10170,7 +10225,7 @@
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-20_W7.62mm"
-			(at 144.018 96.774 0)
+			(at 142.24 106.934 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10178,8 +10233,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" ""
-			(at 144.78 99.06 0)
+		(property "Datasheet" "https://toshiba.semicon-storage.com/info/TC74HC574AP_datasheet_en_20140301.pdf?did=16423&prodName=TC74HC574AP"
+			(at 142.494 109.22 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10292,7 +10347,7 @@
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-20_W7.62mm"
-			(at 257.556 123.952 0)
+			(at 247.396 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10300,8 +10355,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" ""
-			(at 255.27 123.19 0)
+		(property "Datasheet" "https://toshiba.semicon-storage.com/info/TC74HC574AP_datasheet_en_20140301.pdf?did=16423&prodName=TC74HC574AP"
+			(at 245.11 125.476 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10417,7 +10472,7 @@
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-16_W7.62mm"
-			(at 174.498 83.058 0)
+			(at 172.72 92.964 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10425,8 +10480,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" ""
-			(at 175.26 80.01 0)
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/sn74f283.pdf?HQS=dis-dk-null-digikeymode-dsf-pf-null-wwe&ts=1723234691660&ref_url=https%253A%252F%252Fwww.ti.com%252Fgeneral%252Fdocs%252Fsuppproductinfo.tsp%253FdistId%253D10%2526gotoUrl%253Dhttps%253A%252F%252Fwww.ti.com%252Flit%252Fgpn%252Fsn74f283"
+			(at 172.72 95.504 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10529,7 +10584,7 @@
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-28_W15.24mm"
-			(at 251.714 160.02 0)
+			(at 252.984 170.688 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10537,8 +10592,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" ""
-			(at 248.92 163.83 0)
+		(property "Datasheet" "https://www.alliancememory.com/wp-content/uploads/pdf/AS6C62256.pdf"
+			(at 252.73 172.974 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10678,7 +10733,7 @@
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-20_W7.62mm"
-			(at 218.948 86.614 0)
+			(at 217.17 96.774 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10686,8 +10741,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" ""
-			(at 219.71 88.9 0)
+		(property "Datasheet" "https://toshiba.semicon-storage.com/info/TC74HC574AP_datasheet_en_20140301.pdf?did=16423&prodName=TC74HC574AP"
+			(at 217.424 99.06 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10803,7 +10858,7 @@
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-28_W15.24mm"
-			(at 251.714 46.99 0)
+			(at 252.984 36.322 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10811,8 +10866,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" ""
-			(at 248.92 43.18 0)
+		(property "Datasheet" "https://www.alliancememory.com/wp-content/uploads/pdf/AS6C62256.pdf"
+			(at 252.73 34.036 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11163,7 +11218,7 @@
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-20_W7.62mm"
-			(at 280.416 127.508 0)
+			(at 270.256 125.73 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11171,8 +11226,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" ""
-			(at 278.13 128.27 0)
+		(property "Datasheet" "https://toshiba.semicon-storage.com/info/TC74HC574AP_datasheet_en_20140301.pdf?did=16423&prodName=TC74HC574AP"
+			(at 267.97 125.984 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11288,7 +11343,7 @@
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-16_W7.62mm"
-			(at 193.548 98.298 0)
+			(at 191.77 108.204 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11296,8 +11351,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" ""
-			(at 194.31 95.25 0)
+		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/sn74f283.pdf?HQS=dis-dk-null-digikeymode-dsf-pf-null-wwe&ts=1723234691660&ref_url=https%253A%252F%252Fwww.ti.com%252Fgeneral%252Fdocs%252Fsuppproductinfo.tsp%253FdistId%253D10%2526gotoUrl%253Dhttps%253A%252F%252Fwww.ti.com%252Flit%252Fgpn%252Fsn74f283"
+			(at 191.77 110.744 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11542,7 +11597,7 @@
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-14_W7.62mm"
-			(at 221.742 183.134 0)
+			(at 223.774 193.294 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11550,8 +11605,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" ""
-			(at 220.98 176.53 0)
+		(property "Datasheet" "https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/889/TC74HC04.pdf"
+			(at 223.52 195.58 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11965,7 +12020,7 @@
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-20_W7.62mm"
-			(at 280.416 79.502 0)
+			(at 270.256 81.28 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11973,8 +12028,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" ""
-			(at 278.13 78.74 0)
+		(property "Datasheet" "https://toshiba.semicon-storage.com/info/TC74HC574AP_datasheet_en_20140301.pdf?did=16423&prodName=TC74HC574AP"
+			(at 267.97 81.026 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12160,7 +12215,7 @@
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-14_W7.62mm"
-			(at 105.156 209.804 0)
+			(at 106.68 218.44 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12168,8 +12223,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" ""
-			(at 106.68 207.01 0)
+		(property "Datasheet" "https://www.jameco.com/Jameco/Products/ProdDS/13274.pdf"
+			(at 106.68 220.726 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12266,7 +12321,7 @@
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-14_W7.62mm"
-			(at 193.802 190.754 0)
+			(at 195.834 201.422 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12274,8 +12329,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" ""
-			(at 196.85 181.61 0)
+		(property "Datasheet" "https://toshiba.semicon-storage.com/info/TC74HC08AP_datasheet_en_20140301.pdf?did=7565&prodName=TC74HC08AP"
+			(at 195.58 203.708 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12583,7 +12638,7 @@
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-20_W7.62mm"
-			(at 257.556 83.058 0)
+			(at 247.396 81.28 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12591,8 +12646,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" ""
-			(at 255.27 83.82 0)
+		(property "Datasheet" "https://toshiba.semicon-storage.com/info/TC74HC574AP_datasheet_en_20140301.pdf?did=16423&prodName=TC74HC574AP"
+			(at 245.11 81.534 0)
 			(effects
 				(font
 					(size 1.27 1.27)
