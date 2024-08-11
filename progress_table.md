@@ -2,7 +2,7 @@
 
 | Circuit | Timing diagram(s) completed | Built in Circuitverse | KiCad Schematic verified | Parts list updated | KiCad PCB | PCB built/aquired | Assembled | Tested |
 | - | - | - | - | - | - | - | - | - |
-| Ctrl unit central timing | Done | Done | Done | Done | - | - | - | - |
+| Ctrl unit central timing | Done | Done | Done | Done | Done | - | - | - |
 | Call stack | Done | Done | - | - | - | - | -| - |
 | Prog memory module | - | - | - | - | - | - | - | - |
 | Ctrl unit main board | Not needed | Done | Done | Done | - | - | - | - |
