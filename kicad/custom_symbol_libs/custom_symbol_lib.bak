@@ -4828,7 +4828,7 @@
 			)
 		)
 		(property "Footprint" "Package_DIP:DIP-16_W7.62mm"
-			(at -1.524 -7.874 0)
+			(at 0 -17.018 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4837,7 +4837,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/sn74hc590a.pdf"
-			(at 2.286 -16.002 0)
+			(at 0 -19.812 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10319,7 +10319,7 @@
 			)
 		)
 	)
-	(symbol "prog_mem_interface"
+	(symbol "prog_mem_interface_read"
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
@@ -10339,8 +10339,8 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x40_P2.54mm_Vertical"
-			(at 0 -33.02 0)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x39_P2.54mm_Vertical"
+			(at 0 -31.242 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10366,10 +10366,10 @@
 				(hide yes)
 			)
 		)
-		(symbol "prog_mem_interface_0_1"
+		(symbol "prog_mem_interface_read_0_1"
 			(rectangle
 				(start -12.7 31.75)
-				(end 12.7 -31.75)
+				(end 12.7 -29.21)
 				(stroke
 					(width 0)
 					(type default)
@@ -10379,7 +10379,7 @@
 				)
 			)
 		)
-		(symbol "prog_mem_interface_1_1"
+		(symbol "prog_mem_interface_read_1_1"
 			(text "Program memory"
 				(at 0 1.524 0)
 				(effects
@@ -10985,7 +10985,7 @@
 			(pin bidirectional line
 				(at -15.24 22.86 0)
 				(length 2.54)
-				(name "W/R#_select"
+				(name "Read_enable"
 					(effects
 						(font
 							(size 1.016 1.016)
@@ -11001,27 +11001,9 @@
 				)
 			)
 			(pin bidirectional line
-				(at -15.24 -30.48 0)
-				(length 2.54)
-				(name "ENABLE"
-					(effects
-						(font
-							(size 1.016 1.016)
-						)
-					)
-				)
-				(number "40"
-					(effects
-						(font
-							(size 0.762 0.762)
-						)
-					)
-				)
-			)
-			(pin bidirectional line
 				(at -15.24 20.32 0)
 				(length 2.54)
-				(name "Start"
+				(name "Read"
 					(effects
 						(font
 							(size 1.016 1.016)
@@ -11054,10 +11036,10 @@
 					)
 				)
 			)
-			(pin bidirectional line
+			(pin no_connect line
 				(at -15.24 15.24 0)
 				(length 2.54)
-				(name "OE"
+				(name "NC"
 					(effects
 						(font
 							(size 1.016 1.016)
@@ -11094,6 +11076,239 @@
 				(at -15.24 11.43 0)
 				(length 2.54)
 				(name "A1"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "9"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+		)
+	)
+	(symbol "prog_mem_interface_write"
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "U"
+			(at 5.334 -2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" ""
+			(at -11.43 -2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at -11.43 -2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at -11.43 -2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at -11.43 -2.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "prog_mem_interface_write_0_1"
+			(rectangle
+				(start -12.7 11.43)
+				(end 13.97 -11.43)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+			)
+		)
+		(symbol "prog_mem_interface_write_1_1"
+			(text "Prog mem\nwrite interface"
+				(at 5.588 0.762 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(pin power_in line
+				(at -15.24 10.16 0)
+				(length 2.54)
+				(name "V+"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "1"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin power_in line
+				(at -15.24 7.62 0)
+				(length 2.54)
+				(name "GND"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "2"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -15.24 5.08 0)
+				(length 2.54)
+				(name "CLK"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "3"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -15.24 2.54 0)
+				(length 2.54)
+				(name "Chip_erase"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -15.24 0 0)
+				(length 2.54)
+				(name "Byte_program"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -15.24 -2.54 0)
+				(length 2.54)
+				(name "D_0-7"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "6"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -15.24 -5.08 0)
+				(length 2.54)
+				(name "D_8-15"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "7"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -15.24 -7.62 0)
+				(length 2.54)
+				(name "D_start"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "8"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -15.24 -10.16 0)
+				(length 2.54)
+				(name "Write_enable"
 					(effects
 						(font
 							(size 1.016 1.016)

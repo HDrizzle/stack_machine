@@ -3675,7 +3675,7 @@
 				)
 			)
 		)
-		(symbol "custom_symbol_lib:prog_mem_interface"
+		(symbol "custom_symbol_lib:prog_mem_interface_read"
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
@@ -3695,8 +3695,8 @@
 					)
 				)
 			)
-			(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x40_P2.54mm_Vertical"
-				(at 0 -33.02 0)
+			(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x39_P2.54mm_Vertical"
+				(at 0 -31.242 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -3722,10 +3722,10 @@
 					(hide yes)
 				)
 			)
-			(symbol "prog_mem_interface_0_1"
+			(symbol "prog_mem_interface_read_0_1"
 				(rectangle
 					(start -12.7 31.75)
-					(end 12.7 -31.75)
+					(end 12.7 -29.21)
 					(stroke
 						(width 0)
 						(type default)
@@ -3735,7 +3735,7 @@
 					)
 				)
 			)
-			(symbol "prog_mem_interface_1_1"
+			(symbol "prog_mem_interface_read_1_1"
 				(text "Program memory"
 					(at 0 1.524 0)
 					(effects
@@ -4341,7 +4341,7 @@
 				(pin bidirectional line
 					(at -15.24 22.86 0)
 					(length 2.54)
-					(name "W/R#_select"
+					(name "Read_enable"
 						(effects
 							(font
 								(size 1.016 1.016)
@@ -4357,27 +4357,9 @@
 					)
 				)
 				(pin bidirectional line
-					(at -15.24 -30.48 0)
-					(length 2.54)
-					(name "ENABLE"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-					(number "40"
-						(effects
-							(font
-								(size 0.762 0.762)
-							)
-						)
-					)
-				)
-				(pin bidirectional line
 					(at -15.24 20.32 0)
 					(length 2.54)
-					(name "Start"
+					(name "Read"
 						(effects
 							(font
 								(size 1.016 1.016)
@@ -4410,10 +4392,10 @@
 						)
 					)
 				)
-				(pin bidirectional line
+				(pin no_connect line
 					(at -15.24 15.24 0)
 					(length 2.54)
-					(name "OE"
+					(name "NC"
 						(effects
 							(font
 								(size 1.016 1.016)
@@ -5701,6 +5683,12 @@
 		(uuid "1f7bb8a9-de31-41c3-8d6c-488ffd53f97c")
 	)
 	(junction
+		(at 299.72 184.15)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "1f90d734-2629-43eb-8413-e86836a0a261")
+	)
+	(junction
 		(at 217.17 121.92)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5879,12 +5867,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "44a9ba3e-2a58-41db-9ec0-55f65648f4f7")
-	)
-	(junction
-		(at 299.72 184.15)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "44b1b568-6077-421c-82ff-a5b568394545")
 	)
 	(junction
 		(at 236.22 165.1)
@@ -6649,12 +6631,6 @@
 		(uuid "dd2ffd24-47bf-4c3b-ae58-4453242122cc")
 	)
 	(junction
-		(at 339.09 170.18)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "dd4b1c32-989f-4b87-9663-2c8c8893b334")
-	)
-	(junction
 		(at 124.46 214.63)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -7177,16 +7153,6 @@
 			(type default)
 		)
 		(uuid "068afd56-f038-414a-84d1-e8d28c4b489d")
-	)
-	(wire
-		(pts
-			(xy 339.09 181.61) (xy 297.18 181.61)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "06a08990-c37e-4985-802b-d7cf982582df")
 	)
 	(wire
 		(pts
@@ -7950,16 +7916,6 @@
 	)
 	(wire
 		(pts
-			(xy 299.72 184.15) (xy 299.72 199.39)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1c84d793-0046-4ce6-9eba-63da419c044e")
-	)
-	(wire
-		(pts
 			(xy 261.62 210.82) (xy 300.99 210.82)
 		)
 		(stroke
@@ -8277,16 +8233,6 @@
 			(type default)
 		)
 		(uuid "26550cfa-af77-47e9-9991-447314e9424d")
-	)
-	(wire
-		(pts
-			(xy 339.09 170.18) (xy 339.09 181.61)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "267c91aa-40fb-4df2-b22f-fe4a7adcec8a")
 	)
 	(wire
 		(pts
@@ -8700,16 +8646,6 @@
 	)
 	(wire
 		(pts
-			(xy 298.45 191.77) (xy 298.45 186.69)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "33a4e5a6-720a-4edf-bd7c-c1572aca3ea3")
-	)
-	(wire
-		(pts
 			(xy 316.23 93.98) (xy 327.66 93.98)
 		)
 		(stroke
@@ -8877,16 +8813,6 @@
 			(type default)
 		)
 		(uuid "38e09d2b-f9ff-447d-8926-b5a6d2b272b5")
-	)
-	(wire
-		(pts
-			(xy 297.18 181.61) (xy 297.18 245.11)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "39557f59-ae82-4b74-9353-a4768b57ce74")
 	)
 	(wire
 		(pts
@@ -11160,16 +11086,6 @@
 	)
 	(wire
 		(pts
-			(xy 297.18 245.11) (xy 300.99 245.11)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "7a12b1b3-5122-4831-97fd-8aaf99ab68f5")
-	)
-	(wire
-		(pts
 			(xy 335.28 121.92) (xy 335.28 124.46)
 		)
 		(stroke
@@ -11530,16 +11446,6 @@
 	)
 	(wire
 		(pts
-			(xy 300.99 191.77) (xy 298.45 191.77)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "837424d8-7d64-4458-9edd-f6377e4b9d00")
-	)
-	(wire
-		(pts
 			(xy 87.63 194.31) (xy 100.33 194.31)
 		)
 		(stroke
@@ -11780,6 +11686,16 @@
 	)
 	(wire
 		(pts
+			(xy 299.72 184.15) (xy 299.72 191.77)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "895b4540-ee19-417e-bd6c-47a8212e8994")
+	)
+	(wire
+		(pts
 			(xy 199.39 121.92) (xy 191.77 121.92)
 		)
 		(stroke
@@ -11807,16 +11723,6 @@
 			(type default)
 		)
 		(uuid "8a13e54b-1796-47e4-a083-e97aaf3aa3ba")
-	)
-	(wire
-		(pts
-			(xy 300.99 199.39) (xy 299.72 199.39)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8a771eb3-276e-470a-88b7-a23524c8220d")
 	)
 	(wire
 		(pts
@@ -14570,6 +14476,16 @@
 	)
 	(wire
 		(pts
+			(xy 299.72 191.77) (xy 300.99 191.77)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "dc63674f-e533-42c6-8e13-35145d319075")
+	)
+	(wire
+		(pts
 			(xy 201.93 96.52) (xy 140.97 96.52)
 		)
 		(stroke
@@ -15826,7 +15742,7 @@
 		(uuid "d815d0bb-f769-4495-a468-e539543cd4cd")
 	)
 	(symbol
-		(lib_id "custom_symbol_lib:prog_mem_interface")
+		(lib_id "custom_symbol_lib:prog_mem_interface_read")
 		(at 316.23 214.63 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -15836,7 +15752,7 @@
 		(fields_autoplaced yes)
 		(uuid "074fc27a-e029-453b-9f03-17a75d45b401")
 		(property "Reference" "U17"
-			(at 330.2 213.9949 0)
+			(at 330.2 213.3599 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15844,17 +15760,16 @@
 				(justify left)
 			)
 		)
-		(property "Value" "~"
-			(at 330.2 215.9 0)
+		(property "Value" ""
+			(at 303.53 204.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x40_P2.54mm_Vertical"
-			(at 316.23 247.65 0)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x39_P2.54mm_Vertical"
+			(at 316.23 245.872 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15996,9 +15911,6 @@
 		)
 		(pin "12"
 			(uuid "7d8bc99c-a8ca-4468-acc4-866acf33882a")
-		)
-		(pin "40"
-			(uuid "565b6b42-80fe-4388-9542-6836a8743c8f")
 		)
 		(instances
 			(project "control_unit"
