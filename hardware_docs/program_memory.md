@@ -42,7 +42,7 @@ Internal timing diagram (Chip erase):
     {name: "Shift registers latch OE", wave: "l..............."},
     {name: "Data program OE", wave: "l..h...........l"},
     {name: "Data", wave: "x..2.2.2.2.2.2.x", data: ["0xAA", "0x55", "0x80", "0xAA", "0x55", "0x10"]},
-    {name: "Address counter CLR", wave: "l.h.l..........."},
+    {name: "Address counter CLR", wave: "lh.l............"},
     {name: "Address counter OE", wave: "l..............."},
     {name: "Address program OE", wave: "l.h...........l."},
     {name: "Address", wave: "x.2.2.2.2.2.2.x.", data: ["0x5555", "0x2AAA", "0x5555", "0x5555", "0x2AAA", "0x5555"]},

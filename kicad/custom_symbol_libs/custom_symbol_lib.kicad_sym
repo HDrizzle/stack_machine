@@ -11418,7 +11418,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(property "Reference" "U"
-			(at 5.334 -2.54 0)
+			(at 5.334 -9.906 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11426,15 +11426,15 @@
 			)
 		)
 		(property "Value" ""
-			(at -11.43 -2.54 0)
+			(at -11.43 -3.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Footprint" ""
-			(at -11.43 -2.54 0)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Horizontal"
+			(at 0 -27.94 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11443,7 +11443,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at -11.43 -2.54 0)
+			(at -11.43 -3.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11452,7 +11452,7 @@
 			)
 		)
 		(property "Description" ""
-			(at -11.43 -2.54 0)
+			(at -11.43 -3.81 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11462,8 +11462,8 @@
 		)
 		(symbol "prog_mem_interface_write_0_1"
 			(rectangle
-				(start -12.7 11.43)
-				(end 13.97 -11.43)
+				(start -12.7 10.16)
+				(end 12.7 -25.4)
 				(stroke
 					(width 0)
 					(type default)
@@ -11475,7 +11475,7 @@
 		)
 		(symbol "prog_mem_interface_write_1_1"
 			(text "Prog mem\nwrite interface"
-				(at 5.588 0.762 0)
+				(at 5.334 -6.604 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -11483,7 +11483,7 @@
 				)
 			)
 			(pin power_in line
-				(at -15.24 10.16 0)
+				(at -15.24 8.89 0)
 				(length 2.54)
 				(name "V+"
 					(effects
@@ -11500,8 +11500,98 @@
 					)
 				)
 			)
+			(pin input line
+				(at -15.24 -13.97 0)
+				(length 2.54)
+				(name "D_Prog_8-15"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "10"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -15.24 -16.51 0)
+				(length 2.54)
+				(name "A_Prog_0-7"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "11"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -15.24 -19.05 0)
+				(length 2.54)
+				(name "A_Prog_8-15"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "12"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -15.24 -21.59 0)
+				(length 2.54)
+				(name "D_write(0)/prog(1)_select"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "13"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -15.24 -24.13 0)
+				(length 2.54)
+				(name "A_write(0)/prog(1)_select"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "14"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
 			(pin power_in line
-				(at -15.24 7.62 0)
+				(at -15.24 6.35 0)
 				(length 2.54)
 				(name "GND"
 					(effects
@@ -11519,7 +11609,7 @@
 				)
 			)
 			(pin input line
-				(at -15.24 5.08 0)
+				(at -15.24 3.81 0)
 				(length 2.54)
 				(name "CLK"
 					(effects
@@ -11537,7 +11627,7 @@
 				)
 			)
 			(pin input line
-				(at -15.24 2.54 0)
+				(at -15.24 1.27 0)
 				(length 2.54)
 				(name "Chip_erase"
 					(effects
@@ -11555,7 +11645,7 @@
 				)
 			)
 			(pin input line
-				(at -15.24 0 0)
+				(at -15.24 -1.27 0)
 				(length 2.54)
 				(name "Byte_program"
 					(effects
@@ -11573,7 +11663,7 @@
 				)
 			)
 			(pin input line
-				(at -15.24 -2.54 0)
+				(at -15.24 -3.81 0)
 				(length 2.54)
 				(name "D_0-7"
 					(effects
@@ -11591,7 +11681,7 @@
 				)
 			)
 			(pin input line
-				(at -15.24 -5.08 0)
+				(at -15.24 -6.35 0)
 				(length 2.54)
 				(name "D_8-15"
 					(effects
@@ -11609,9 +11699,9 @@
 				)
 			)
 			(pin input line
-				(at -15.24 -7.62 0)
+				(at -15.24 -8.89 0)
 				(length 2.54)
-				(name "D_start"
+				(name "Write_enable"
 					(effects
 						(font
 							(size 1.016 1.016)
@@ -11627,9 +11717,9 @@
 				)
 			)
 			(pin input line
-				(at -15.24 -10.16 0)
+				(at -15.24 -11.43 0)
 				(length 2.54)
-				(name "Write_enable"
+				(name "D_Prog_0-7"
 					(effects
 						(font
 							(size 1.016 1.016)
