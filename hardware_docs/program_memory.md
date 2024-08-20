@@ -14,6 +14,8 @@ An Arduino board will be used for writing to the program memory.
 
 The clock signal from the arduino will have a frequency of 1 MHz. It will be used for clocking each new word into the input shift register and running the chip-erase and byte-program sequences.
 
+### NOTE: The timing diagrams are old and not accurate anymore
+
 Chip write sequences: 
 
 Program write arduino side timing diagram:
