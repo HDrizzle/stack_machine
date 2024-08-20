@@ -8,7 +8,7 @@
 | Ctrl unit main board | Not needed | Done | Done | Done | Done | - | - | - |
 | Bus/Motherboard | Done | Done | Done | Done | Done | - | - | - |
 | Startup controller | Done | Done | Done | Done | Done | - | - | - |
-| ALU | Not needed | Done | Done | Done | - | - | - | - |
+| ALU | Not needed | Done | Done | Done | Done | - | - | - |
 | Clock | Done | Done | Done | Done | Done | Working on it | - | - |
 | Stack controller | Done | Done | Done | Done | Done | - | - | - |
 | GPRAM controller | Done | Done | Done | Done | Done | - | - | - |

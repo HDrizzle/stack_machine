@@ -11418,7 +11418,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(property "Reference" "U"
-			(at 5.334 -2.794 0)
+			(at 5.334 -9.906 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11463,7 +11463,7 @@
 		(symbol "prog_mem_interface_write_0_1"
 			(rectangle
 				(start -12.7 10.16)
-				(end 12.7 -10.16)
+				(end 12.7 -25.4)
 				(stroke
 					(width 0)
 					(type default)
@@ -11475,7 +11475,7 @@
 		)
 		(symbol "prog_mem_interface_write_1_1"
 			(text "Prog mem\nwrite interface"
-				(at 5.334 0.254 0)
+				(at 5.334 -6.604 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -11554,6 +11554,42 @@
 					)
 				)
 			)
+			(pin input line
+				(at -15.24 -21.59 0)
+				(length 2.54)
+				(name "D_write(0)/prog(1)_select"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "13"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -15.24 -24.13 0)
+				(length 2.54)
+				(name "A_write(0)/prog(1)_select"
+					(effects
+						(font
+							(size 1.016 1.016)
+						)
+					)
+				)
+				(number "14"
+					(effects
+						(font
+							(size 0.762 0.762)
+						)
+					)
+				)
+			)
 			(pin power_in line
 				(at -15.24 6.35 0)
 				(length 2.54)
@@ -11593,7 +11629,7 @@
 			(pin input line
 				(at -15.24 1.27 0)
 				(length 2.54)
-				(name "Chip_erase"
+				(name "Addr_counter_CLR"
 					(effects
 						(font
 							(size 1.016 1.016)
@@ -11608,10 +11644,10 @@
 					)
 				)
 			)
-			(pin input line
+			(pin no_connect line
 				(at -15.24 -1.27 0)
 				(length 2.54)
-				(name "Byte_program"
+				(name "NC"
 					(effects
 						(font
 							(size 1.016 1.016)
@@ -11665,7 +11701,7 @@
 			(pin input line
 				(at -15.24 -8.89 0)
 				(length 2.54)
-				(name "Write_enable"
+				(name "Write_mode_enable"
 					(effects
 						(font
 							(size 1.016 1.016)

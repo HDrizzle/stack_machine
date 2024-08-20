@@ -11629,7 +11629,7 @@
 			(pin input line
 				(at -15.24 1.27 0)
 				(length 2.54)
-				(name "Chip_erase"
+				(name "Addr_counter_CLR"
 					(effects
 						(font
 							(size 1.016 1.016)
@@ -11647,7 +11647,7 @@
 			(pin input line
 				(at -15.24 -1.27 0)
 				(length 2.54)
-				(name "Byte_program"
+				(name "WE#"
 					(effects
 						(font
 							(size 1.016 1.016)
@@ -11701,7 +11701,7 @@
 			(pin input line
 				(at -15.24 -8.89 0)
 				(length 2.54)
-				(name "Write_enable"
+				(name "Write_mode_enable"
 					(effects
 						(font
 							(size 1.016 1.016)
