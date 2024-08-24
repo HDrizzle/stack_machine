@@ -36,63 +36,63 @@
         },
         {
             "id_": 1,
-            "name": "sub"
+            "name": "add-c"
         },
         {
             "id_": 2,
-            "name": "mult"
-        },
-        {
-            "id_": 3,
             "name": "not"
         },
         {
-            "id_": 4,
+            "id_": 3,
             "name": "or"
         },
         {
-            "id_": 5,
+            "id_": 4,
             "name": "and"
         },
         {
+            "id_": 5,
+            "name": "xnor"
+        },
+        {
             "id_": 6,
-            "name": "xor"
+            "name": "shift"
         },
         {
             "id_": 7,
-            "name": "shift-l"
-        },
-        {
-            "id_": 8,
-            "name": "shift-r"
-        },
-        {
-            "id_": 9,
             "name": "eq"
         },
         {
-            "id_": 10,
-            "name": "bool-eq"
-        },
-        {
-            "id_": 11,
-            "name": "greater-then"
-        },
-        {
-            "id_": 12,
+            "id_": 8,
             "name": "a"
         },
         {
-            "id_": 13,
+            "id_": 9,
             "name": "b"
         },
         {
+            "id_": 10,
+            "name": "ext-10"
+        },
+        {
+            "id_": 11,
+            "name": "ext-11"
+        },
+        {
+            "id_": 12,
+            "name": "ext-12"
+        },
+        {
+            "id_": 13,
+            "name": "ext-13"
+        },
+        {
             "id_": 14,
-            "name": "c"
+            "name": "ext-14"
         },
         {
             "id_": 15,
-            "name": "twos-comp"
+            "name": "ext-15"
         }
     ],
     "to_bus": [
@@ -126,7 +126,19 @@
         },
         {
             "id_": 8,
-            "name": "GPIO-READ"
+            "name": "GPIO-READ-A"
+        },
+        {
+            "id_": 9,
+            "name": "clock-counter-a"
+        },
+        {
+            "id_": 10,
+            "name": "clock-counter-b"
+        },
+        {
+            "id_": 11,
+            "name": "GPIO-READ-B"
         }
     ],
     "from_bus": [
@@ -172,7 +184,7 @@
         },
         {
             "id_": 11,
-            "name": "gpio-write"
+            "name": "gpio-write-a"
         },
         {
             "id_": 12,
@@ -181,6 +193,14 @@
         {
             "id_": 13,
             "name": "set-stack-offset"
+        },
+        {
+            "id_": 14,
+            "name": "alu-c-in"
+        },
+        {
+            "id_": 15,
+            "name": "gpio-write-b"
         }
     ]
 }

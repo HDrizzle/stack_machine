@@ -28,7 +28,7 @@ halt";
 	assert_eq!(program, binary_program_check);
 	// Run
 	let mut machine = Machine::new(program);
-	machine.run(|_| -> u8 {0x00}).unwrap();
+	machine.run(|_| -> u16 {0x00}).unwrap();
 	// All that work to add 1 + 2
 	//println!("stack: {:?}", &machine.stack_mem[0..5]);
 	//println!("ALU A & B: {}, {}", machine.alu.latch_a, machine.alu.latch_b);
@@ -48,7 +48,7 @@ WRITE 0x00 GOTO-B
 WRITE 0x15 GOTO-A
 MOVE GPRAM-ADDR-A ALU-A
 WRITE 0x0B ALU-B
-MOVE GREATER-THEN ALU GOTO-DECIDER
+MOVE EQ ALU GOTO-DECIDER
 GOTO-IF
 MOVE STACK-POP ALU-A
 MOVE STACK-POP ALU-B
@@ -80,12 +80,12 @@ HALT";
 		0x4151,// end pointer: 21 or 0x15
 		0x2600,// MOVE GPRAM-ADDR-A ALU-A
 		0x30B1,// WRITE 0x0B ALU-B
-		0x62B0,// MOVE GREATER-THEN ALU GOTO-DECIDER
+		0x6270,// MOVE EQ ALU GOTO-DECIDER
 		0x0003,// GOTO-IF
 		// Math
 		0x2000,
 		0x3000,
-		0x12C0,// MOVE A ALU STACK-PUSH
+		0x1280,// MOVE A ALU STACK-PUSH
 		0x8200,
 		0x1200,
 		// Goto beginning of loop
@@ -98,7 +98,7 @@ HALT";
 	assert_eq!(program, binary_program_check);
 	// Run
 	let mut machine = Machine::new(program);
-	machine.run(|_| -> u8 {0x00}).unwrap();
+	machine.run(|_| -> u16 {0x00}).unwrap();
 	// Check for fibonacci sequence in GPRAM
 	assert_eq!(machine.general_mem[0..10], [1, 1, 2, 3, 5, 8, 13, 21, 34, 55]);
 }

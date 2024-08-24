@@ -13,7 +13,7 @@ trait MachineComponent {
 }
 
 // Structs
-struct StackController {
+pub struct StackController {
 	top_pointer: u16,
 	offset: u8,
 }
@@ -21,13 +21,13 @@ struct StackController {
 impl StackController {
 	/// Pushes value onto stack
 	pub fn push(&mut self, value: u8, mem: &mut [u8; POWER_16]) {
-		self.top_pointer += 1;
+		self.top_pointer = self.top_pointer.wrapping_add(1);
 		mem[self.top_pointer as usize] = value;
 	}
 	/// Pops of the top of the stack, optionaly deletes the value afterwards
 	pub fn pop(&mut self, mem: &[u8; POWER_16]) -> u8 {
 		let out: u8 = mem[self.top_pointer as usize];
-		self.top_pointer -= 1;
+		self.top_pointer = self.top_pointer.wrapping_sub(1);
 		// Done
 		out
 	}
@@ -36,6 +36,15 @@ impl StackController {
 	}
 	pub fn offset_write(&self, value: u8, mem: &mut [u8; POWER_16]) {
 		mem[(self.top_pointer - (self.offset as u16)) as usize] = value;
+	}
+	/// Does exactly what the hardware does
+	/// ```
+	/// use stack_machine::emulator::StackController;
+	/// assert_eq!(StackController::compute_offset(0x0000, 0xFF), 0x0000);
+	/// assert_eq!(StackController::compute_offset(0x0009, 0xFD), 0x0007);
+	/// ```
+	pub fn compute_offset(top: u16, offset: u8) -> u16 {
+		top.wrapping_add((offset as u16) | 0xFF00).wrapping_add(1)
 	}
 }
 
@@ -59,53 +68,53 @@ impl ALU {
 		let a = self.latch_a;
 		let b = self.latch_b;
 		Ok(match opcode {
-			0 => {// +
-				a + b
+			0 => {// ADD
+				a.wrapping_add(b)
 			},
-			1 => {// -
-			   a - b
-			},
-			2 => {// *
-				b * b
-			},
-			3 => {// NOT
-				!a
-			},
-			4 => {// OR
-				a | b
-			},
-			5 => {// AND
-				a & b
-			},
-			6 => {// XOR
-				a ^ b
-			},
-			7 => {// shift L
-				a << 1
-			},
-			8 => {// shift R
-				b >> 1
-			},
-			9 => {// EQ
-				(a == b) as u8
-			},
-			10 => {// BOOL-EQ (only uses LSB)
-				!((a & 0x01) ^ (b & 0x01))
-			},
-			11 => {// >
-				(a > b) as u8
-			},
-			12 => {// A
-				a
-			},
-			13 => {// B
-				b
-			},
-			14 => {// C
+			1 => {// ADD-C
 				(((a as u16) + (b as u16)) > 255) as u8
 			},
-			15 => {// TWOS-COMP
-				a.wrapping_neg()
+			2 => {// NOT
+				!a
+			},
+			3 => {// OR
+				a | b
+			},
+			4 => {// AND
+				a & b
+			},
+			5 => {// XNOR
+				!(a ^ b)
+			},
+			6 => {// SHIFT
+				a << (b & 0b111)
+			},
+			7 => {// EQ
+				(a == b) as u8
+			},
+			8 => {// A
+				a
+			},
+			9 => {// B
+				b
+			},
+			10 => {// EXT-10
+				return Err(EmulationErrorEnum::InvalidAluOpcode(opcode))
+			},
+			11 => {// EXT-11
+				return Err(EmulationErrorEnum::InvalidAluOpcode(opcode))
+			},
+			12 => {// EXT-12
+				return Err(EmulationErrorEnum::InvalidAluOpcode(opcode))
+			},
+			13 => {// EXT-13
+				return Err(EmulationErrorEnum::InvalidAluOpcode(opcode))
+			},
+			14 => {// EXT-14
+				return Err(EmulationErrorEnum::InvalidAluOpcode(opcode))
+			},
+			15 => {// EXT-15
+				return Err(EmulationErrorEnum::InvalidAluOpcode(opcode))
 			},
 			_ => return Err(EmulationErrorEnum::InvalidAluOpcode(opcode))
 		})
@@ -161,12 +170,13 @@ pub struct Machine {
 	stack_controller: StackController,
 	pub alu: ALU,
 	general_mem_controller: GeneralMemController,
-	gpio_output: u8,
+	gpio_output: u16,
 	execution_pointer: u16,
 	goto_latch_a: u8,
 	goto_latch_b: u8,
 	goto_decider_latch: bool,
-	program_size: u16
+	program_size: u16,
+	clock_counter: u16
 }
 
 impl Machine {
@@ -191,12 +201,13 @@ impl Machine {
 			goto_latch_a: 0,
 			goto_latch_b: 0,
 			goto_decider_latch: false,
-			program_size: prog.len() as u16
+			program_size: prog.len() as u16,
+			clock_counter: 0
 		}
 	}
 	/// Executes 1 instruction
 	/// Returns: Ok(whether to stop the clock (HALT)) or Err(EmulationError)
-	pub fn execute_instruction(&mut self, gpio_in: u8) -> Result<bool, EmulationError> {
+	pub fn execute_instruction(&mut self, gpio_in: u16) -> Result<bool, EmulationError> {
 		// Check that execution pointer is within limits
 		if self.execution_pointer >= self.program_size {
 			return Err(self.err_enum_to_err(EmulationErrorEnum::ExecutionPointerExceededProgramSize));
@@ -293,8 +304,8 @@ impl Machine {
 			10 => {// GPRAM-ADDR-B
 				self.general_mem_controller.pointer |= (self.general_mem_controller.pointer & 0x00FF) | ((bus_value as u16) << 8)
 			},
-			11 => {// GPIO-WRITE
-				self.gpio_output = bus_value;
+			11 => {// GPIO-WRITE-A
+				self.gpio_output = (self.gpio_output & 0xFF00) | (bus_value as u16);
 			},
 			12 => {// STACK-OFFSET-WRITE
 				self.stack_controller.offset_write(bus_value, &mut self.stack_mem);
@@ -305,11 +316,14 @@ impl Machine {
 			14 => {// ALU-C-IN
 				self.alu.latch_c = bus_value;
 			},
+			15 => {// GPIO-WRITE-B
+				self.gpio_output = (self.gpio_output & 0x00FF) | ((bus_value as u16) << 8);
+			},
 			_ => return Err(EmulationErrorEnum::InvalidBusReadAddr(read_addr))
 		}
 		Ok(())
 	}
-	fn get_bus_value(&mut self, write_addr: u8, gpio_in: u8, alu_opcode: u8) -> Result<u8, EmulationErrorEnum> {
+	fn get_bus_value(&mut self, write_addr: u8, gpio_in: u16, alu_opcode: u8) -> Result<u8, EmulationErrorEnum> {
 		Ok(match write_addr {
 			0 => {// STACK-POP
 				self.stack_controller.pop(&mut self.stack_mem)
@@ -335,8 +349,17 @@ impl Machine {
 			7 => {// GPRAM-ADDR-B
 				((self.general_mem_controller.pointer >> 8) & 0x00FF) as u8
 			},
-			8 => {// GPIO-READ
-				gpio_in
+			8 => {// GPIO-READ-A
+				(gpio_in & 0x00FF) as u8
+			},
+			9 => {// CLK-COUNTER-A
+				(self.clock_counter & 0x00FF) as u8
+			},
+			10 => {// CLK-COUNTER-B
+				((self.clock_counter >> 8) & 0x00FF) as u8
+			},
+			11 => {// GPIO-READ-B
+				((gpio_in >> 8) & 0x00FF) as u8
 			},
 			_ => return Err(EmulationErrorEnum::InvalidBusWriteAddr(write_addr))
 		})
@@ -356,9 +379,9 @@ impl Machine {
 		}
 	}
 	/// Runs until error or halt
-	pub fn run(&mut self, mut gpio_interactor: impl FnMut(u8) -> u8) -> Result<(), EmulationError> {
+	pub fn run(&mut self, mut gpio_interactor: impl FnMut(u16) -> u16) -> Result<(), EmulationError> {
 		loop {
-			let gpio_in: u8 = gpio_interactor(self.gpio_output);
+			let gpio_in: u16 = gpio_interactor(self.gpio_output);
 			if self.execute_instruction(gpio_in)? {
 				return Ok(());
 			}
