@@ -6,6 +6,7 @@ pub mod assembler;
 pub mod compiler;
 pub mod emulator;
 pub mod resources;
+pub mod program_upload;
 #[cfg(test)]
 mod tests;
 
@@ -14,6 +15,8 @@ pub mod prelude {
     pub use crate::assembler::{AssemblyWord, AssemblerConfig};
     pub use crate::resources;
     pub use crate::emulator::Machine;
+	/// To prevent typoes
+	pub const POWER_16: usize = 0x10000;
     pub fn to_string_err<T, E: ToString>(result: Result<T, E>) -> Result<T, String> {
 		match result {
 			Ok(t) => Ok(t),

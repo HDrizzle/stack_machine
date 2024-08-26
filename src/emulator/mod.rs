@@ -3,9 +3,6 @@
 #[allow(unused)]
 use crate::prelude::*;
 
-/// To prevent typoes
-const POWER_16: usize = 0x10000;
-
 /// Generalization of components
 trait MachineComponent {
 	/// Initial state
@@ -208,6 +205,7 @@ impl Machine {
 	/// Executes 1 instruction
 	/// Returns: Ok(whether to stop the clock (HALT)) or Err(EmulationError)
 	pub fn execute_instruction(&mut self, gpio_in: u16) -> Result<bool, EmulationError> {
+		// TODO: Increment `self.clock_counter`
 		// Check that execution pointer is within limits
 		if self.execution_pointer >= self.program_size {
 			return Err(self.err_enum_to_err(EmulationErrorEnum::ExecutionPointerExceededProgramSize));
