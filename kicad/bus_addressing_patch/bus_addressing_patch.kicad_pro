@@ -51,13 +51,7 @@
           "min_clearance": 0.5
         }
       },
-      "diff_pair_dimensions": [
-        {
-          "gap": 0.0,
-          "via_gap": 0.0,
-          "width": 0.0
-        }
-      ],
+      "diff_pair_dimensions": [],
       "drc_exclusions": [],
       "meta": {
         "version": 2
@@ -76,7 +70,7 @@
         "extra_footprint": "warning",
         "footprint": "error",
         "footprint_symbol_mismatch": "warning",
-        "footprint_type_mismatch": "warning",
+        "footprint_type_mismatch": "ignore",
         "hole_clearance": "error",
         "hole_near_hole": "error",
         "invalid_outline": "error",
@@ -96,8 +90,8 @@
         "pth_inside_courtyard": "ignore",
         "shorting_items": "error",
         "silk_edge_clearance": "warning",
-        "silk_over_copper": "ignore",
-        "silk_overlap": "ignore",
+        "silk_over_copper": "warning",
+        "silk_overlap": "warning",
         "skew_out_of_range": "error",
         "solder_mask_bridge": "error",
         "starved_thermal": "error",
@@ -115,7 +109,7 @@
       },
       "rules": {
         "max_error": 0.005,
-        "min_clearance": 0.2,
+        "min_clearance": 0.5,
         "min_connection": 0.2,
         "min_copper_edge_clearance": 0.5,
         "min_hole_clearance": 0.25,
@@ -176,10 +170,7 @@
           "td_width_to_size_filter_ratio": 0.9
         }
       ],
-      "track_widths": [
-        0.0,
-        2.0
-      ],
+      "track_widths": [],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
           "corner_radius_percentage": 80,
@@ -206,12 +197,7 @@
           "spacing": 0.6
         }
       },
-      "via_dimensions": [
-        {
-          "diameter": 0.0,
-          "drill": 0.0
-        }
-      ],
+      "via_dimensions": [],
       "zones_allow_external_fillets": false
     },
     "ipc2581": {
@@ -444,7 +430,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "bus.kicad_pro",
+    "filename": "bus_addressing_patch.kicad_pro",
     "version": 1
   },
   "net_settings": {
@@ -479,11 +465,11 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "/Users/hward/Documents/stack_machine/kicad/rendering_output/bus_order/",
+      "plot": "",
       "pos_files": "",
       "specctra_dsn": "",
       "step": "",
-      "svg": "/Users/hward/Documents/stack_machine/kicad/rendering_output/",
+      "svg": "",
       "vrml": ""
     },
     "page_layout_descr_file": ""
@@ -576,7 +562,7 @@
     },
     "net_format_name": "",
     "page_layout_descr_file": "",
-    "plot_directory": "/Users/hward/Documents/stack_machine/kicad/rendering_output/",
+    "plot_directory": "",
     "spice_current_sheet_as_root": false,
     "spice_external_command": "spice \"%I\"",
     "spice_model_current_sheet_as_root": true,
@@ -588,7 +574,7 @@
   },
   "sheets": [
     [
-      "106429cc-3bac-43b8-a679-36814c415b6f",
+      "ee5e67d7-c242-4599-96e2-2e131db56607",
       "Root"
     ]
   ],

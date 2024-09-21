@@ -14663,6 +14663,105 @@
 			(type solid)
 		)
 	)
+	(dimension
+		(type aligned)
+		(layer "User.1")
+		(uuid "1f2e29ac-cfb3-43d2-bf96-87ef337cf894")
+		(pts
+			(xy 170.95 147.89) (xy 195.065 147.9)
+		)
+		(height 11.57701)
+		(gr_text "24.1150 mm"
+			(at 183.003176 158.322009 359.9762406)
+			(layer "User.1")
+			(uuid "1f2e29ac-cfb3-43d2-bf96-87ef337cf894")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(format
+			(prefix "")
+			(suffix "")
+			(units 3)
+			(units_format 1)
+			(precision 4)
+		)
+		(style
+			(thickness 0.1)
+			(arrow_length 1.27)
+			(text_position_mode 0)
+			(extension_height 0.58642)
+			(extension_offset 0.5) keep_text_aligned)
+	)
+	(dimension
+		(type aligned)
+		(layer "User.1")
+		(uuid "5a4d3ed7-56c5-4410-a024-44a0c55f2902")
+		(pts
+			(xy 146.805 147.89) (xy 170.95 147.89)
+		)
+		(height 11.61)
+		(gr_text "24.1450 mm"
+			(at 158.8775 158.35 0)
+			(layer "User.1")
+			(uuid "5a4d3ed7-56c5-4410-a024-44a0c55f2902")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(format
+			(prefix "")
+			(suffix "")
+			(units 3)
+			(units_format 1)
+			(precision 4)
+		)
+		(style
+			(thickness 0.1)
+			(arrow_length 1.27)
+			(text_position_mode 0)
+			(extension_height 0.58642)
+			(extension_offset 0.5) keep_text_aligned)
+	)
+	(dimension
+		(type aligned)
+		(layer "User.1")
+		(uuid "96f9f24d-c389-4b7e-9ffd-844a0f9f1256")
+		(pts
+			(xy 122.69 147.89) (xy 146.805 147.89)
+		)
+		(height 11.61)
+		(gr_text "24.1150 mm"
+			(at 134.7475 158.35 0)
+			(layer "User.1")
+			(uuid "96f9f24d-c389-4b7e-9ffd-844a0f9f1256")
+			(effects
+				(font
+					(size 1 1)
+					(thickness 0.15)
+				)
+			)
+		)
+		(format
+			(prefix "")
+			(suffix "")
+			(units 3)
+			(units_format 1)
+			(precision 4)
+		)
+		(style
+			(thickness 0.1)
+			(arrow_length 1.27)
+			(text_position_mode 0)
+			(extension_height 0.58642)
+			(extension_offset 0.5) keep_text_aligned)
+	)
 	(segment
 		(start 101.709 129.497)
 		(end 101.709 131.0512)
