@@ -1,6 +1,6 @@
 //! Module for uploading binaries to an attatched arduino for it to upload to the computer
 
-use std::time::Duration;
+/*use std::time::Duration;
 use crate::prelude::*;
 use serialport::{available_ports, SerialPort, SerialPortBuilder, SerialPortInfo};
 use dialoguer;
@@ -27,8 +27,8 @@ pub fn port_choose_cli() -> Result<SerialPortInfo, String> {
 		let in_raw: String = dialoguer::Input::new().with_prompt("Port #: ").interact_text().unwrap();
 		if let Ok(in_parsed) = in_raw.parse::<usize>() {
 			if in_parsed < ports.len() {
-				return Ok(ports[in_parsed]);
+				return Ok(ports[in_parsed].clone());
 			}
 		}
 	}
-}
+}*/

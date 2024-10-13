@@ -1,0 +1,10 @@
+Hi, This is Hadrian Ward.
+
+I have always been interested in electronics and especially computers and how they work. Last year I started designing my own computer to be built out of
+discrete logic chips. Over the summer I spent a lot of time designing every detail of every circuit board that would make it up.
+
+The computer will consist of 11 custom made printed circuit boards, 204 computer chips and sockets, and some other miscellaneous parts.
+Every chip plugs into a socket, meaning that none are directly soldered to any PCBs. This is because if I somehow electrically damage any chips I can simply pull them out and replace them without having to unsolder anything which often ruins the whole PCB.
+
+During this school year I have spent a lot of time in the makerspace building the computer. There have of course been some issues put so far I have been able to fix all of them.
+
