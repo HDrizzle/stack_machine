@@ -1,6 +1,6 @@
 //! Maine library file
 
-use std::env;
+use std::{env, fs};
 
 pub mod assembler;
 pub mod compiler;
@@ -34,6 +34,8 @@ pub mod prelude {
 pub use crate::prelude::*;
 
 pub fn ui_main() {
+	// Used by almost every command
+	let assembler_config = resources::load_assembler_config().expect("Unable to load assembler config");
 	// Parse arguments
 	let args: Vec<String> = env::args().collect();
 	if args.len() < 2 {// Just the program name, default to running the server GUI
@@ -49,7 +51,6 @@ pub fn ui_main() {
 					println!("Plz include single line of assembly");
 				}
 				else {
-					let assembler_config = resources::load_assembler_config().expect("Unable to load assembler config");
 					match assembler::assembler_pipeline_formated_errors(&args[2..].join(" "), &assembler_config) {
 						Ok(program) => println!("Instruction: {}, {:#X}, {:#018b}", program[0], program[0], program[0]),
 						Err(s) => panic!("{}", s)
@@ -61,8 +62,29 @@ pub fn ui_main() {
 					println!("Plz include name of file in `/assembly_sources`");
 				}
 				else {
-					let assembler_config = resources::load_assembler_config().expect("Unable to load assembler config");
 					assembler::assemble_file(&args[2], &assembler_config).unwrap();
+				}
+			},
+			"-assemble-upload" => {
+				if args.len() < 3 {
+					println!("Plz include name of file in `{}`", resources::ASSEMBLY_SOURCES_DIR);
+				}
+				else {
+					let name = &args[2];
+					let path: String = resources::ASSEMBLY_SOURCES_DIR.to_owned() + name;
+					let file_raw = match fs::read_to_string(&path) {
+						Ok(s) => s,
+						Err(e) => panic!("Could not load test file at \"{}\" because {}", &path, e)
+					};
+					match assembler::assembler_pipeline_formated_errors(&file_raw, &assembler_config) {
+						Ok(program) => {
+							match program_upload::send_program(&program) {
+								Ok(()) => println!("Program at {} uploaded", &path),
+								Err(e) => println!("Upload error: {}", e)
+							}
+						},
+						Err(s) => println!("{}", s)
+					}
 				}
 			},
 			"-compile" => {

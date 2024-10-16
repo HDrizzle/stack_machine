@@ -107,7 +107,7 @@ Functions in the machine code are only defined by `CALL` and `RETURN` instructio
 
 # I/O
 
-There will be 8 input and 8 seperate output pins.
+There are 16 input and 16 seperate output pins.
 
 # General purpose static-RAM (GPRAM)
 
