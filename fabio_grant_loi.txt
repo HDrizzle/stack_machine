@@ -1,10 +1,19 @@
-Hi, This is Hadrian Ward.
+Hi,
 
-I have always been interested in electronics and especially computers and how they work. Last year I started designing my own computer to be built out of
-discrete logic chips. Over the summer I spent a lot of time designing every detail of every circuit board that would make it up.
+I have always been interested in electronics and especially computers and how they work. When I was little I would get junk electronic equipment and take it apart to see how it worked.
+Last year I started designing a computer to be built out of discrete logic chips. Over the summer I spent a lot of time designing every detail of every circuit board that would make it up.
 
-The computer will consist of 11 custom made printed circuit boards, 204 computer chips and sockets, and some other miscellaneous parts.
+The computer consists of 11 custom printed circuit boards (PCBs), 211 computer chips and sockets, and some other miscellaneous parts.
 Every chip plugs into a socket, meaning that none are directly soldered to any PCBs. This is because if I somehow electrically damage any chips I can simply pull them out and replace them without having to unsolder anything which often ruins the whole PCB.
 
-During this school year I have spent a lot of time in the makerspace building the computer. There have of course been some issues put so far I have been able to fix all of them.
+During this school year I have spent a lot of time in the makerspace building the computer. There have of course been some issues but so far I have been able to fix all of them. Even though it is not yet completed it can, as of 2024-10-14 run, simple programs.
 
+Because of the cost I am interested in having it covered by the Michael P. Fabio Exploration fund. Since I have already bought everything needed to finish the project, I know exactly what the cost is, which is $650.27.
+
+I am excited to finally be able to run simple programs on a computer I designed myself. When I have the computer fully completed I will work on designing a compiled language meant specifically for it.
+
+All documentation & design files are publicly available at https://github.com/HDrizzle/stack_machine.
+
+Thanks!
+
+- Hadrian

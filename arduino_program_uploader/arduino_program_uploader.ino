@@ -80,6 +80,26 @@ void test1() {// move clk-counter-a gpio-write-a
   upload_program(program, prog_size);
 }
 
+void test2() {// Loop
+  int prog_size = 4;
+  uint16_t program[PROG_ARRAY_SIZE];
+  program[0] = 0b0100000000010001;// write 0x01 goto-a
+  program[1] = 0b0101000000000001;// write 0x00 goto-b
+  program[2] = 0b1011101000000000;// move clk-counter-b gpio-write-a
+  program[3] = 0b0000000000000010;// goto
+  upload_program(program, prog_size);
+}
+
+void test_call_return() {// Loop + "function
+  int prog_size = 4;
+  uint16_t program[PROG_ARRAY_SIZE];
+  program[0] = 0b0100000000010001;// write 0x01 goto-a
+  program[1] = 0b0101000000000001;// write 0x00 goto-b
+  program[2] = 0b1011101000000000;// move clk-counter-b gpio-write-a
+  program[3] = 0b0000000000000010;// goto
+  upload_program(program, prog_size);
+}
+
 void test_slow_single_instruction() {// move clk-counter-a gpio-write-a
   int prog_size = 2;
   uint16_t program[PROG_ARRAY_SIZE];
@@ -140,7 +160,7 @@ void setup() {
   digitalWrite(pin_D_CLK, LOW);
   digitalWrite(pin_A_CLK, LOW);
   // Test
-  test1();
+  test2();
 }
 
 void loop() {
