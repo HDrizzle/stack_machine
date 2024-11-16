@@ -1,0 +1,12 @@
+write 0xFF gpio-write-a
+write 0x02 goto-a
+write 0x00 goto-b
+write 0x00 gpram-addr-a
+write 0x00 gpram-addr-b
+write 0xC3 gpram-inc-addr
+write 0x55 gpram
+write 0x00 gpram-addr-a
+write 0x00 gpram-addr-b
+move gpram-inc-addr gpio-write-a
+move gpram gpio-write-a
+goto

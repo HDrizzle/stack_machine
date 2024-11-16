@@ -1,0 +1,9 @@
+write 0xAA gpio-write-a
+write 0x06 goto-a
+write 0x00 goto-b
+call
+write 0x00 goto-a
+write 0x00 goto-b
+goto
+move clk-counter-b gpio-write-a
+return

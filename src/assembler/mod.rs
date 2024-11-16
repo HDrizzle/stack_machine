@@ -1,9 +1,232 @@
 //! Functionality to turn assembly into binary
-use std::{fmt::Debug, fs};
+//! Assembly pipeline:
+//! * Create syntax tree
+//! * Perform macro expansion on syntax tree
+//! * Build instruction list from syntax tree
+use std::{fmt::{Debug, Write}, fs};
 use serde::{Serialize, Deserialize};
 use hex;
 
 use crate::prelude::*;
+
+pub mod macros;
+
+pub enum ParseTreeNodeType {
+	Program,// The root node should always have this type
+	Macro(String),
+	MacroArg(String),
+	Instruction,
+	InstructionTokenWord(Token),
+	InstructionTokenLiteral {
+		len_bits: usize,
+		value: u128// Probably enough
+	},
+	Comment,
+	StringLiteral(String)
+}
+
+impl ParseTreeNodeType {
+	/// Returns string, where it ends (exclusive)
+	pub fn parse_string_literal(source: &Vec<char>, start: usize) -> (Self, usize) {
+		// TODO
+	}
+}
+
+/*impl ParseTreeNodeType {
+	pub fn context(&self) -> ParseContext {
+		match self {
+			Self::Program => ParseContext::Program,
+			Self::Macro => ParseContext::Macro,
+			Self::MacroName(..) => ParseContext::MacroName,
+			Self::MacroArgs => ParseContext::MacroArgs,
+			Self::MacroArg(..) => ParseContext::MacroArg,
+			Self::Instruction => ParseContext::Instruction,
+			Self::InstructionTokenWord(..) => ParseContext::InstructionTokenWord,
+			Self::InstructionTokenLiteral{..} => ParseContext::InstructionTokenLiteral,
+
+		}
+	}
+}*/
+
+#[derive(Clone, Copy)]
+pub enum ParseContext {
+	Program,
+	Macro,
+	MacroArg,
+	Instruction,
+	InstructionTokenWord,
+	InstructionTokenLiteral,
+	Comment,
+	String
+}
+
+impl ParseContext {
+	pub fn parse(&self, source: &Vec<char>, start: usize) -> Result<(Vec<ParseTreeNode>, usize), Vec<ParseError>> {
+		//let source_substring: &str = &source[start..source.len()];
+		let mut children= Vec::<ParseTreeNode>::new();
+		let i: usize = start;
+		match self {
+			Self::Program => {
+				while i < source.len() {
+					let char_: char = source[i];
+					if IDENTIFIER_CHARS.contains(&char_) {// Create new child of type Instruction
+						match ParseContext::Instruction.parse(source, i) {
+							Ok((children, end)) => {
+								children.push(
+									ParseTreeNode {
+										type_: ParseTreeNodeType::Instruction,
+										begin: i,
+										end,
+										children
+									}
+								);
+								i = end;
+								continue;
+							},
+							Err(errs) => {return Err(errs)}
+						}
+					}
+					if char_ == MACRO_BEGIN {
+						match ParseContext::Macro.parse(source, i+1) {
+							Ok((children, end)) => {
+								children.push(
+									ParseTreeNode {
+										type_: ParseTreeNodeType::Macro,
+										begin: i+1,
+										end,
+										children
+									}
+								);
+								i = end;
+								continue;
+							},
+							Err(errs) => {return Err(errs)}
+						}
+					}
+					i += 1;
+				}
+			},
+			Self::Macro => {
+				// First, read macro name
+				let mut name = String::new();
+				while i < source.len() {
+					let char_ = source[i];
+					if !IDENTIFIER_CHARS.contains(&char_) {
+						if name.len() >= 1 {
+							if char_ == '(' {
+								break;
+							}
+							else {
+								return Err(vec![ParseError::new(i, i+1, ParseErrorType::InvalidCharacterInContext(char_, *self))]);
+							}
+						}
+						else {
+							return Err(vec![ParseError::new(i, i+1, ParseErrorType::MissingMacroIdentifier)]);
+						}
+					}
+					name.write_char(char_);
+					i += 1;
+				}
+				i += 1;// get past the opening "("
+				// Build list of arguments
+				loop {
+					let mut arg = String::new();
+					while i < source.len() {
+						let char_ = source[i];
+						if char_ == '\"' {
+							let (string_arg, end) = ParseTreeNodeType::parse_string_literal(source, i+1);
+							children.push(ParseTreeNode {
+								type_: string_arg,
+								begin: i+1,
+								end,
+								children: vec![]
+							});
+							i = end+1;
+							break;
+						}
+						if IDENTIFIER_CHARS.contains(&char_) {
+							// TODO
+						}
+						if 
+						i += 1;
+					}
+				}
+			},
+			Self::MacroArg => {
+				// TODO
+			},
+			Self::Instruction => {
+				// TODO
+			},
+			Self::InstructionTokenWord => {
+				// TODO
+			},
+			Self::InstructionTokenLiteral => {
+				// TODO
+			},
+			Self::Comment => {
+				// TODO
+			},
+			Self::String => {
+				// TODO
+			}
+		}
+		// Done
+		Ok(children)
+	}
+}
+
+struct ParseTreeNode {
+	type_: ParseTreeNodeType,
+	/// Inclusive
+	begin: usize,
+	/// Exclusive
+	end: usize,
+	children: Vec<Self>
+}
+
+impl ParseTreeNode {
+	/// Basically a wrapper for `ParseContext::parse()`
+	pub fn build_tree(&self, source: &str) -> Result<Self, Vec<ParseError>> {
+		match ParseContext::Program.parse(&source.chars().into_iter().collect::<Vec<char>>(), 0) {
+			Ok((children, _)) => Ok(Self {
+				type_: ParseTreeNodeType::Program,
+				begin: 0,
+				end: source.len(),
+				children
+			}),
+			Err(errs) => Err(errs)
+		}
+	}
+}
+
+pub enum ParseErrorType {
+	InvalidCharacterInContext(char, ParseContext),
+	UnfinishedNode(ParseTreeNodeType),
+	MissingMacroIdentifier
+}
+
+pub struct ParseError {
+	begin: usize,
+	end: usize,
+	type_: ParseErrorType
+}
+
+impl ParseError {
+	fn new(
+		begin: usize,
+		end: usize,
+		type_: ParseErrorType
+	) -> Self {
+		Self {
+			begin,
+			end,
+			type_
+		}
+	}
+}
+
+// -------------------------------------- old --------------------------------------
 
 /// For each "unit" of the assembly code, names of opcodes and devices to read/write the bus, etc.
 #[derive(Serialize, Deserialize, Clone, Debug)]

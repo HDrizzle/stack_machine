@@ -1,0 +1,66 @@
+write 0xFF gpio-write-a
+
+# Write size of song, TODO
+write 0x00 stack-push
+
+# Call function to write data into GPRAM, TODO
+@call(write-song)
+
+# Call main loop
+@call(main)
+halt
+
+# Main loop
+@anchor(main)
+# Reset GPRAM address
+write 0x00 gpram-addr-a
+write 0x00 gpram-addr-b
+# Current progress
+write 0x00 stack-push
+@anchor(main-loop-begin)
+@call(play-note)
+# Increment progress
+write 0x00 alu-c-in
+move stack-pop alu-a
+write 0x01 alu-b
+move add alu stack-push
+# Check if done
+move add alu alu-a
+write 0x01 stack-offset
+move offset-read alu-b
+move eq alu-a
+move not goto-decider
+@goto-if(main-loop-begin)
+move stack-pop none
+return
+
+# Play note function, uses current byte from GPRAM
+TODO
+return
+
+# Write data into GPRAM
+@anchor(write-song)
+write 0x00 gpram-addr-a
+write 0x00 gpram-addr-b
+# TODO
+return
+
+# 16-bit add, uses two 16-bit integers on the stack, lower byte lower on the stack
+@anchor(16-bit-add)
+write 0x00 alu-c-in
+write 0x03 stack-offset
+move offset-read alu-a
+write 0x01 stack-offset
+move offset-read alu-b
+write 0x03 stack-offset
+move add alu offset-write
+move add-c alu-c-in
+write 0x02 stack-offset
+move offset-read alu-a
+write 0x01 stack-offset
+move offset-read alu-b
+write 0x02 stack-offset
+move add alu offset-write
+move stack-pop none
+move stack-pop none
+return

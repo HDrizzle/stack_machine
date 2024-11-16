@@ -21,11 +21,11 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
     {},
     {name: "Main bus", wave: "x.2.x...", data: ["data"]},
     {name: "Memory bus", wave: "x2...x..", data: ["data"]},
-    {name: "Adder input latch clock", wave: "l.pl...."},
+    {name: "Adder input latch clock", wave: "l.h.l..."},
     {name: "Memory output enable", wave: "lh...l.."},
-    {name: "Output latch clock", wave: "l.pl...."},
+    {name: "Output latch clock", wave: "l.h.l..."},
     {name: "Output latch output enable", wave: "l.h.l..."},
-    {name: "Pointer latch clock", wave: "l...pl.."},
+    {name: "Pointer latch clock", wave: "l...h.l."},
     {name: "Pointer ++(0) / -- (1)", wave: "lh...l.."}
   ]
 }
@@ -47,7 +47,7 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
     {name: "Adder input latch clock", wave: "l..pl..."},
     {name: "Input latch clock", wave: "l..pl..."},
     {name: "Input latch output enable", wave: "l...h.l."},
-    {name: "Pointer latch clock", wave: "l...pl.."},
+    {name: "Pointer latch clock", wave: "l...h.l."},
     {name: "Memory write enable", wave: "l....pl."}
   ]
 }
@@ -89,9 +89,9 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
     {},
     {name: "Main bus", wave: "x.2.x...", data: ["data"]},
     {name: "Memory bus", wave: "x2...x..", data: ["data"]},
-    {name: "Adder input latch clock", wave: "l.pl...."},
+    {name: "Adder input latch clock", wave: "l.h.l..."},
     {name: "Memory output enable", wave: "lh...l.."},
-    {name: "Output latch clock", wave: "l.pl...."},
+    {name: "Output latch clock", wave: "l.h.l..."},
     {name: "Output latch output enable", wave: "l.h.l..."},
     {name: "Pointer latch clock", wave: "l......."},
     {name: "ToS (0) / Offset (1) select", wave: "lh...l.."}

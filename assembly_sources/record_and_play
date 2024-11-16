@@ -1,0 +1,11 @@
+write 0xFF gpio-write-a
+write 0x00 gpio-addr-a
+write 0x00 gpio-addr-b
+write 0x01 gpio-inc-addr
+write 0x02 gpio-inc-addr
+write 0x04 gpio-inc-addr
+write 0x08 gpio-inc-addr
+write 0x10 gpio-inc-addr
+write 0x20 gpio-inc-addr
+write 0x40 gpio-inc-addr
+write 0x80 gpio-inc-addr

@@ -1,0 +1,10 @@
+write 0xFF gpio-write-a
+write 0x01 alu-a
+write 0x01 alu-b
+write 0x04 goto-a
+write 0x00 goto-b
+move add alu gpio-write-a
+move add alu alu-a
+move add alu gpio-write-a
+move add alu alu-b
+goto
