@@ -14,7 +14,10 @@ mod abstract_parser;
 
 /// Prelude
 pub mod prelude {
-    pub use crate::assembler::{AssemblyWord, AssemblerConfig};
+    use std::fmt::Write;
+
+    use crate::assembler::ParseContext;
+    pub use crate::assembler::{AssemblyWord, AssemblerConfig, ParseError, ParseErrorType, ParseTreeNodeType};
     pub use crate::resources;
     pub use crate::emulator::Machine;
 	// CONSTS
@@ -25,6 +28,9 @@ pub mod prelude {
 		'_'];
 	pub const WHITESPACE_CHARS: [char; 3] = [' ', '\n', '\t'];
 	pub const MACRO_BEGIN: char = '@';
+	pub const COMMENT_BEGIN: char = '#';
+	pub const HEX_CHARS: [char; 16] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
+	pub const BIN_CHARS: [char; 2] = ['0', '1'];
 	/// To prevent typoes
 	pub const POWER_16: usize = 0x10000;
     pub fn to_string_err<T, E: ToString>(result: Result<T, E>) -> Result<T, String> {
@@ -37,6 +43,61 @@ pub mod prelude {
 		match result {
 			Ok(t) => Ok(t),
 			Err(e) => Err(format!("Message: {}, Error: {}", message, e.to_string()))
+		}
+	}
+	pub fn escape_substitution(char_: char) -> Option<char> {
+		match char_ {
+			'\\' => Some('\\'),
+			'\'' => Some('\''),
+			'\"' => Some('\"'),
+			'n' => Some('\n'),
+			't' => Some('\t'),
+			_ => None
+		}
+	}
+	/// iterates through `source` beginning at `start` until it finds a character that is not whitespace
+	pub fn skip_whitespace(source: &Vec<char>, start: usize, eof_error_parse_context_opt: Option<ParseContext>) -> Result<usize, ParseError> {
+		let mut i: usize = start;
+		while i < source.len() {
+			if !WHITESPACE_CHARS.contains(&source[i]) {
+				return Ok(i);
+			}
+			i += 1;
+		}
+		match eof_error_parse_context_opt {
+			Some(eof_error_parse_context) => Err(ParseError::new(start, i, ParseErrorType::UnfinishedNode(eof_error_parse_context), None)),
+			None => Ok(i)
+		}
+	}
+	/// Parses through `source` beginning at `start` until it finds a character that is not in identifier character
+	pub fn parse_identifier(source: &Vec<char>, start: usize, eof_error_parse_context_opt: Option<ParseContext>) -> Result<(String, usize), ParseError> {
+		let mut i: usize = start;
+		let mut out = String::new();
+		while i < source.len() {
+			if !IDENTIFIER_CHARS.contains(&source[i]) {
+				return Ok((out, i));
+			}
+			out.write_char(source[i]);
+			i += 1;
+		}
+		match eof_error_parse_context_opt {
+			Some(eof_error_parse_context) => Err(ParseError::new(start, i, ParseErrorType::UnfinishedNode(eof_error_parse_context), None)),
+			None => Ok((out, i))
+		}
+	}
+	/// For `0xXXXX` or `0bXXXX`
+	/// If it doesn't find `0x` or `0b` it will return None
+	pub fn check_for_and_parse_bit_string(source: &Vec<char>, start: usize, eof_error_parse_context_opt: Option<ParseContext>) -> Option<Result<(u128, u8, usize), ParseError>> {
+		if source.len() > start + 1 && source[start] == '0' {
+			if source[start+1] == 'x' {
+				// TODO
+			}
+			if source[start+1] == 'b' {
+				// TODO
+			}
+		}
+		else {
+			None
 		}
 	}
 }

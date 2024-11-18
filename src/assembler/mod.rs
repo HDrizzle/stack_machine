@@ -11,24 +11,59 @@ use crate::prelude::*;
 
 pub mod macros;
 
+#[derive(Debug)]
 pub enum ParseTreeNodeType {
 	Program,// The root node should always have this type
 	Macro(String),
 	MacroArg(String),
 	Instruction,
-	InstructionTokenWord(Token),
+	InstructionToken(Token)/*,
 	InstructionTokenLiteral {
 		len_bits: usize,
 		value: u128// Probably enough
-	},
+	}*/,
 	Comment,
 	StringLiteral(String)
 }
 
 impl ParseTreeNodeType {
-	/// Returns string, where it ends (exclusive)
-	pub fn parse_string_literal(source: &Vec<char>, start: usize) -> (Self, usize) {
-		// TODO
+	/// Starts at first character of string, NOT at beginning quote mark. Returns string, where it ends (exclusive)
+	pub fn parse_string_literal(source: &Vec<char>, start: usize) -> Result<(Self, usize), ParseError> {
+		let mut i: usize = 0;
+		let mut out = String::new();
+		while i < source.len() {
+			let mut char_ = source[i];
+			// Check for escape subsitiution
+			if char_ == '\\' {
+				// Check that this isn't the last character
+				if i == source.len() - 1 {
+					return Err(ParseError::new(i, i+1, ParseErrorType::StringEscapeEOF, None));
+				}
+				// Check for substitution
+				match escape_substitution(source[i+1]) {
+					Some(substituted_char) => {
+						char_ = substituted_char;
+						i += 1;
+					},
+					None => {return Err(ParseError::new(i, i+1, ParseErrorType::StringInvalidEscapeSequence(source[i+1]), None));}
+				}
+			}
+			// Check for end of string
+			if char_ == '\"' {
+				return Ok((Self::StringLiteral(out), i+1));
+			}
+			// Add char_ to output
+			out.write_char(char_);
+			// Never forget
+			i += 1;
+		}
+		// Loop ended without the closing quote, bad
+		Err(ParseError{
+			begin: start,
+			end: i,
+			type_: ParseErrorType::UnfinishedNode(ParseContext::String),
+			message: None
+		})
 	}
 }
 
@@ -52,130 +87,179 @@ impl ParseTreeNodeType {
 pub enum ParseContext {
 	Program,
 	Macro,
-	MacroArg,
 	Instruction,
-	InstructionTokenWord,
-	InstructionTokenLiteral,
-	Comment,
-	String
+	InstructionToken,
+	Comment
 }
 
 impl ParseContext {
-	pub fn parse(&self, source: &Vec<char>, start: usize) -> Result<(Vec<ParseTreeNode>, usize), Vec<ParseError>> {
+	pub fn parse(&self, source: &Vec<char>, start: usize) -> Result<ParseTreeNode, ParseError> {
 		//let source_substring: &str = &source[start..source.len()];
 		let mut children= Vec::<ParseTreeNode>::new();
-		let i: usize = start;
+		let mut type_opt: Option<ParseTreeNodeType> = None;
+		let mut i: usize = start;
 		match self {
 			Self::Program => {
-				while i < source.len() {
+				while i < source.len() {// Top level node type, so loop through everything
+					// Skip whitespace
+					i = skip_whitespace(source, i, Some(*self))?;
 					let char_: char = source[i];
+					// Check if identifier (instruction)
 					if IDENTIFIER_CHARS.contains(&char_) {// Create new child of type Instruction
 						match ParseContext::Instruction.parse(source, i) {
-							Ok((children, end)) => {
-								children.push(
-									ParseTreeNode {
-										type_: ParseTreeNodeType::Instruction,
-										begin: i,
-										end,
-										children
-									}
-								);
-								i = end;
+							Ok(instruction_node) => {
+								i = instruction_node.end;
+								children.push(instruction_node);
 								continue;
 							},
 							Err(errs) => {return Err(errs)}
 						}
 					}
+					// Check if macro
 					if char_ == MACRO_BEGIN {
 						match ParseContext::Macro.parse(source, i+1) {
-							Ok((children, end)) => {
-								children.push(
-									ParseTreeNode {
-										type_: ParseTreeNodeType::Macro,
-										begin: i+1,
-										end,
-										children
-									}
-								);
-								i = end;
+							Ok(macro_child) => {
+								i = macro_child.end;
+								children.push(macro_child);
 								continue;
 							},
 							Err(errs) => {return Err(errs)}
 						}
 					}
+					// Check if comment
+					if char_ == COMMENT_BEGIN {
+						match ParseContext::Comment.parse(source, i+1) {
+							Ok(comment_child) => {
+								i = comment_child.end;
+								children.push(comment_child);
+								continue;
+							},
+							Err(errs) => {return Err(errs)}
+						}
+					}
+					// Skip whitespace
+					i = skip_whitespace(source, i, Some(*self))?;
+					// Check if next next character is semicolon ";"
+					if source[i] != ';' {
+						return Err(ParseError::new(i, i+1, ParseErrorType::InvalidCharacterInContext(source[i], *self), Some("Expected \";\"'".to_string())));
+					}
+					// Skip semicolon
 					i += 1;
 				}
 			},
 			Self::Macro => {
 				// First, read macro name
-				let mut name = String::new();
-				while i < source.len() {
-					let char_ = source[i];
-					if !IDENTIFIER_CHARS.contains(&char_) {
-						if name.len() >= 1 {
-							if char_ == '(' {
-								break;
-							}
-							else {
-								return Err(vec![ParseError::new(i, i+1, ParseErrorType::InvalidCharacterInContext(char_, *self))]);
-							}
-						}
-						else {
-							return Err(vec![ParseError::new(i, i+1, ParseErrorType::MissingMacroIdentifier)]);
-						}
-					}
-					name.write_char(char_);
-					i += 1;
+				let (name, new_i) = parse_identifier(source, i, Some(*self))?;
+				// Skip whitespace after macro name
+				i = skip_whitespace(source, new_i, Some(*self))?;
+				// Check that next character is "("
+				if source[i] != '(' {
+					return Err(ParseError::new(i, i+1, ParseErrorType::InvalidCharacterInContext(source[i], *self), Some("Expected \"(\"".to_string())));
 				}
 				i += 1;// get past the opening "("
 				// Build list of arguments
 				loop {
-					let mut arg = String::new();
-					while i < source.len() {
-						let char_ = source[i];
-						if char_ == '\"' {
-							let (string_arg, end) = ParseTreeNodeType::parse_string_literal(source, i+1);
-							children.push(ParseTreeNode {
-								type_: string_arg,
-								begin: i+1,
-								end,
-								children: vec![]
-							});
-							i = end+1;
-							break;
-						}
-						if IDENTIFIER_CHARS.contains(&char_) {
-							// TODO
-						}
-						if 
+					// Skip whitespace
+					i = skip_whitespace(source, i, Some(*self))?;
+					let mut char_: char = source[i];
+					// Check if first character is a quote to begin a string, or an identifier character
+					if char_ == '\"' {
+						let (string_arg, end) = ParseTreeNodeType::parse_string_literal(source, i+1)?;
+						children.push(ParseTreeNode {
+							type_: string_arg,
+							begin: i+1,
+							end,
+							children: vec![]
+						});
+						i = end+1;
+					}
+					// Check if identifier
+					if IDENTIFIER_CHARS.contains(&char_) {
+						let begin = i;
+						let (arg, new_i) = parse_identifier(source, i, Some(*self))?;
+						i = new_i;
+						children.push(ParseTreeNode::new(ParseTreeNodeType::StringLiteral(arg), begin, i, vec![]));
+					}
+					// Skip whitespace
+					i = skip_whitespace(source, i, Some(*self))?;
+					// Check if next character is )
+					char_ = source[i];
+					if char_ == ')' {
 						i += 1;
+						break;
+					}
+					// No other characters are allowed here
+					if char_ != ',' {
+						return Err(ParseError::new(i, i+1, ParseErrorType::InvalidCharacterInContext(char_, *self), Some("Expected \",\"".to_string())));
+					}
+				}
+				// Set node type
+				type_opt = Some(ParseTreeNodeType::Macro(name));
+			},
+			Self::Instruction => {// An instruction will consist entirely of identifier characters and spaces
+				while i < source.len() {
+					// Skip whitespace
+					i = skip_whitespace(source, i, Some(*self))?;
+					// Check if identifier
+					if IDENTIFIER_CHARS.contains(&source[i]) {
+						let token_child = ParseContext::InstructionToken.parse(source, i)?;
+						i = token_child.end;
+						children.push(token_child);
+					}
+					else {
+						return Err(ParseError::new(i, i+1, ParseErrorType::InvalidCharacterInContext(source[i], *self), None));
+					}
+					// Check that next character is a space " "
+					if source[i] != ' ' {
+						return Err(ParseError::new(i, i+1, ParseErrorType::InvalidCharacterInContext(source[i], *self), None));
 					}
 				}
 			},
-			Self::MacroArg => {
-				// TODO
+			Self::InstructionToken => {
+				let (assembly_word, new_i) = parse_identifier(source, i, Some(*self))?;
+				let token: Token = match check_for_and_parse_bit_string(source, new_i, Some(*self)) {
+					Some(result_) => {
+						let (n, bit_size, new_i) = result_?;
+						i = new_i;
+						Token {
+							enum_: TokenEnum::Literal{n: n as u8, bit_size},
+							raw: assembly_word
+						}
+					},
+					None =>{
+						i = new_i;
+						Token {
+							enum_: TokenEnum::AssemblyWord(assembly_word.clone()),
+							raw: assembly_word
+						}
+					}
+				};
+				type_opt = Some(ParseTreeNodeType::InstructionToken(token));
 			},
-			Self::Instruction => {
-				// TODO
-			},
-			Self::InstructionTokenWord => {
-				// TODO
-			},
-			Self::InstructionTokenLiteral => {
-				// TODO
-			},
-			Self::Comment => {
-				// TODO
-			},
-			Self::String => {
-				// TODO
+			Self::Comment => {// Comment starts after "#" and ends after newline, `i` is assumed to be the next character after the "#"
+				while i < source.len() {
+					if source[i] == '\n' {
+						break;
+					}
+					i += 1;
+				}
+				type_opt = Some(ParseTreeNodeType::Comment);
 			}
 		}
 		// Done
-		Ok(children)
+		match type_opt {
+			Some(node_type) => Ok(ParseTreeNode {
+				type_: node_type,
+				begin: start,
+				end: i,
+				children
+			}),
+			None => panic!("`node_type` not set by end of parse function")
+		}
 	}
 }
 
+#[derive(Debug)]
 struct ParseTreeNode {
 	type_: ParseTreeNodeType,
 	/// Inclusive
@@ -187,41 +271,50 @@ struct ParseTreeNode {
 
 impl ParseTreeNode {
 	/// Basically a wrapper for `ParseContext::parse()`
-	pub fn build_tree(&self, source: &str) -> Result<Self, Vec<ParseError>> {
-		match ParseContext::Program.parse(&source.chars().into_iter().collect::<Vec<char>>(), 0) {
-			Ok((children, _)) => Ok(Self {
-				type_: ParseTreeNodeType::Program,
-				begin: 0,
-				end: source.len(),
-				children
-			}),
+	pub fn build_tree(&self, source: &str) -> Result<Self, ParseError> {
+		ParseContext::Program.parse(&source.chars().into_iter().collect::<Vec<char>>(), 0)/* {
+			Ok((root_node, _)) => Ok(root_node),
 			Err(errs) => Err(errs)
+		}*/
+	}
+	/// New
+	pub fn new(type_: ParseTreeNodeType, begin: usize, end: usize, children: Vec<Self>) -> Self {
+		Self {
+			type_,
+			begin,
+			end,
+			children
 		}
 	}
 }
 
 pub enum ParseErrorType {
 	InvalidCharacterInContext(char, ParseContext),
-	UnfinishedNode(ParseTreeNodeType),
-	MissingMacroIdentifier
+	UnfinishedNode(ParseContext),
+	MissingMacroIdentifier,
+	StringInvalidEscapeSequence(char),
+	StringEscapeEOF
 }
 
 pub struct ParseError {
 	begin: usize,
 	end: usize,
-	type_: ParseErrorType
+	type_: ParseErrorType,
+	message: Option<String>
 }
 
 impl ParseError {
-	fn new(
+	pub fn new(
 		begin: usize,
 		end: usize,
-		type_: ParseErrorType
+		type_: ParseErrorType,
+		message: Option<String>
 	) -> Self {
 		Self {
 			begin,
 			end,
-			type_
+			type_,
+			message
 		}
 	}
 }
