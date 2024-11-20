@@ -1,325 +1,19 @@
 //! Functionality to turn assembly into binary
 //! Assembly pipeline:
 //! * Create syntax tree
-//! * Perform macro expansion on syntax tree
-//! * Build instruction list from syntax tree
-use std::{fmt::{Debug, Write}, fs};
+//! * Remove comments
+//! * Create program skeleton from syntax tree, a lot of validation will happen here
+//! * Perform macro expansion on program skeleton
+//! * Program skeleton will now consist entierly of assembly words, compile to machine code, done
+use std::{fmt::Debug, fs};
 use serde::{Serialize, Deserialize};
 use hex;
 
 use crate::prelude::*;
 
 pub mod macros;
-
-#[derive(Debug)]
-pub enum ParseTreeNodeType {
-	Program,// The root node should always have this type
-	Macro(String),
-	MacroArg(String),
-	Instruction,
-	InstructionToken(Token)/*,
-	InstructionTokenLiteral {
-		len_bits: usize,
-		value: u128// Probably enough
-	}*/,
-	Comment,
-	StringLiteral(String)
-}
-
-impl ParseTreeNodeType {
-	/// Starts at first character of string, NOT at beginning quote mark. Returns string, where it ends (exclusive)
-	pub fn parse_string_literal(source: &Vec<char>, start: usize) -> Result<(Self, usize), ParseError> {
-		let mut i: usize = 0;
-		let mut out = String::new();
-		while i < source.len() {
-			let mut char_ = source[i];
-			// Check for escape subsitiution
-			if char_ == '\\' {
-				// Check that this isn't the last character
-				if i == source.len() - 1 {
-					return Err(ParseError::new(i, i+1, ParseErrorType::StringEscapeEOF, None));
-				}
-				// Check for substitution
-				match escape_substitution(source[i+1]) {
-					Some(substituted_char) => {
-						char_ = substituted_char;
-						i += 1;
-					},
-					None => {return Err(ParseError::new(i, i+1, ParseErrorType::StringInvalidEscapeSequence(source[i+1]), None));}
-				}
-			}
-			// Check for end of string
-			if char_ == '\"' {
-				return Ok((Self::StringLiteral(out), i+1));
-			}
-			// Add char_ to output
-			out.write_char(char_);
-			// Never forget
-			i += 1;
-		}
-		// Loop ended without the closing quote, bad
-		Err(ParseError{
-			begin: start,
-			end: i,
-			type_: ParseErrorType::UnfinishedNode(ParseContext::String),
-			message: None
-		})
-	}
-}
-
-/*impl ParseTreeNodeType {
-	pub fn context(&self) -> ParseContext {
-		match self {
-			Self::Program => ParseContext::Program,
-			Self::Macro => ParseContext::Macro,
-			Self::MacroName(..) => ParseContext::MacroName,
-			Self::MacroArgs => ParseContext::MacroArgs,
-			Self::MacroArg(..) => ParseContext::MacroArg,
-			Self::Instruction => ParseContext::Instruction,
-			Self::InstructionTokenWord(..) => ParseContext::InstructionTokenWord,
-			Self::InstructionTokenLiteral{..} => ParseContext::InstructionTokenLiteral,
-
-		}
-	}
-}*/
-
-#[derive(Clone, Copy)]
-pub enum ParseContext {
-	Program,
-	Macro,
-	Instruction,
-	InstructionToken,
-	Comment
-}
-
-impl ParseContext {
-	pub fn parse(&self, source: &Vec<char>, start: usize) -> Result<ParseTreeNode, ParseError> {
-		//let source_substring: &str = &source[start..source.len()];
-		let mut children= Vec::<ParseTreeNode>::new();
-		let mut type_opt: Option<ParseTreeNodeType> = None;
-		let mut i: usize = start;
-		match self {
-			Self::Program => {
-				while i < source.len() {// Top level node type, so loop through everything
-					// Skip whitespace
-					i = skip_whitespace(source, i, Some(*self))?;
-					let char_: char = source[i];
-					// Check if identifier (instruction)
-					if IDENTIFIER_CHARS.contains(&char_) {// Create new child of type Instruction
-						match ParseContext::Instruction.parse(source, i) {
-							Ok(instruction_node) => {
-								i = instruction_node.end;
-								children.push(instruction_node);
-								continue;
-							},
-							Err(errs) => {return Err(errs)}
-						}
-					}
-					// Check if macro
-					if char_ == MACRO_BEGIN {
-						match ParseContext::Macro.parse(source, i+1) {
-							Ok(macro_child) => {
-								i = macro_child.end;
-								children.push(macro_child);
-								continue;
-							},
-							Err(errs) => {return Err(errs)}
-						}
-					}
-					// Check if comment
-					if char_ == COMMENT_BEGIN {
-						match ParseContext::Comment.parse(source, i+1) {
-							Ok(comment_child) => {
-								i = comment_child.end;
-								children.push(comment_child);
-								continue;
-							},
-							Err(errs) => {return Err(errs)}
-						}
-					}
-					// Skip whitespace
-					i = skip_whitespace(source, i, Some(*self))?;
-					// Check if next next character is semicolon ";"
-					if source[i] != ';' {
-						return Err(ParseError::new(i, i+1, ParseErrorType::InvalidCharacterInContext(source[i], *self), Some("Expected \";\"'".to_string())));
-					}
-					// Skip semicolon
-					i += 1;
-				}
-			},
-			Self::Macro => {
-				// First, read macro name
-				let (name, new_i) = parse_identifier(source, i, Some(*self))?;
-				// Skip whitespace after macro name
-				i = skip_whitespace(source, new_i, Some(*self))?;
-				// Check that next character is "("
-				if source[i] != '(' {
-					return Err(ParseError::new(i, i+1, ParseErrorType::InvalidCharacterInContext(source[i], *self), Some("Expected \"(\"".to_string())));
-				}
-				i += 1;// get past the opening "("
-				// Build list of arguments
-				loop {
-					// Skip whitespace
-					i = skip_whitespace(source, i, Some(*self))?;
-					let mut char_: char = source[i];
-					// Check if first character is a quote to begin a string, or an identifier character
-					if char_ == '\"' {
-						let (string_arg, end) = ParseTreeNodeType::parse_string_literal(source, i+1)?;
-						children.push(ParseTreeNode {
-							type_: string_arg,
-							begin: i+1,
-							end,
-							children: vec![]
-						});
-						i = end+1;
-					}
-					// Check if identifier
-					if IDENTIFIER_CHARS.contains(&char_) {
-						let begin = i;
-						let (arg, new_i) = parse_identifier(source, i, Some(*self))?;
-						i = new_i;
-						children.push(ParseTreeNode::new(ParseTreeNodeType::StringLiteral(arg), begin, i, vec![]));
-					}
-					// Skip whitespace
-					i = skip_whitespace(source, i, Some(*self))?;
-					// Check if next character is )
-					char_ = source[i];
-					if char_ == ')' {
-						i += 1;
-						break;
-					}
-					// No other characters are allowed here
-					if char_ != ',' {
-						return Err(ParseError::new(i, i+1, ParseErrorType::InvalidCharacterInContext(char_, *self), Some("Expected \",\"".to_string())));
-					}
-				}
-				// Set node type
-				type_opt = Some(ParseTreeNodeType::Macro(name));
-			},
-			Self::Instruction => {// An instruction will consist entirely of identifier characters and spaces
-				while i < source.len() {
-					// Skip whitespace
-					i = skip_whitespace(source, i, Some(*self))?;
-					// Check if identifier
-					if IDENTIFIER_CHARS.contains(&source[i]) {
-						let token_child = ParseContext::InstructionToken.parse(source, i)?;
-						i = token_child.end;
-						children.push(token_child);
-					}
-					else {
-						return Err(ParseError::new(i, i+1, ParseErrorType::InvalidCharacterInContext(source[i], *self), None));
-					}
-					// Check that next character is a space " "
-					if source[i] != ' ' {
-						return Err(ParseError::new(i, i+1, ParseErrorType::InvalidCharacterInContext(source[i], *self), None));
-					}
-				}
-			},
-			Self::InstructionToken => {
-				let (assembly_word, new_i) = parse_identifier(source, i, Some(*self))?;
-				let token: Token = match check_for_and_parse_bit_string(source, new_i, Some(*self)) {
-					Some(result_) => {
-						let (n, bit_size, new_i) = result_?;
-						i = new_i;
-						Token {
-							enum_: TokenEnum::Literal{n: n as u8, bit_size},
-							raw: assembly_word
-						}
-					},
-					None =>{
-						i = new_i;
-						Token {
-							enum_: TokenEnum::AssemblyWord(assembly_word.clone()),
-							raw: assembly_word
-						}
-					}
-				};
-				type_opt = Some(ParseTreeNodeType::InstructionToken(token));
-			},
-			Self::Comment => {// Comment starts after "#" and ends after newline, `i` is assumed to be the next character after the "#"
-				while i < source.len() {
-					if source[i] == '\n' {
-						break;
-					}
-					i += 1;
-				}
-				type_opt = Some(ParseTreeNodeType::Comment);
-			}
-		}
-		// Done
-		match type_opt {
-			Some(node_type) => Ok(ParseTreeNode {
-				type_: node_type,
-				begin: start,
-				end: i,
-				children
-			}),
-			None => panic!("`node_type` not set by end of parse function")
-		}
-	}
-}
-
-#[derive(Debug)]
-struct ParseTreeNode {
-	type_: ParseTreeNodeType,
-	/// Inclusive
-	begin: usize,
-	/// Exclusive
-	end: usize,
-	children: Vec<Self>
-}
-
-impl ParseTreeNode {
-	/// Basically a wrapper for `ParseContext::parse()`
-	pub fn build_tree(&self, source: &str) -> Result<Self, ParseError> {
-		ParseContext::Program.parse(&source.chars().into_iter().collect::<Vec<char>>(), 0)/* {
-			Ok((root_node, _)) => Ok(root_node),
-			Err(errs) => Err(errs)
-		}*/
-	}
-	/// New
-	pub fn new(type_: ParseTreeNodeType, begin: usize, end: usize, children: Vec<Self>) -> Self {
-		Self {
-			type_,
-			begin,
-			end,
-			children
-		}
-	}
-}
-
-pub enum ParseErrorType {
-	InvalidCharacterInContext(char, ParseContext),
-	UnfinishedNode(ParseContext),
-	MissingMacroIdentifier,
-	StringInvalidEscapeSequence(char),
-	StringEscapeEOF
-}
-
-pub struct ParseError {
-	begin: usize,
-	end: usize,
-	type_: ParseErrorType,
-	message: Option<String>
-}
-
-impl ParseError {
-	pub fn new(
-		begin: usize,
-		end: usize,
-		type_: ParseErrorType,
-		message: Option<String>
-	) -> Self {
-		Self {
-			begin,
-			end,
-			type_,
-			message
-		}
-	}
-}
-
-// -------------------------------------- old --------------------------------------
+pub mod syntax_tree;
+pub mod program_skeleton;
 
 /// For each "unit" of the assembly code, names of opcodes and devices to read/write the bus, etc.
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -506,7 +200,8 @@ pub fn assembler_pipeline(in_: &str, config: &AssemblerConfig) -> Result<Vec<u16
 	// Tokenize
 	let token_lines: Vec<Vec<Token>> = tokenize(in_, config)?;
 	// Assemble
-	for (i, line) in token_lines.iter().enumerate() {
+	// Everything here was moved to `assemble_instruction()`
+	/*for (i, line) in token_lines.iter().enumerate() {
 		if line.len() >= 1 {
 			// Opcode
 			let opcode: AssemblyWord<4> = if let TokenEnum::AssemblyWord(word) = &line[0].enum_ {
@@ -609,6 +304,12 @@ pub fn assembler_pipeline(in_: &str, config: &AssemblerConfig) -> Result<Vec<u16
 			// Add instruction to program
 			out.push(instruction);
 		}
+	}*/
+	for (i, line) in token_lines.iter().enumerate() {
+		match assemble_instruction(line, config) {
+			Ok(instruction) => {out.push(instruction);},
+			Err((err_enum, msg)) => add_error(i, msg, err_enum)
+		}
 	}
 	// Done
 	if errors.len() == 0 {
@@ -617,6 +318,90 @@ pub fn assembler_pipeline(in_: &str, config: &AssemblerConfig) -> Result<Vec<u16
 	else {
 		Err(errors)
 	}
+}
+
+/// Takes the instruction as a vec of tokens, tries to assemble it into an instruction
+pub fn assemble_instruction(line: &Vec<Token>, config: &AssemblerConfig) -> Result<u16, (AssemblerErrorEnum, Option<String>)> {
+	// Opcode
+	let opcode: AssemblyWord<4> = if let TokenEnum::AssemblyWord(word) = &line[0].enum_ {
+		match config.encode_4_bit_word(Assembler4BitWordContext::Opcode, &word) {
+			Some(opc) => opc,
+			None => {return Err((AssemblerErrorEnum::InvalidToken(line[0].raw.clone()), None));}
+		}
+	}
+	else {// First token in line is not an assembly word
+		return Err((AssemblerErrorEnum::InvalidToken(line[0].raw.clone()), None));
+	};
+	let mut instruction: u16 = (opcode.id_ & 0x0Fu8) as u16;
+	// Anything after it
+	match &opcode.name[..] {
+		"move" => {
+			// ALU opcode
+			let alu_opcode_included = match line.len() {
+				3 => false,// MOVE <source> <destination>
+				4 => true,// MOVE <ALU opcode> <source> <destination>
+				n => {
+					return Err((AssemblerErrorEnum::IncorrectNumberOfTokensForOpcode{opcode: opcode.clone(), n_tokens_in_line: n}, Some("There must be either 3 or 4 tokens in a `MOVE` line".to_owned())));
+				}
+			};
+			let alu_opcode: u8 = match alu_opcode_included {
+				true => {
+					match config.get_4_bit_assembly_word(&line[1], Assembler4BitWordContext::AluOpcode) {
+						Ok(word) => word.id_,
+						Err(err_enum) => {return Err((err_enum, None));}
+					}
+				},
+				false => {// default ALU opcode, TODO: warning if this instruction is moving data from the ALU
+					0x00
+				}
+			};
+			// From and to address
+			let (write_addr_token, read_addr_token): (&Token, &Token) = match alu_opcode_included {
+				true => (&line[2], &line[3]),
+				false => (&line[1], &line[2])
+			};
+			let write_addr: u8 = match config.get_4_bit_assembly_word(write_addr_token, Assembler4BitWordContext::ToBus) {
+				Ok(word) => word.id_,
+				Err(err_enum) => {return Err((err_enum, None));}
+			};
+			let read_addr: u8 = match config.get_4_bit_assembly_word(read_addr_token, Assembler4BitWordContext::FromBus) {
+				Ok(word) => word.id_,
+				Err(err_enum) => {return Err((err_enum, None));}
+			};
+			// Add to instruction
+			instruction |= (alu_opcode << 4) as u16 | (((write_addr | ((read_addr << 4) & 0xF0u8)) as u16) << 8);
+		},
+		"write" => {
+			// Check number of tokens
+			if line.len() != 3 {
+				return Err((AssemblerErrorEnum::IncorrectNumberOfTokensForOpcode{opcode, n_tokens_in_line: line.len()}, None));
+			}
+			// Bits 4 - 11 raw hex value
+			let write_value_token = &line[1];
+			let write_value: u8 = if let TokenEnum::Literal{n, bit_size} = &write_value_token.enum_ {
+				if *bit_size == 8 {
+					*n
+				}
+				else {
+					return Err((AssemblerErrorEnum::HexLiteralWrongLength{correct_len_bits: 8, actual_len_bits: *bit_size as u32}, None));
+				}
+			}
+			else {
+				return Err((AssemblerErrorEnum::LiteralTokenInWrongContext{token: write_value_token.clone()}, None));
+			};
+			// Bus read addr
+			let read_addr_token = &line[2];
+			let read_addr: u8 = match config.get_4_bit_assembly_word(read_addr_token, Assembler4BitWordContext::FromBus) {
+				Ok(word) => word.id_,
+				Err(err_enum) => {return Err((err_enum, None));}
+			};
+			// Add to instruction
+			instruction |= ((write_value as u16) << 4) | ((read_addr as u16) << 12);
+		},
+		_ => {}// All other instructions don't require any additional information besides the opcode
+	}
+	// Done
+	Ok(instruction)
 }
 
 pub fn assembler_pipeline_formated_errors(in_: &str, config: &AssemblerConfig) -> Result<Vec<u16>, String> {

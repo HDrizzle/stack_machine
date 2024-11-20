@@ -15,9 +15,7 @@ mod abstract_parser;
 /// Prelude
 pub mod prelude {
     use std::fmt::Write;
-
-    use crate::assembler::ParseContext;
-    pub use crate::assembler::{AssemblyWord, AssemblerConfig, ParseError, ParseErrorType, ParseTreeNodeType};
+    pub use crate::assembler::{AssemblyWord, AssemblerConfig, syntax_tree::{ParseError, ParseErrorType, SyntaxTreeNodeType, ParseContext}, macros::Macro};
     pub use crate::resources;
     pub use crate::emulator::Machine;
 	// CONSTS
@@ -31,8 +29,9 @@ pub mod prelude {
 	pub const COMMENT_BEGIN: char = '#';
 	pub const HEX_CHARS: [char; 16] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
 	pub const BIN_CHARS: [char; 2] = ['0', '1'];
+	pub const POWER_16: usize = 65536;
+	pub const PROG_MAX_INSTRUCTIONS: usize = POWER_16;
 	/// To prevent typoes
-	pub const POWER_16: usize = 0x10000;
     pub fn to_string_err<T, E: ToString>(result: Result<T, E>) -> Result<T, String> {
 		match result {
 			Ok(t) => Ok(t),
@@ -77,7 +76,7 @@ pub mod prelude {
 			if !IDENTIFIER_CHARS.contains(&source[i]) {
 				return Ok((out, i));
 			}
-			out.write_char(source[i]);
+			out.write_char(source[i]).unwrap();
 			i += 1;
 		}
 		match eof_error_parse_context_opt {
@@ -87,18 +86,66 @@ pub mod prelude {
 	}
 	/// For `0xXXXX` or `0bXXXX`
 	/// If it doesn't find `0x` or `0b` it will return None
-	pub fn check_for_and_parse_bit_string(source: &Vec<char>, start: usize, eof_error_parse_context_opt: Option<ParseContext>) -> Option<Result<(u128, u8, usize), ParseError>> {
+	pub fn check_for_and_parse_bit_string(source: &Vec<char>, start: usize, eof_error_parse_context_opt: Option<ParseContext>) -> Option<Result<(Vec<u8>, u8, usize), ParseError>> {
 		if source.len() > start + 1 && source[start] == '0' {
 			if source[start+1] == 'x' {
-				// TODO
+				match parse_identifier(source, start+2, eof_error_parse_context_opt) {
+					Ok((raw_s, new_i)) => {
+						let hex_decode: Vec<u8> = match hex::decode(&raw_s) {
+							Ok(data) => data,
+							Err(e) => {return Some(Err(ParseError::new(start, new_i, ParseErrorType::HexParseError, Some(e.to_string()))));}
+						};
+						let n_bits: usize = raw_s.len() * 4;//hex_decode.len() * 4;
+						Some(Ok((hex_decode, n_bits as u8, new_i)))
+					},
+					Err(e) => Some(Err(e))
+				}
 			}
-			if source[start+1] == 'b' {
-				// TODO
+			else {
+				if source[start+1] == 'b' {
+					None// TODO
+				}
+				else {
+					None
+				}
 			}
 		}
 		else {
 			None
 		}
+	}
+	/// Starts at first character of string, NOT at beginning quote mark. Returns string, where it ends (exclusive)
+	pub fn parse_string_literal(source: &Vec<char>, start: usize) -> Result<(String, usize), ParseError> {
+		let mut i: usize = 0;
+		let mut out = String::new();
+		while i < source.len() {
+			let mut char_ = source[i];
+			// Check for escape subsitiution
+			if char_ == '\\' {
+				// Check that this isn't the last character
+				if i == source.len() - 1 {
+					return Err(ParseError::new(i, i+1, ParseErrorType::StringEscapeEOF, None));
+				}
+				// Check for substitution
+				match escape_substitution(source[i+1]) {
+					Some(substituted_char) => {
+						char_ = substituted_char;
+						i += 1;
+					},
+					None => {return Err(ParseError::new(i, i+1, ParseErrorType::StringInvalidEscapeSequence(source[i+1]), None));}
+				}
+			}
+			// Check for end of string
+			if char_ == '\"' {
+				return Ok((out, i+1));
+			}
+			// Add char_ to output
+			out.write_char(char_).unwrap();
+			// Never forget
+			i += 1;
+		}
+		// Loop ended without the closing quote, bad
+		Err(ParseError::new(start, i, ParseErrorType::UnfinishedNode(ParseContext::StringLiteral), None))
 	}
 }
 
