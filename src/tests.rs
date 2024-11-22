@@ -1,6 +1,6 @@
 //! Tests
 
-use crate::{assembler, prelude::*};
+use crate::{compiler, prelude::*};
 
 #[test]
 fn math() {
@@ -12,7 +12,7 @@ move stack-pop alu-b
 move add alu stack-push
 halt";
 	let assembler_config = resources::load_assembler_config().expect("Unable to load assembler config");
-	let program: Vec<u16> = match assembler::assembler_pipeline_formated_errors(assembly_source, &assembler_config) {
+	let program: Vec<u16> = match compiler::compiler_pipeline_formated_errors(assembly_source, &assembler_config) {
 		Ok(program) => program,
 		Err(s) => panic!("{}", s)
 	};
@@ -60,7 +60,7 @@ WRITE 0x00 GOTO-B
 GOTO
 HALT";
 	let assembler_config = resources::load_assembler_config().expect("Unable to load assembler config");
-	let program: Vec<u16> = match assembler::assembler_pipeline_formated_errors(assembly_source, &assembler_config) {
+	let program: Vec<u16> = match compiler::compiler_pipeline_formated_errors(assembly_source, &assembler_config) {
 		Ok(program) => program,
 		Err(s) => panic!("{}", s)
 	};

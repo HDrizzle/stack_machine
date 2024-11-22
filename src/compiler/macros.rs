@@ -6,6 +6,7 @@ use super::{ParseError, ParseErrorType};
 #[derive(Clone, Debug)]
 pub struct Macro {
     pub type_: MacroEnum,
+    /// Arguments given to macro inside parenthesis, length already verified
     pub args: Vec<MacroArgument>
 }
 

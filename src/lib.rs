@@ -2,7 +2,6 @@
 
 use std::{env, fs};
 
-pub mod assembler;
 pub mod compiler;
 pub mod emulator;
 pub mod resources;
@@ -15,7 +14,7 @@ mod abstract_parser;
 /// Prelude
 pub mod prelude {
     use std::fmt::Write;
-    pub use crate::assembler::{AssemblyWord, AssemblerConfig, syntax_tree::{ParseError, ParseErrorType, SyntaxTreeNodeType, ParseContext}, macros::Macro};
+    pub use crate::compiler::{assembly_encode::{AssemblyWord, AssemblerConfig}, syntax_tree::{ParseError, ParseErrorType, SyntaxTreeNodeType, ParseContext}, macros::Macro};
     pub use crate::resources;
     pub use crate::emulator::Machine;
 	// CONSTS
@@ -70,19 +69,7 @@ pub mod prelude {
 	}
 	/// Parses through `source` beginning at `start` until it finds a character that is not in identifier character
 	pub fn parse_identifier(source: &Vec<char>, start: usize, eof_error_parse_context_opt: Option<ParseContext>) -> Result<(String, usize), ParseError> {
-		let mut i: usize = start;
-		let mut out = String::new();
-		while i < source.len() {
-			if !IDENTIFIER_CHARS.contains(&source[i]) {
-				return Ok((out, i));
-			}
-			out.write_char(source[i]).unwrap();
-			i += 1;
-		}
-		match eof_error_parse_context_opt {
-			Some(eof_error_parse_context) => Err(ParseError::new(start, i, ParseErrorType::UnfinishedNode(eof_error_parse_context), None)),
-			None => Ok((out, i))
-		}
+		parse_until_false(source, start, |c: &char| -> bool {IDENTIFIER_CHARS.contains(c)}, eof_error_parse_context_opt, false)
 	}
 	/// For `0xXXXX` or `0bXXXX`
 	/// If it doesn't find `0x` or `0b` it will return None
@@ -147,6 +134,28 @@ pub mod prelude {
 		// Loop ended without the closing quote, bad
 		Err(ParseError::new(start, i, ParseErrorType::UnfinishedNode(ParseContext::StringLiteral), None))
 	}
+	/// Generic parsing function
+	pub fn parse_until_false(source: &Vec<char>, start: usize, f: impl Fn(&char) -> bool, eof_error_parse_context_opt: Option<ParseContext>, forwards: bool) -> Result<(String, usize), ParseError> {
+		let mut i: usize = start;
+		let mut out = String::new();
+		while match forwards {
+			true => i < source.len(),
+			false => i < usize::MAX// If it goes to zero it will loop around
+		} {
+			if !f(&source[i]) {
+				return Ok((out, i));
+			}
+			out.write_char(source[i]).unwrap();
+			match forwards {
+				true => {i += 1;},
+				false => {i -= 1;}
+			}
+		}
+		match eof_error_parse_context_opt {
+			Some(eof_error_parse_context) => Err(ParseError::new(start, i, ParseErrorType::UnfinishedNode(eof_error_parse_context), None)),
+			None => Ok((out, i))
+		}
+	}
 }
 
 fn assemble_to_arduino(program: &Vec<u16>) -> String {
@@ -175,7 +184,7 @@ pub fn ui_main() {
 					println!("Plz include single line of assembly");
 				}
 				else {
-					match assembler::assembler_pipeline_formated_errors(&args[2..].join(" "), &assembler_config) {
+					match compiler::compiler_pipeline_formated_errors(&args[2..].join(" "), &assembler_config) {
 						Ok(program) => println!("Instruction: {}, {:#X}, {:#018b}", program[0], program[0], program[0]),
 						Err(s) => panic!("{}", s)
 					};
@@ -186,7 +195,7 @@ pub fn ui_main() {
 					println!("Plz include name of file in `/assembly_sources`");
 				}
 				else {
-					assembler::assemble_file(&args[2], &assembler_config).unwrap();
+					compiler::assemble_file(&args[2], &assembler_config).unwrap();
 				}
 			},
 			"-assemble-upload" => {
@@ -200,7 +209,7 @@ pub fn ui_main() {
 						Ok(s) => s,
 						Err(e) => panic!("Could not load test file at \"{}\" because {}", &path, e)
 					};
-					match assembler::assembler_pipeline_formated_errors(&file_raw, &assembler_config) {
+					match compiler::compiler_pipeline_formated_errors(&file_raw, &assembler_config) {
 						Ok(program) => {
 							match program_upload::send_program(&program) {
 								Ok(()) => println!("Program at {} uploaded", &path),
@@ -222,7 +231,7 @@ pub fn ui_main() {
 						Ok(s) => s,
 						Err(e) => panic!("Could not load test file at \"{}\" because {}", &path, e)
 					};
-					match assembler::assembler_pipeline_formated_errors(&file_raw, &assembler_config) {
+					match compiler::compiler_pipeline_formated_errors(&file_raw, &assembler_config) {
 						Ok(program) => {
 							println!("```\n{}```", assemble_to_arduino(&program));
 						},

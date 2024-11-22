@@ -1,6 +1,5 @@
 //! For creating and validating syntax tree
 
-use std::fmt::Write;
 use crate::prelude::*;
 use super::{Token, TokenEnum};
 
@@ -34,7 +33,7 @@ pub enum SyntaxTreeNodeType {
 	}
 }*/
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum ParseContext {
 	Program,
 	Macro,
@@ -231,8 +230,8 @@ pub struct SyntaxTreeNode {
 
 impl SyntaxTreeNode {
 	/// Basically a wrapper for `ParseContext::parse()`
-	pub fn build_tree(&self, source: &str) -> Result<Self, ParseError> {
-		ParseContext::Program.parse(&source.chars().into_iter().collect::<Vec<char>>(), 0)/* {
+	pub fn build_tree(source: &Vec<char>) -> Result<Self, ParseError> {
+		ParseContext::Program.parse(source, 0)/* {
 			Ok((root_node, _)) => Ok(root_node),
 			Err(errs) => Err(errs)
 		}*/
@@ -248,6 +247,7 @@ impl SyntaxTreeNode {
 	}
 }
 
+#[derive(Debug)]
 pub enum ParseErrorType {
 	InvalidCharacterInContext(char, ParseContext),
 	UnfinishedNode(ParseContext),
@@ -259,6 +259,7 @@ pub enum ParseErrorType {
     MacroWrongNumArgs{actual: usize, correct: usize}
 }
 
+#[derive(Debug)]
 pub struct ParseError {
 	pub begin: usize,
 	pub end: usize,
