@@ -1,9 +1,9 @@
 //! For assembling macros
 
 use crate::prelude::*;
-use super::{ParseError, ParseErrorType};
+use super::{program_skeleton::ProgramSkeletonBuildError, ParseError, ParseErrorType};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Macro {
     pub type_: MacroEnum,
     /// Arguments given to macro inside parenthesis, length already verified
@@ -71,7 +71,7 @@ impl Macro {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MacroEnum {
     Anchor,
     Call,
@@ -86,6 +86,27 @@ impl MacroEnum {
             Self::Call => 1,
             Self::Goto => 1,
             Self::GotoIf => 1,
+        }
+    }
+    /// Assumes that the number of arguments (`Self::num_args()`) has already been checked
+    pub fn args_correct_type(&self, args: &Vec<MacroArgument>) -> Result<(), ProgramSkeletonBuildError> {
+        match self {
+            Self::Anchor => match &args[0] {
+                MacroArgument::Identifier(_) => Ok(()),
+                invalid => Err(ProgramSkeletonBuildError::MacroArgumentWrongType(invalid.clone()))
+            },
+            Self::Call => match &args[0] {
+                MacroArgument::Identifier(_) => Ok(()),
+                invalid => Err(ProgramSkeletonBuildError::MacroArgumentWrongType(invalid.clone()))
+            },
+            Self::Goto => match &args[0] {
+                MacroArgument::Identifier(_) => Ok(()),
+                invalid => Err(ProgramSkeletonBuildError::MacroArgumentWrongType(invalid.clone()))
+            },
+            Self::GotoIf => match &args[0] {
+                MacroArgument::Identifier(_) => Ok(()),
+                invalid => Err(ProgramSkeletonBuildError::MacroArgumentWrongType(invalid.clone()))
+            },
         }
     }
     pub fn match_identifier(id: &str, source_start: usize, source_end: usize) -> Result<Self, ParseError> {
@@ -108,8 +129,17 @@ impl MacroEnum {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum MacroArgument {
     Identifier(String),
     StringLiteral(String)
+}
+
+impl MacroArgument {
+    pub fn to_string(&self) -> String {
+        match &self {
+            Self::Identifier(s) => s.clone(),
+            Self::StringLiteral(s) => s.clone()
+        }
+    }
 }

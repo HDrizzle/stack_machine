@@ -14,8 +14,8 @@ pub mod syntax_tree;
 pub mod program_skeleton;
 pub mod assembly_encode;
 
-use syntax_tree::{ParseContext, SyntaxTreeNode, SyntaxTreeNodeType, ParseError, ParseErrorType};
-use program_skeleton::{ProgramSkeleton, ProgramSkeletonBuildError};
+use syntax_tree::{SyntaxTreeNode, ParseError, ParseErrorType};
+use program_skeleton::program_skeleton_build;
 use assembly_encode::{AssemblyEncodeErrorEnum, Token, TokenEnum};
 
 #[derive(Debug)]
@@ -70,14 +70,14 @@ impl CompilerError {
 			)
 		}
 	}
-	pub fn from_source_string_index(source: &Vec<char>, i: usize, message_opt: Option<String>, enum_: CompilerErrorEnum) -> Self {
-		let (_, begin_i) = parse_until_false(source, i, |c: &char| -> bool {*c != '\n'}, None, false).expect("This fucntion should not error with the provided arguments");
+	pub fn from_source_string_index(_source: &Vec<char>, _i: usize, message_opt: Option<String>, enum_: CompilerErrorEnum) -> Self {
+		/*let (_, begin_i) = parse_until_false(source, i, |c: &char| -> bool {*c != '\n'}, None, false).expect("This fucntion should not error with the provided arguments");
 		let (_, end_i) = parse_until_false(source, i, |c: &char| -> bool {*c != '\n'}, None, true).expect("This fucntion should not error with the provided arguments");
 		let line_n: usize = source[0..begin_i].iter().filter(|c: &&char| -> bool {**c == '\n'}).count() + 2;
-		let line: String = source[begin_i..end_i].iter().collect();
+		let line: String = source[begin_i..end_i].iter().collect();*/
 		// Done
 		Self {
-			location_opt: Some((line_n, line)),
+			location_opt: None,//Some((line_n, line)),
 			message_opt,
 			enum_
 		}
@@ -87,22 +87,43 @@ impl CompilerError {
 /// Main compile function
 pub fn compiler_pipeline(in_: &str, config: &AssemblerConfig) -> Result<Vec<u16>, Vec<CompilerError>> {
 	// First, make vector of chars
-	/*let source: Vec<char> = in_.chars().collect();
+	let source: Vec<char> = in_.chars().collect();
 	// Parse into syntax tree
 	let syntax_tree: SyntaxTreeNode = match SyntaxTreeNode::build_tree(&source) {
 		Ok(tree) => tree,
 		Err(parse_error) => {return Err(vec![CompilerError::from_source_string_index(&source, parse_error.begin, None, CompilerErrorEnum::Parse(parse_error))]);}
 	};
-	// Program skeleton, TODO
-	let program_skeleton: ProgramSkeleton = match ProgramSkeleton::build(&syntax_tree) {
+	// Compile program instructions
+	let token_lines: Vec<Vec<Token>> = match program_skeleton_build(&syntax_tree) {
 		Ok(skelet) => skelet,
 		Err(skelet_error) => {return Err(vec![CompilerError::new(None, None, CompilerErrorEnum::ProgramSkeleton(skelet_error))]);}
-	};*/
-	compiler_pipeline_old(in_, config)
+	};
+	// Assemble, a lot of this is copied from `compiler_pipeline_old()`
+	let mut errors = Vec::<CompilerError>::new();
+	// Split into lines
+	let raw_lines: Vec<&str> = in_.split("\n").collect();
+	// Convienience closure function
+	let mut add_error = |line_index: usize, message_opt: Option<String>, error_enum: CompilerErrorEnum| {
+		errors.push(CompilerError::new(Some((line_index+1, raw_lines[line_index].to_owned())), message_opt, error_enum));
+	};
+	let mut out = Vec::<u16>::new();
+	for (i, line) in token_lines.iter().enumerate() {
+		match assembly_encode::assemble_instruction(line, config) {
+			Ok(instruction) => {out.push(instruction);},
+			Err((err_enum, msg)) => add_error(i, msg, CompilerErrorEnum::Assembly(err_enum))
+		}
+	}
+	// Done
+	if errors.len() == 0 {
+		Ok(out)
+	}
+	else {
+		Err(errors)
+	}
 }
 
 /// Turn raw string (probably from assembly source file) into machine code
-#[deprecated]
+/*#[deprecated]
 pub fn compiler_pipeline_old(in_: &str, config: &AssemblerConfig) -> Result<Vec<u16>, Vec<CompilerError>> {
 	let mut out = Vec::<u16>::new();
 	let mut errors = Vec::<CompilerError>::new();
@@ -128,7 +149,7 @@ pub fn compiler_pipeline_old(in_: &str, config: &AssemblerConfig) -> Result<Vec<
 	else {
 		Err(errors)
 	}
-}
+}*/
 
 pub fn compiler_pipeline_formated_errors(in_: &str, config: &AssemblerConfig) -> Result<Vec<u16>, String> {
 	match compiler_pipeline(in_, config) {
@@ -145,6 +166,7 @@ pub fn compiler_pipeline_formated_errors(in_: &str, config: &AssemblerConfig) ->
 	}
 }
 
+/*#[deprecated]
 fn tokenize(in_: &str, _config: &AssemblerConfig) -> Result<Vec<Vec<Token>>, Vec<CompilerError>> {
 	// TODO: ignore comments
 	let mut errors = Vec::<CompilerError>::new();
@@ -166,7 +188,7 @@ fn tokenize(in_: &str, _config: &AssemblerConfig) -> Result<Vec<Vec<Token>>, Vec
 	else {
 		Err(errors)
 	}
-}
+}*/
 
 /// Attempts to run assembler on given file in `assembly_sources`
 pub fn assemble_file(name: &str, assembler_config: &AssemblerConfig) -> Result<(), String> {

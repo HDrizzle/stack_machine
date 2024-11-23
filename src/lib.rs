@@ -18,11 +18,11 @@ pub mod prelude {
     pub use crate::resources;
     pub use crate::emulator::Machine;
 	// CONSTS
-	pub const IDENTIFIER_CHARS: [char; 63] = [
+	pub const IDENTIFIER_CHARS: [char; 64] = [
 		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
 		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-		'_'];
+		'_', '-'];
 	pub const WHITESPACE_CHARS: [char; 3] = [' ', '\n', '\t'];
 	pub const MACRO_BEGIN: char = '@';
 	pub const COMMENT_BEGIN: char = '#';
@@ -69,7 +69,7 @@ pub mod prelude {
 	}
 	/// Parses through `source` beginning at `start` until it finds a character that is not in identifier character
 	pub fn parse_identifier(source: &Vec<char>, start: usize, eof_error_parse_context_opt: Option<ParseContext>) -> Result<(String, usize), ParseError> {
-		parse_until_false(source, start, |c: &char| -> bool {IDENTIFIER_CHARS.contains(c)}, eof_error_parse_context_opt, false)
+		parse_until_false(source, start, |c: &char| -> bool {IDENTIFIER_CHARS.contains(c)}, eof_error_parse_context_opt, true)
 	}
 	/// For `0xXXXX` or `0bXXXX`
 	/// If it doesn't find `0x` or `0b` it will return None

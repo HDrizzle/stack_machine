@@ -3,35 +3,15 @@
 use crate::prelude::*;
 use super::{Token, TokenEnum};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SyntaxTreeNodeType {
 	Program,// The root node should always have this type
 	Macro(Macro),
 	Instruction,
-	InstructionToken(Token)/*,
-	InstructionTokenLiteral {
-		len_bits: usize,
-		value: u128// Probably enough
-	}*/,
+	InstructionToken(Token),
 	Comment,
 	StringLiteral(String)
 }
-
-/*impl SyntaxTreeNodeType {
-	pub fn context(&self) -> ParseContext {
-		match self {
-			Self::Program => ParseContext::Program,
-			Self::Macro => ParseContext::Macro,
-			Self::MacroName(..) => ParseContext::MacroName,
-			Self::MacroArgs => ParseContext::MacroArgs,
-			Self::MacroArg(..) => ParseContext::MacroArg,
-			Self::Instruction => ParseContext::Instruction,
-			Self::InstructionTokenWord(..) => ParseContext::InstructionTokenWord,
-			Self::InstructionTokenLiteral{..} => ParseContext::InstructionTokenLiteral,
-
-		}
-	}
-}*/
 
 #[derive(Debug, Clone, Copy)]
 pub enum ParseContext {
@@ -47,7 +27,7 @@ impl ParseContext {
 	pub fn parse(&self, source: &Vec<char>, start: usize) -> Result<SyntaxTreeNode, ParseError> {
 		//let source_substring: &str = &source[start..source.len()];
 		let mut children= Vec::<SyntaxTreeNode>::new();
-		let mut type_opt: Option<SyntaxTreeNodeType> = None;
+		let type_opt: Option<SyntaxTreeNodeType>;
 		let mut i: usize = start;
 		match self {
 			Self::Program => {
@@ -97,55 +77,10 @@ impl ParseContext {
 					// Skip semicolon
 					i += 1;
 				}
+				type_opt = Some(SyntaxTreeNodeType::Program);
 			},
 			Self::Macro => {
-				/*// First, read macro name
-				let (name, new_i) = parse_identifier(source, i, Some(*self))?;
-				// Skip whitespace after macro name
-				i = skip_whitespace(source, new_i, Some(*self))?;
-				// Check that next character is "("
-				if source[i] != '(' {
-					return Err(ParseError::new(i, i+1, ParseErrorType::InvalidCharacterInContext(source[i], *self), Some("Expected \"(\"".to_string())));
-				}
-				i += 1;// get past the opening "("
-				// Build list of arguments
-				loop {
-					// Skip whitespace
-					i = skip_whitespace(source, i, Some(*self))?;
-					let mut char_: char = source[i];
-					// Check if first character is a quote to begin a string, or an identifier character
-					if char_ == '\"' {
-						let (string_arg, end) = SyntaxTreeNodeType::parse_string_literal(source, i+1)?;
-						children.push(SyntaxTreeNode {
-							type_: string_arg,
-							begin: i+1,
-							end,
-							children: vec![]
-						});
-						i = end+1;
-					}
-					// Check if identifier
-					if IDENTIFIER_CHARS.contains(&char_) {
-						let begin = i;
-						let (arg, new_i) = parse_identifier(source, i, Some(*self))?;
-						i = new_i;
-						children.push(SyntaxTreeNode::new(SyntaxTreeNodeType::StringLiteral(arg), begin, i, vec![]));
-					}
-					// Skip whitespace
-					i = skip_whitespace(source, i, Some(*self))?;
-					// Check if next character is )
-					char_ = source[i];
-					if char_ == ')' {
-						i += 1;
-						break;
-					}
-					// No other characters are allowed here
-					if char_ != ',' {
-						return Err(ParseError::new(i, i+1, ParseErrorType::InvalidCharacterInContext(char_, *self), Some("Expected \",\"".to_string())));
-					}
-				}
 				// Set node type
-				type_opt = Some(SyntaxTreeNodeType::Macro(name));*/
                 let (macro_, new_i) = Macro::parse(source, i)?;
                 type_opt = Some(SyntaxTreeNodeType::Macro(macro_));
                 i = new_i;
@@ -164,30 +99,34 @@ impl ParseContext {
 						return Err(ParseError::new(i, i+1, ParseErrorType::InvalidCharacterInContext(source[i], *self), None));
 					}
 					// Check that next character is a space " "
+					if source[i] == ';' {
+						i += 1;
+						break;
+					}
 					if source[i] != ' ' {
 						return Err(ParseError::new(i, i+1, ParseErrorType::InvalidCharacterInContext(source[i], *self), None));
 					}
 				}
+				type_opt = Some(SyntaxTreeNodeType::Instruction);
 			},
 			Self::InstructionToken => {
 				let (assembly_word, new_i) = parse_identifier(source, i, Some(*self))?;
-				let token: Token = match check_for_and_parse_bit_string(source, new_i, Some(*self)) {
+				let token: Token = match check_for_and_parse_bit_string(source, i, Some(*self)) {
 					Some(result_) => {
-						let (bytes_vec, bit_size, new_i) = result_?;
-						i = new_i;
+						let (bytes_vec, bit_size, _) = result_?;
 						Token {
 							enum_: TokenEnum::Literal{n: bytes_vec[0], bit_size},
 							raw: assembly_word
 						}
 					},
-					None =>{
-						i = new_i;
+					None => {
 						Token {
 							enum_: TokenEnum::AssemblyWord(assembly_word.clone()),
 							raw: assembly_word
 						}
 					}
 				};
+				i = new_i;
 				type_opt = Some(SyntaxTreeNodeType::InstructionToken(token));
 			},
 			Self::Comment => {// Comment starts after "#" and ends after newline, `i` is assumed to be the next character after the "#"
@@ -213,12 +152,12 @@ impl ParseContext {
 				end: i,
 				children
 			}),
-			None => panic!("`node_type` not set by end of parse function")
+			None => panic!("`type_opt` not set by end of parse function")
 		}
 	}
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct SyntaxTreeNode {
 	pub type_: SyntaxTreeNodeType,
 	/// Inclusive

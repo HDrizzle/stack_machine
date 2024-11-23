@@ -198,20 +198,17 @@ void fibonacci() {
 }
 
 void test() {
-int prog_size = 12;
+int prog_size = 9;
 uint16_t program[PROG_ARRAY_SIZE];
 program[0] = 0b1011111111110001;
-program[1] = 0b100000000100001;
+program[1] = 0b100000000110001;
 program[2] = 0b101000000000001;
-program[3] = 0b1001000000000001;
-program[4] = 0b1010000000000001;
-program[5] = 0b1000110000110001;
-program[6] = 0b111010101010001;
-program[7] = 0b1001000000000001;
-program[8] = 0b1010000000000001;
-program[9] = 0b1011010100000000;
-program[10] = 0b1011010000000000;
-program[11] = 0b10;
+program[3] = 0b10000000010001;
+program[4] = 0b1100000000000;
+program[5] = 0b11000000000000;
+program[6] = 0b1011001001100000;
+program[7] = 0b10001001100000;
+program[8] = 0b10;
   upload_program(program, prog_size);
 }
 
@@ -280,6 +277,7 @@ void setup() {
   }*/
   // Test
   test();
+  //fibonacci();
   //recieve_and_upload_program();
 }
 

@@ -1,8 +1,6 @@
 //! Translating assembly directly to machine code, the last step in compilation
 
-use crate::prelude::*;
 use serde::{Serialize, Deserialize};
-use super::{CompilerError, CompilerErrorEnum};
 
 /// For each "unit" of the assembly code, names of opcodes and devices to read/write the bus, etc.
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -67,7 +65,7 @@ impl AssemblerConfig {
 }
 
 /// Parts of the assembly syntax, seperated by spaces and newlines
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TokenEnum {
 	/// Hexadecimal literal
 	Literal {
@@ -100,13 +98,19 @@ impl TokenEnum {
 	}
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Token {
 	pub enum_: TokenEnum,
 	pub raw: String
 }
 
 impl Token {
+    pub fn new(enum_: TokenEnum, raw: String) -> Self {
+        Self {
+            enum_,
+            raw
+        }
+    }
 	pub fn decode(in_: &str) -> Result<Self, AssemblyEncodeErrorEnum> {
 		Ok(Self {
 			enum_: TokenEnum::decode(in_)?,
@@ -197,30 +201,6 @@ pub fn assemble_instruction(line: &Vec<Token>, config: &AssemblerConfig) -> Resu
 	}
 	// Done
 	Ok(instruction)
-}
-
-#[deprecated]
-fn tokenize(in_: &str, _config: &AssemblerConfig) -> Result<Vec<Vec<Token>>, Vec<CompilerError>> {
-	// TODO: ignore comments
-	let mut errors = Vec::<CompilerError>::new();
-	let mut token_lines = Vec::<Vec<Token>>::new();
-	for (i, line) in in_.split("\n").enumerate() {
-		let mut tokens = Vec::<Token>::new();
-		for token_raw in line.split(" ") {
-			match Token::decode(token_raw) {
-				Ok(token) => tokens.push(token),
-				Err(err_enum) => errors.push(CompilerError::new(Some((i+1, line.to_owned())), None, CompilerErrorEnum::Assembly(err_enum)))
-			}
-		}
-		token_lines.push(tokens);
-	}
-	// Done
-	if errors.len() == 0 {
-		Ok(token_lines)
-	}
-	else {
-		Err(errors)
-	}
 }
 
 #[derive(Debug)]

@@ -1,16 +1,41 @@
 //! Tests
 
-use crate::{compiler, prelude::*};
+use crate::{compiler::{self, assembly_encode::{Token, TokenEnum}, syntax_tree::{SyntaxTreeNode, SyntaxTreeNodeType}}, prelude::*};
+
+#[test]
+fn parse_binary_literal() {
+	// Simple
+	let source: Vec<char> = String::from("0x42").chars().collect();
+	assert_eq!(check_for_and_parse_bit_string(&source, 0, None).expect("Did not find literal").expect("Shouldn\'t return error"), (vec![0x42], 8, 4));
+	// Offset start
+	let source: Vec<char> = String::from("  0x42 ").chars().collect();
+	assert_eq!(check_for_and_parse_bit_string(&source, 2, None).expect("Did not find literal").expect("Shouldn\'t return error"), (vec![0x42], 8, 6));
+	// Invalid
+	let source: Vec<char> = String::from("  0 x42 ").chars().collect();
+	assert!(check_for_and_parse_bit_string(&source, 2, None).is_none());
+}
+
+#[test]
+fn parse() {
+	let source: Vec<char> = String::from("write 0x42 stack-push;").chars().collect();
+	let tree: SyntaxTreeNode = SyntaxTreeNode::build_tree(&source).unwrap();
+	assert_eq!(tree.type_, SyntaxTreeNodeType::Program);
+	assert_eq!(tree.children[0].type_, SyntaxTreeNodeType::Instruction);
+	assert_eq!(tree.children[0].children.len(), 3);// Length of first instruction should be three tokens
+	assert_eq!(tree.children[0].children[0].type_, SyntaxTreeNodeType::InstructionToken(Token::new(TokenEnum::AssemblyWord("write".to_owned()), "write".to_owned())));
+	assert_eq!(tree.children[0].children[1].type_, SyntaxTreeNodeType::InstructionToken(Token::new(TokenEnum::Literal{n: 0x42, bit_size: 8}, "0x42".to_owned())));
+	assert_eq!(tree.children[0].children[2].type_, SyntaxTreeNodeType::InstructionToken(Token::new(TokenEnum::AssemblyWord("stack-push".to_owned()), "stack-push".to_owned())));
+}
 
 #[test]
 fn math() {
 	// Assemble program
-	let assembly_source = "write 0x01 stack-push
-write 0x02 stack-push
-move stack-pop alu-a
-move stack-pop alu-b
-move add alu stack-push
-halt";
+	let assembly_source = "write 0x01 stack-push;
+write 0x02 stack-push;
+move stack-pop alu-a;
+move stack-pop alu-b;
+move add alu stack-push;
+halt;";
 	let assembler_config = resources::load_assembler_config().expect("Unable to load assembler config");
 	let program: Vec<u16> = match compiler::compiler_pipeline_formated_errors(assembly_source, &assembler_config) {
 		Ok(program) => program,
@@ -37,28 +62,28 @@ halt";
 
 #[test]
 fn fibonacci() {
-	let assembly_source = "WRITE 0x00 GPRAM-ADDR-A
-WRITE 0x00 GPRAM-ADDR-B
-WRITE 0x00 SET-STACK-OFFSET
-WRITE 0x01 STACK-PUSH
-WRITE 0x01 STACK-PUSH
-MOVE OFFSET-READ GPRAM-INC-ADDR
-MOVE OFFSET-READ GPRAM-INC-ADDR
-WRITE 0x00 GOTO-B
-WRITE 0x15 GOTO-A
-MOVE GPRAM-ADDR-A ALU-A
-WRITE 0x0B ALU-B
-MOVE EQ ALU GOTO-DECIDER
-GOTO-IF
-MOVE STACK-POP ALU-A
-MOVE STACK-POP ALU-B
-MOVE A ALU STACK-PUSH
-MOVE ADD ALU GPRAM-INC-ADDR
-MOVE ADD ALU STACK-PUSH
-WRITE 0x07 GOTO-A
-WRITE 0x00 GOTO-B
-GOTO
-HALT";
+	let assembly_source = "WRITE 0x00 GPRAM-ADDR-A;
+WRITE 0x00 GPRAM-ADDR-B;
+WRITE 0x00 SET-STACK-OFFSET;
+WRITE 0x01 STACK-PUSH;
+WRITE 0x01 STACK-PUSH;
+MOVE OFFSET-READ GPRAM-INC-ADDR;
+MOVE OFFSET-READ GPRAM-INC-ADDR;
+WRITE 0x00 GOTO-B;
+WRITE 0x15 GOTO-A;
+MOVE GPRAM-ADDR-A ALU-A;
+WRITE 0x0B ALU-B;
+MOVE EQ ALU GOTO-DECIDER;
+GOTO-IF;
+MOVE STACK-POP ALU-A;
+MOVE STACK-POP ALU-B;
+MOVE A ALU STACK-PUSH;
+MOVE ADD ALU GPRAM-INC-ADDR;
+MOVE ADD ALU STACK-PUSH;
+WRITE 0x07 GOTO-A;
+WRITE 0x00 GOTO-B;
+GOTO;
+HALT;";
 	let assembler_config = resources::load_assembler_config().expect("Unable to load assembler config");
 	let program: Vec<u16> = match compiler::compiler_pipeline_formated_errors(assembly_source, &assembler_config) {
 		Ok(program) => program,
