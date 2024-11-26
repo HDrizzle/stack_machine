@@ -1,5 +1,7 @@
 //! Module for emulating the hardware
 
+use std::fmt::Write;
+
 #[allow(unused)]
 use crate::prelude::*;
 
@@ -29,10 +31,10 @@ impl StackController {
 		out
 	}
 	pub fn offset_read(&self, mem: &mut [u8; POWER_16]) -> u8 {
-		mem[(self.top_pointer - (self.offset as u16)) as usize]
+		mem[(self.top_pointer.wrapping_sub(self.offset as u16)) as usize]
 	}
 	pub fn offset_write(&self, value: u8, mem: &mut [u8; POWER_16]) {
-		mem[(self.top_pointer - (self.offset as u16)) as usize] = value;
+		mem[(self.top_pointer.wrapping_sub(self.offset as u16)) as usize] = value;
 	}
 	/// Does exactly what the hardware does
 	/// ```
@@ -167,7 +169,6 @@ pub struct Machine {
 	stack_controller: StackController,
 	pub alu: ALU,
 	general_mem_controller: GeneralMemController,
-	gpio_output: u16,
 	execution_pointer: u16,
 	goto_latch_a: u8,
 	goto_latch_b: u8,
@@ -193,7 +194,6 @@ impl Machine {
 			stack_controller: StackController::new(),
 			alu: ALU::new(),
 			general_mem_controller: GeneralMemController::new(),
-			gpio_output: 0,
 			execution_pointer: 0,
 			goto_latch_a: 0,
 			goto_latch_b: 0,
@@ -204,7 +204,7 @@ impl Machine {
 	}
 	/// Executes 1 instruction
 	/// Returns: Ok(whether to stop the clock (HALT)) or Err(EmulationError)
-	pub fn execute_instruction(&mut self, gpio_in: u16) -> Result<bool, EmulationError> {
+	pub fn execute_instruction<T: GpioInterface>(&mut self, gpio_interface: &mut T) -> Result<bool, EmulationError> {
 		// TODO: Increment `self.clock_counter`
 		// Check that execution pointer is within limits
 		if self.execution_pointer >= self.program_size {
@@ -225,18 +225,18 @@ impl Machine {
 			0 => {// MOVE
 				// Get next value
 				// Get bus value
-				let res = self.get_bus_value(bus_write_addr, gpio_in, alu_opcode);
+				let res = self.get_bus_value(bus_write_addr, gpio_interface, alu_opcode);
 				let bus_value: u8 = self.err_enum_result_to_err_result(res)?;
 				debug_print(&format!("  MOVE read_addr={:#X}, write_addr={:#X}, bus_value={:#X}", bus_read_addr, bus_write_addr, bus_value));
 				// Send bus value
-				let res = self.send_bus_value(bus_read_addr, bus_value);
+				let res = self.send_bus_value(bus_read_addr, bus_value, gpio_interface);
 				self.err_enum_result_to_err_result(res)?;
 			},
 			1 => {// WRITE
 				let read_addr = (second_byte >> 4) & 0x0F;
 				let bus_value = ((instruction >> 4) & 0x00FF) as u8;
 				debug_print(&format!("  WRITE read_addr={:#X}, bus_value={:#X}", read_addr, bus_value));
-				let res = self.send_bus_value(read_addr, bus_value);
+				let res = self.send_bus_value(read_addr, bus_value, gpio_interface);
 				self.err_enum_result_to_err_result(res)?;
 			},
 			2 => {// GOTO
@@ -253,13 +253,13 @@ impl Machine {
 			},
 			5 => {// CALL
 				// Push return address
-				self.call_stack_top += 1;
+				self.call_stack_top = self.call_stack_top.wrapping_add(1);
 				self.call_stack[self.call_stack_top as usize] = self.execution_pointer;
 				self.goto()
 			},
 			6 => {// RETURN
 				self.execution_pointer = self.call_stack[self.call_stack_top as usize];
-				self.call_stack_top -= 1;
+				self.call_stack_top = self.call_stack_top.wrapping_sub(1);
 			},
 			n => return Err(EmulationError::new(EmulationErrorEnum::InvalidOpcode(n), self.execution_pointer))
 		};
@@ -269,7 +269,7 @@ impl Machine {
 		// Done
 		Ok(false)
 	}
-	fn send_bus_value(&mut self, read_addr: u8, bus_value: u8) -> Result<(), EmulationErrorEnum> {
+	fn send_bus_value<T: GpioInterface>(&mut self, read_addr: u8, bus_value: u8, gpio_interface: &mut T) -> Result<(), EmulationErrorEnum> {
 		match read_addr {
 			0 => {},// NONE
 			1 => {// STACK-PUSH
@@ -297,13 +297,13 @@ impl Machine {
 				self.general_mem_controller.write(bus_value, &mut self.general_mem, true);
 			},
 			9 => {// GPRAM-ADDR-A
-				self.general_mem_controller.pointer |= (self.general_mem_controller.pointer & 0xFF00) | (bus_value as u16)
+				self.general_mem_controller.pointer = (self.general_mem_controller.pointer & 0xFF00) | (bus_value as u16)
 			},
 			10 => {// GPRAM-ADDR-B
-				self.general_mem_controller.pointer |= (self.general_mem_controller.pointer & 0x00FF) | ((bus_value as u16) << 8)
+				self.general_mem_controller.pointer = (self.general_mem_controller.pointer & 0x00FF) | ((bus_value as u16) << 8)
 			},
 			11 => {// GPIO-WRITE-A
-				self.gpio_output = (self.gpio_output & 0xFF00) | (bus_value as u16);
+				gpio_interface.write_a(bus_value);
 			},
 			12 => {// STACK-OFFSET-WRITE
 				self.stack_controller.offset_write(bus_value, &mut self.stack_mem);
@@ -315,13 +315,13 @@ impl Machine {
 				self.alu.latch_c = bus_value;
 			},
 			15 => {// GPIO-WRITE-B
-				self.gpio_output = (self.gpio_output & 0x00FF) | ((bus_value as u16) << 8);
+				gpio_interface.write_b(bus_value);
 			},
 			_ => return Err(EmulationErrorEnum::InvalidBusReadAddr(read_addr))
 		}
 		Ok(())
 	}
-	fn get_bus_value(&mut self, write_addr: u8, gpio_in: u16, alu_opcode: u8) -> Result<u8, EmulationErrorEnum> {
+	fn get_bus_value<T: GpioInterface>(&mut self, write_addr: u8, gpio_interface: &mut T, alu_opcode: u8) -> Result<u8, EmulationErrorEnum> {
 		Ok(match write_addr {
 			0 => {// STACK-POP
 				self.stack_controller.pop(&mut self.stack_mem)
@@ -348,7 +348,7 @@ impl Machine {
 				((self.general_mem_controller.pointer >> 8) & 0x00FF) as u8
 			},
 			8 => {// GPIO-READ-A
-				(gpio_in & 0x00FF) as u8
+				gpio_interface.read_a()
 			},
 			9 => {// CLK-COUNTER-A
 				(self.clock_counter & 0x00FF) as u8
@@ -357,15 +357,15 @@ impl Machine {
 				((self.clock_counter >> 8) & 0x00FF) as u8
 			},
 			11 => {// GPIO-READ-B
-				((gpio_in >> 8) & 0x00FF) as u8
+				gpio_interface.read_b()
 			},
 			_ => return Err(EmulationErrorEnum::InvalidBusWriteAddr(write_addr))
 		})
 	}
 	fn goto(&mut self) {
 		let next_pointer = self.goto_latch_a as u16 + ((self.goto_latch_b as u16) * 256);
-		debug_print(&format!("  GOTO curr pointer={:#X}, next={:#X}", self.execution_pointer, next_pointer));
-		self.execution_pointer = next_pointer - 1;// The execute instruction function will then increment this
+		debug_print(&format!("  GOTO curr pointer={:#X}, next={:#X} + 1", self.execution_pointer, next_pointer));
+		self.execution_pointer = next_pointer;
 	}
 	fn err_enum_to_err(&self, enum_: EmulationErrorEnum) -> EmulationError {
 		EmulationError::new(enum_, self.execution_pointer)
@@ -377,13 +377,51 @@ impl Machine {
 		}
 	}
 	/// Runs until error or halt
-	pub fn run(&mut self, mut gpio_interactor: impl FnMut(u16) -> u16) -> Result<(), EmulationError> {
+	pub fn run<T: GpioInterface>(&mut self, gpio_interface: &mut T) -> Result<(), EmulationError> {
 		loop {
-			let gpio_in: u16 = gpio_interactor(self.gpio_output);
-			if self.execute_instruction(gpio_in)? {
+			if self.execute_instruction(gpio_interface)? {
 				return Ok(());
 			}
 		}
+	}
+}
+
+pub trait GpioInterface {
+	fn write_a(&mut self, _in: u8) {}
+	fn write_b(&mut self, _in: u8) {}
+	fn read_a(&mut self) -> u8 {0x00}
+	fn read_b(&mut self) -> u8 {0x00}
+}
+
+pub struct GpioInterfaceDoesNothing;
+
+impl GpioInterface for GpioInterfaceDoesNothing {}
+
+pub struct CliInterface {
+	current_out_buffer: String
+}
+
+impl CliInterface {
+	pub fn new() -> Self {
+		Self {
+			current_out_buffer: String::new()
+		}
+	}
+}
+
+impl GpioInterface for CliInterface {
+	fn write_a(&mut self, in_: u8) {
+		let char_: char = in_ as char;
+		if in_ == 0x0A {// Just a Linefeed, Windows can fuck off
+			println!("{}", self.current_out_buffer);
+			self.current_out_buffer.clear();
+		}
+		else {
+			self.current_out_buffer.write_char(char_).unwrap();
+		}
+	}
+	fn write_b(&mut self, _in: u8) {
+		println!("N: {}", _in);
 	}
 }
 
@@ -417,7 +455,7 @@ impl EmulationError {
 }
 
 #[inline]
-fn debug_print(msg: &str) {
+fn debug_print(_msg: &str) {
 	#[cfg(feature = "emulator_debug")]
-	println!("{}", msg);
+	println!("{}", _msg);
 }

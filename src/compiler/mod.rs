@@ -94,7 +94,7 @@ pub fn compiler_pipeline(in_: &str, config: &AssemblerConfig) -> Result<Vec<u16>
 		Err(parse_error) => {return Err(vec![CompilerError::from_source_string_index(&source, parse_error.begin, None, CompilerErrorEnum::Parse(parse_error))]);}
 	};
 	// Compile program instructions
-	let token_lines: Vec<Vec<Token>> = match program_skeleton_build(&syntax_tree) {
+	let token_lines: Vec<(Vec<Token>, usize)> = match program_skeleton_build(&syntax_tree, &source) {
 		Ok(skelet) => skelet,
 		Err(skelet_error) => {return Err(vec![CompilerError::new(None, None, CompilerErrorEnum::ProgramSkeleton(skelet_error))]);}
 	};
@@ -107,10 +107,10 @@ pub fn compiler_pipeline(in_: &str, config: &AssemblerConfig) -> Result<Vec<u16>
 		errors.push(CompilerError::new(Some((line_index+1, raw_lines[line_index].to_owned())), message_opt, error_enum));
 	};
 	let mut out = Vec::<u16>::new();
-	for (i, line) in token_lines.iter().enumerate() {
+	for (line, line_n) in &token_lines {
 		match assembly_encode::assemble_instruction(line, config) {
 			Ok(instruction) => {out.push(instruction);},
-			Err((err_enum, msg)) => add_error(i, msg, CompilerErrorEnum::Assembly(err_enum))
+			Err((err_enum, msg)) => add_error(*line_n, msg, CompilerErrorEnum::Assembly(err_enum))
 		}
 	}
 	// Done
@@ -165,30 +165,6 @@ pub fn compiler_pipeline_formated_errors(in_: &str, config: &AssemblerConfig) ->
 		}
 	}
 }
-
-/*#[deprecated]
-fn tokenize(in_: &str, _config: &AssemblerConfig) -> Result<Vec<Vec<Token>>, Vec<CompilerError>> {
-	// TODO: ignore comments
-	let mut errors = Vec::<CompilerError>::new();
-	let mut token_lines = Vec::<Vec<Token>>::new();
-	for (i, line) in in_.split("\n").enumerate() {
-		let mut tokens = Vec::<Token>::new();
-		for token_raw in line.split(" ") {
-			match Token::decode(token_raw) {
-				Ok(token) => tokens.push(token),
-				Err(err_enum) => errors.push(CompilerError::new(Some((i+1, line.to_owned())), None, CompilerErrorEnum::Assembly(err_enum)))
-			}
-		}
-		token_lines.push(tokens);
-	}
-	// Done
-	if errors.len() == 0 {
-		Ok(token_lines)
-	}
-	else {
-		Err(errors)
-	}
-}*/
 
 /// Attempts to run assembler on given file in `assembly_sources`
 pub fn assemble_file(name: &str, assembler_config: &AssemblerConfig) -> Result<(), String> {

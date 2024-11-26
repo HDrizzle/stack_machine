@@ -150,8 +150,8 @@ pub fn assemble_instruction(line: &Vec<Token>, config: &AssemblerConfig) -> Resu
 						Err(err_enum) => {return Err((err_enum, None));}
 					}
 				},
-				false => {// default ALU opcode, TODO: warning if this instruction is moving data from the ALU
-					0x00
+				false => {// TODO
+					0x00//return Err((AssemblyEncodeErrorEnum::UnspecifiedAluOpcode, None));
 				}
 			};
 			// From and to address
@@ -221,5 +221,6 @@ pub enum AssemblyEncodeErrorEnum {
 	},
 	LiteralTokenInWrongContext {
 		token: Token
-	}
+	},
+    UnspecifiedAluOpcode
 }

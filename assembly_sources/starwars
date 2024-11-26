@@ -1,66 +1,166 @@
-write 0xFF gpio-write-a
+# --------------------------------- <Testing> ----------------------------------
+
+#write 0x41 stack-push;@call(write-char);# "A"
+#@call(write-newline);
+
+#@push_anchor_address(test2);
+#write 0x0A stack-push;
+#write 0x00 stack-push;
+#@call(loop-n);
+#@call(write-newline);
+#halt;
+#@anchor(test2);
+#write 0x41 stack-push;@call(write-char);# "A"
+#return;
+
+# Hello World!
+@push_anchor_address(write-char-from-gpram);
+write 0x00 gpram-addr-a;write 0x00 gpram-addr-b;
+@write_string("Hello world!\n");
+write 0x00 gpram-addr-a;write 0x00 gpram-addr-b;
+@call(loop-n);
+halt;
+@anchor(write-char-from-gpram);
+move gpram-inc-addr stack-push;@call(write-char);
+return;
+
+# testing
+#write 0x01 stack-push;write 0x02 stack-push;@call(test-eq-8);
+#write 0x01 stack-push;write 0x01 stack-push;@call(test-eq-8);
+#write 0x01 stack-push;write 0x02 stack-push;@call(test-eq-8);
+#write 0x01 stack-push;write 0x01 stack-push;@call(test-eq-8);
+#halt;
+
+# --------------------------------- </Testing> ---------------------------------
+write 0xFF gpio-write-a;
 
 # Write size of song, TODO
-write 0x00 stack-push
+write 0x00 stack-push;
 
 # Call function to write data into GPRAM, TODO
-@call(write-song)
+@call(write-song);
 
 # Call main loop
-@call(main)
-halt
+@call(main);
+halt;
 
 # Main loop
-@anchor(main)
+@anchor(main);
 # Reset GPRAM address
-write 0x00 gpram-addr-a
-write 0x00 gpram-addr-b
+write 0x00 gpram-addr-a;
+write 0x00 gpram-addr-b;
 # Current progress
-write 0x00 stack-push
-@anchor(main-loop-begin)
-@call(play-note)
+write 0x00 stack-push;
+@anchor(main-loop-begin);
+@call(play-note);
 # Increment progress
-write 0x00 alu-c-in
-move stack-pop alu-a
-write 0x01 alu-b
-move add alu stack-push
+write 0x00 alu-c-in;
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
 # Check if done
-move add alu alu-a
-write 0x01 stack-offset
-move offset-read alu-b
-move eq alu-a
-move not goto-decider
-@goto-if(main-loop-begin)
-move stack-pop none
-return
+move add alu alu-a;
+write 0x01 set-stack-offset;
+move offset-read alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(main-loop-begin);
+move stack-pop none;
+return;
 
 # Play note function, uses current byte from GPRAM
-TODO
-return
+@anchor(play-note);
+# TODO
+return;
 
 # Write data into GPRAM
-@anchor(write-song)
-write 0x00 gpram-addr-a
-write 0x00 gpram-addr-b
+@anchor(write-song);
+write 0x00 gpram-addr-a;
+write 0x00 gpram-addr-b;
 # TODO
-return
+return;
 
 # 16-bit add, uses two 16-bit integers on the stack, lower byte lower on the stack
-@anchor(16-bit-add)
-write 0x00 alu-c-in
-write 0x03 stack-offset
-move offset-read alu-a
-write 0x01 stack-offset
-move offset-read alu-b
-write 0x03 stack-offset
-move add alu offset-write
-move add-c alu-c-in
-write 0x02 stack-offset
-move offset-read alu-a
-write 0x01 stack-offset
-move offset-read alu-b
-write 0x02 stack-offset
-move add alu offset-write
-move stack-pop none
-move stack-pop none
-return
+# 0.A, 0.B, 1.A, 1.B
+@anchor(16-bit-add);
+# Set carry to 0
+write 0x00 alu-c-in;
+# Read 0.A
+write 0x03 set-stack-offset;move offset-read alu-a;
+# Read 1.A
+write 0x01 set-stack-offset;move offset-read alu-b;
+# Move 0.A + 1.A in place of 0.A
+write 0x03 set-stack-offset;move add alu offset-write;
+# Carry
+move add-c alu alu-c-in;
+# Read 0.B
+write 0x02 set-stack-offset;move offset-read alu-a;
+# Read 1.B
+write 0x00 set-stack-offset;move offset-read alu-b;
+# Move 0.B + 1.B in place of 0.B
+write 0x02 set-stack-offset;move add alu offset-write;
+# delete uneeded data from stack
+move stack-pop none;move stack-pop none;
+return;
+
+# Loop, takes 4 values from the stack: Addr A, Addr B, Count A, Count B
+@anchor(loop-n)
+# 2 new values for current iteration
+write 0x00 stack-push;
+write 0x00 stack-push;
+# Stack: Addr A, Addr B, Count A, Count B, Curr. Iter A, Curr. Iter B
+@anchor(loop-n-beginning)
+# Prepare GOTO latches and call function
+write 0x05 set-stack-offset;move offset-read goto-a;
+write 0x04 set-stack-offset;move offset-read goto-b;
+call;
+# Increment iteration count
+write 0x01 stack-push;
+write 0x00 stack-push;
+@call(16-bit-add);
+# Check if equal
+# Compare Count A and Curr. Iter A
+write 0x03 set-stack-offset;move offset-read alu-a;
+write 0x01 set-stack-offset;move offset-read alu-b;
+move eq alu stack-push;
+# Stack: Addr A, Addr B, Count A, Count B, Curr. Iter A, Curr. Iter B, c.A == i.A
+# Compare Count B and Curr. Iter B
+write 0x03 set-stack-offset;move offset-read alu-a;
+write 0x01 set-stack-offset;move offset-read alu-b;
+move eq alu stack-push;
+# Stack: Addr A, Addr B, Count A, Count B, Curr. Iter A, Curr. Iter B, c.A == i.A, c.B == i.B
+# AND the equality results and load into goto decider
+move stack-pop alu-a;move stack-pop alu-b;move and alu alu-a;move not alu goto-decider;
+@goto_if(loop-n-beginning);
+return;
+
+# Test
+@anchor(test-eq-8)
+move stack-pop alu-a;move stack-pop alu-b;
+move eq alu goto-decider;
+@goto_if(test-eq-8-pass);
+# Print "FAIL\n"
+write 0x46 stack-push;@call(write-char);
+write 0x41 stack-push;@call(write-char);
+write 0x49 stack-push;@call(write-char);
+write 0x4C stack-push;@call(write-char);
+@call(write-newline);
+return;
+# print "PASS\n"
+@anchor(test-eq-8-pass);
+write 0x50 stack-push;@call(write-char);
+write 0x41 stack-push;@call(write-char);
+write 0x53 stack-push;@call(write-char);
+write 0x53 stack-push;@call(write-char);
+@call(write-newline);
+return;
+
+# Write char
+@anchor(write-char);
+move stack-pop gpio-write-a;
+return;
+
+# Newline
+@anchor(write-newline);
+write 0x0A gpio-write-a;
+return;

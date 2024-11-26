@@ -7,6 +7,7 @@ use super::{Token, TokenEnum};
 pub enum SyntaxTreeNodeType {
 	Program,// The root node should always have this type
 	Macro(Macro),
+	/// Whole instruction
 	Instruction,
 	InstructionToken(Token),
 	Comment,
@@ -33,7 +34,10 @@ impl ParseContext {
 			Self::Program => {
 				while i < source.len() {// Top level node type, so loop through everything
 					// Skip whitespace
-					i = skip_whitespace(source, i, Some(*self))?;
+					i = skip_whitespace(source, i, None)?;
+					if i == source.len() {// allow whitespace at end of program
+						break;
+					}
 					let char_: char = source[i];
 					// Check if identifier (instruction)
 					if IDENTIFIER_CHARS.contains(&char_) {// Create new child of type Instruction

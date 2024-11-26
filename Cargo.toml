@@ -15,7 +15,7 @@ name = "stack_machine"
 path = "src/bin.rs"
 
 [features]
-default = ["emulator_debug"]
+default = []#"emulator_debug"]
 emulator_debug = []
 
 [dependencies]

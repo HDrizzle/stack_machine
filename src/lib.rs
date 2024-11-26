@@ -9,14 +9,13 @@ pub mod program_upload;
 pub use crate::prelude::*;
 #[cfg(test)]
 mod tests;
-mod abstract_parser;
 
 /// Prelude
 pub mod prelude {
     use std::fmt::Write;
     pub use crate::compiler::{assembly_encode::{AssemblyWord, AssemblerConfig}, syntax_tree::{ParseError, ParseErrorType, SyntaxTreeNodeType, ParseContext}, macros::Macro};
     pub use crate::resources;
-    pub use crate::emulator::Machine;
+    pub use crate::emulator::{Machine, GpioInterface, GpioInterfaceDoesNothing, CliInterface};
 	// CONSTS
 	pub const IDENTIFIER_CHARS: [char; 64] = [
 		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -103,10 +102,14 @@ pub mod prelude {
 	}
 	/// Starts at first character of string, NOT at beginning quote mark. Returns string, where it ends (exclusive)
 	pub fn parse_string_literal(source: &Vec<char>, start: usize) -> Result<(String, usize), ParseError> {
-		let mut i: usize = 0;
+		let mut i: usize = start;
 		let mut out = String::new();
 		while i < source.len() {
 			let mut char_ = source[i];
+			// Check for end of string
+			if char_ == '\"' {
+				return Ok((out, i+1));
+			}
 			// Check for escape subsitiution
 			if char_ == '\\' {
 				// Check that this isn't the last character
@@ -117,14 +120,10 @@ pub mod prelude {
 				match escape_substitution(source[i+1]) {
 					Some(substituted_char) => {
 						char_ = substituted_char;
-						i += 1;
 					},
 					None => {return Err(ParseError::new(i, i+1, ParseErrorType::StringInvalidEscapeSequence(source[i+1]), None));}
 				}
-			}
-			// Check for end of string
-			if char_ == '\"' {
-				return Ok((out, i+1));
+				i += 1;// Extra incrementation
 			}
 			// Add char_ to output
 			out.write_char(char_).unwrap();
@@ -155,6 +154,10 @@ pub mod prelude {
 			Some(eof_error_parse_context) => Err(ParseError::new(start, i, ParseErrorType::UnfinishedNode(eof_error_parse_context), None)),
 			None => Ok((out, i))
 		}
+	}
+	/// Gets 1-indexed (gross) line number
+	pub fn line_n_from_index(source: &Vec<char>, i: usize) -> usize {
+		source[0..i].iter().filter(|c: &&char| -> bool {**c == '\n'}).count() + 1
 	}
 }
 
@@ -241,6 +244,26 @@ pub fn ui_main() {
 			},
 			"-compile" => {
 				println!("Not implemented");
+			},
+			"-run-with-cli" => {
+				if args.len() < 3 {
+					println!("Plz include name of file in `{}`", resources::ASSEMBLY_SOURCES_DIR);
+				}
+				else {
+					let name = &args[2];
+					let path: String = resources::ASSEMBLY_SOURCES_DIR.to_owned() + name;
+					let file_raw = match fs::read_to_string(&path) {
+						Ok(s) => s,
+						Err(e) => panic!("Could not load test file at \"{}\" because {}", &path, e)
+					};
+					match compiler::compiler_pipeline_formated_errors(&file_raw, &assembler_config) {
+						Ok(program) => {
+							let mut machine = Machine::new(program);
+							machine.run(&mut CliInterface::new()).unwrap();
+						},
+						Err(s) => println!("{}", s)
+					}
+				}
 			},
 			_ => panic!("Invalid arguments")
 		}

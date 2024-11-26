@@ -1,4 +1,4 @@
-# Assembly language
+# Language
 
 The assembly language closely reflects the actual instructions that it will be converted into. Instructions consist of tokens which can be assembly words (defined in `assembler_config/config.json`) and literal values such as `0x42` or `0b0101`. Instructions and macros are seperated by simicolons (`;`) and all whitespace is ignored except for spaces between instruction tokens. Anything after `#` on a line is treated as a comment.
 
@@ -25,3 +25,7 @@ which will be expanded to three instructions: `write 0xXX goto-a`, `write 0xXX g
 ### Write string
 
 Another macro is `@write_string("Hellow world")` which will write each character of the given string (in ASCII) to the GPRAM starting at wherever the address is currently set to.
+
+### Get anchor address
+
+Sometimes it is necessary to access the address of an achor without using any flow control macros. This is why there is the `@push_anchor_address(anchor_name)` macro. It will push two bytes onto the stack, starting with address bits 0 - 7 then 8 - 15.

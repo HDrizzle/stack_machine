@@ -1,6 +1,6 @@
 //! Tests
 
-use crate::{compiler::{self, assembly_encode::{Token, TokenEnum}, syntax_tree::{SyntaxTreeNode, SyntaxTreeNodeType}}, prelude::*};
+use crate::{compiler::{self, assembly_encode::{Token, TokenEnum}, macros::{Macro, MacroEnum, MacroArgument}, syntax_tree::{SyntaxTreeNode, SyntaxTreeNodeType}}, prelude::*};
 
 #[test]
 fn parse_binary_literal() {
@@ -25,6 +25,66 @@ fn parse() {
 	assert_eq!(tree.children[0].children[0].type_, SyntaxTreeNodeType::InstructionToken(Token::new(TokenEnum::AssemblyWord("write".to_owned()), "write".to_owned())));
 	assert_eq!(tree.children[0].children[1].type_, SyntaxTreeNodeType::InstructionToken(Token::new(TokenEnum::Literal{n: 0x42, bit_size: 8}, "0x42".to_owned())));
 	assert_eq!(tree.children[0].children[2].type_, SyntaxTreeNodeType::InstructionToken(Token::new(TokenEnum::AssemblyWord("stack-push".to_owned()), "stack-push".to_owned())));
+}
+
+#[test]
+fn parse_with_macros() {
+	let source: Vec<char> = String::from("@anchor(start);write 0x42 stack-push;").chars().collect();
+	let tree: SyntaxTreeNode = SyntaxTreeNode::build_tree(&source).unwrap();
+	assert_eq!(tree.type_, SyntaxTreeNodeType::Program);
+	// First instruction
+	assert_eq!(tree.children[0].children.len(), 0);// Token has no children
+	assert_eq!(tree.children[0].type_, SyntaxTreeNodeType::Macro(Macro{type_: MacroEnum::Anchor, args: vec![MacroArgument::Identifier("start".to_owned())]}));
+	// Second instruction
+	assert_eq!(tree.children[1].type_, SyntaxTreeNodeType::Instruction);
+	assert_eq!(tree.children[1].children.len(), 3);// Length of second instruction should be three tokens
+	assert_eq!(tree.children[1].children[0].type_, SyntaxTreeNodeType::InstructionToken(Token::new(TokenEnum::AssemblyWord("write".to_owned()), "write".to_owned())));
+	assert_eq!(tree.children[1].children[1].type_, SyntaxTreeNodeType::InstructionToken(Token::new(TokenEnum::Literal{n: 0x42, bit_size: 8}, "0x42".to_owned())));
+	assert_eq!(tree.children[1].children[2].type_, SyntaxTreeNodeType::InstructionToken(Token::new(TokenEnum::AssemblyWord("stack-push".to_owned()), "stack-push".to_owned())));
+}
+
+#[test]
+fn test_parse_string_literal() {
+	let string_to_parse = "\"Hello World\\n\"".to_owned();
+	let source: Vec<char> = string_to_parse.chars().collect();
+	assert_eq!(
+		parse_string_literal(&source, 1).unwrap(),
+		("Hello World\n".to_owned(), string_to_parse.len())
+	);
+}
+
+#[test]
+fn parse_macro_with_string_literal() {
+	let source: Vec<char> = String::from("@write_string(\"Hello world\\n\");").chars().collect();// "Hello world\n"
+	let tree: SyntaxTreeNode = SyntaxTreeNode::build_tree(&source).unwrap();
+	assert_eq!(tree.type_, SyntaxTreeNodeType::Program);
+	// First instruction
+	assert_eq!(tree.children[0].children.len(), 0);// Macro has no children
+	assert_eq!(tree.children[0].type_, SyntaxTreeNodeType::Macro(Macro{type_: MacroEnum::WriteString, args: vec![MacroArgument::StringLiteral("Hello world\n".to_owned())]}));
+}
+
+#[test]
+fn macro_expansion() {
+	let assembly_source_test = "@anchor(start);write 0x42 stack-push;@goto(start);@goto_if(start);@call(start);";// This program doesn't make sense, it's just for testing macros
+	let assembly_source_control = "
+		write 0x42 stack-push;
+		write 0xFF goto-a;write 0xFF goto-b;goto;
+		write 0xFF goto-a;write 0xFF goto-b;goto-if;
+		write 0xFF goto-a;write 0xFF goto-b;call;
+	";
+	// Load assembler config
+	let assembler_config = resources::load_assembler_config().expect("Unable to load assembler config");
+	// Compile both programs
+	let program_test: Vec<u16> = match compiler::compiler_pipeline_formated_errors(assembly_source_test, &assembler_config) {
+		Ok(program) => program,
+		Err(s) => panic!("{}", s)
+	};
+	let program_control: Vec<u16> = match compiler::compiler_pipeline_formated_errors(assembly_source_control, &assembler_config) {
+		Ok(program) => program,
+		Err(s) => panic!("{}", s)
+	};
+	// They should produce the exact same machine code
+	assert_eq!(program_test, program_control);
 }
 
 #[test]
@@ -53,7 +113,7 @@ halt;";
 	assert_eq!(program, binary_program_check);
 	// Run
 	let mut machine = Machine::new(program);
-	machine.run(|_| -> u16 {0x00}).unwrap();
+	machine.run(&mut GpioInterfaceDoesNothing).unwrap();
 	// All that work to add 1 + 2
 	//println!("stack: {:?}", &machine.stack_mem[0..5]);
 	//println!("ALU A & B: {}, {}", machine.alu.latch_a, machine.alu.latch_b);
@@ -123,7 +183,7 @@ HALT;";
 	assert_eq!(program, binary_program_check);
 	// Run
 	let mut machine = Machine::new(program);
-	machine.run(|_| -> u16 {0x00}).unwrap();
+	machine.run(&mut GpioInterfaceDoesNothing).unwrap();
 	// Check for fibonacci sequence in GPRAM
 	assert_eq!(machine.general_mem[0..10], [1, 1, 2, 3, 5, 8, 13, 21, 34, 55]);
 }
