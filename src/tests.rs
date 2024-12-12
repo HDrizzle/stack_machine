@@ -154,7 +154,7 @@ HALT;";
 		0x9001,
 		0xA001,
 		// Set stack offset to 0
-		0xD001,
+		0xDFF1,
 		// Starting numbers
 		0x1011,// write 1 stack
 		0x1011,// write 1 stack
