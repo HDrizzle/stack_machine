@@ -1,12 +1,46 @@
-write 0xFF gpio-write-a
-write 0x01 alu-a
-move gpio-read-a stack-push
-write 0x07 goto-a
-write 0x00 goto-b
-call
-write 0x01 goto-a
-goto
-move stack-pop alu-b
-move shift alu gpio-write-a
-move shift alu alu-a
-return
+# Setup
+write 0xFF gpio-write-a;
+write 0x10 gpio-write-a;
+write 0x10 alu-a;
+@call(end);
+
+# Loop
+@anchor(main-loop-begin);
+# Shift
+@call(get-shift-value);
+#move b alu gpio-write-a;
+move not alu goto-decider;
+@goto_if(skip-end);
+@call(end);
+@anchor(skip-end);
+move shift alu offset-write;
+move shift alu gpio-write-a;
+move shift alu alu-a;
+@goto(main-loop-begin);
+
+# Game over
+@anchor(end);
+write 0xFF gpio-write-a;
+# Wait until not pressing
+@anchor(end-wait-0);
+move gpio-read-a alu-a;
+move not alu goto-decider;
+@goto_if(end-wait-0);
+# Starting value (in the middle)
+write 0x10 offset-write;
+write 0x10 gpio-write-a;
+# Wait until pressing
+@anchor(end-wait-1);
+move gpio-read-a goto-decider;
+@goto_if(end-wait-1);
+write 0x10 alu-a;
+return;
+
+# Get shift value into `alu-b`
+@anchor(get-shift-value);
+write 0x07 alu-b;
+move gpio-read-a goto-decider;
+@goto_if(skip-shift-right);
+write 0x01 alu-b;
+@anchor(skip-shift-right);
+return;

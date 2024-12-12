@@ -198,17 +198,51 @@ void fibonacci() {
 }
 
 void test() {
-int prog_size = 9;
+int prog_size = 43;
 uint16_t program[PROG_ARRAY_SIZE];
 program[0] = 0b1011111111110001;
-program[1] = 0b100000000110001;
-program[2] = 0b101000000000001;
-program[3] = 0b10000000010001;
-program[4] = 0b1100000000000;
-program[5] = 0b11000000000000;
-program[6] = 0b1011001001100000;
-program[7] = 0b10001001100000;
-program[8] = 0b10;
+program[1] = 0b1011000100000001;
+program[2] = 0b10000100000001;
+program[3] = 0b100000101010001;
+program[4] = 0b101000000000001;
+program[5] = 0b101;
+program[6] = 0b100001000110001;
+program[7] = 0b101000000000001;
+program[8] = 0b101;
+program[9] = 0b1100001001100000;
+program[10] = 0b1011001001100000;
+program[11] = 0b110001000100000;
+program[12] = 0b100000100010001;
+program[13] = 0b101000000000001;
+program[14] = 0b11;
+program[15] = 0b100000101010001;
+program[16] = 0b101000000000001;
+program[17] = 0b101;
+program[18] = 0b10001001100000;
+program[19] = 0b100000001010001;
+program[20] = 0b101000000000001;
+program[21] = 0b10;
+program[22] = 0b1011111111110001;
+program[23] = 0b10100000000000;
+program[24] = 0b110001000100000;
+program[25] = 0b100000101100001;
+program[26] = 0b101000000000001;
+program[27] = 0b11;
+program[28] = 0b1100000100000001;
+program[29] = 0b1011000100000001;
+program[30] = 0b110100000000000;
+program[31] = 0b100000111010001;
+program[32] = 0b101000000000001;
+program[33] = 0b11;
+program[34] = 0b10000100000001;
+program[35] = 0b110;
+program[36] = 0b11000001110001;
+program[37] = 0b110100000000000;
+program[38] = 0b100001010010001;
+program[39] = 0b101000000000001;
+program[40] = 0b11;
+program[41] = 0b11000000010001;
+program[42] = 0b110;
   upload_program(program, prog_size);
 }
 

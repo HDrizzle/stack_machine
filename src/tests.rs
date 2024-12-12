@@ -130,7 +130,7 @@ WRITE 0x01 STACK-PUSH;
 MOVE OFFSET-READ GPRAM-INC-ADDR;
 MOVE OFFSET-READ GPRAM-INC-ADDR;
 WRITE 0x00 GOTO-B;
-WRITE 0x15 GOTO-A;
+WRITE 0x14 GOTO-A;
 MOVE GPRAM-ADDR-A ALU-A;
 WRITE 0x0B ALU-B;
 MOVE EQ ALU GOTO-DECIDER;
@@ -140,7 +140,7 @@ MOVE STACK-POP ALU-B;
 MOVE A ALU STACK-PUSH;
 MOVE ADD ALU GPRAM-INC-ADDR;
 MOVE ADD ALU STACK-PUSH;
-WRITE 0x07 GOTO-A;
+WRITE 0x06 GOTO-A;
 WRITE 0x00 GOTO-B;
 GOTO;
 HALT;";
@@ -162,7 +162,7 @@ HALT;";
 		0x8100,// move to GPRAM
 		// While loop decision
 		0x5001,// End pointer part B
-		0x4151,// end pointer: 21 or 0x15
+		0x4141,// end pointer: 21 or 0x15
 		0x2600,// MOVE GPRAM-ADDR-A ALU-A
 		0x30B1,// WRITE 0x0B ALU-B
 		0x6270,// MOVE EQ ALU GOTO-DECIDER
@@ -174,7 +174,7 @@ HALT;";
 		0x8200,
 		0x1200,
 		// Goto beginning of loop
-		0x4071,// GOTO A, beginning of loop pointer: 7
+		0x4061,// GOTO A, beginning of loop pointer: 7
 		0x5001,// GOTO B
 		0x0002,// GOTO
 		// End

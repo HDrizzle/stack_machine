@@ -31,10 +31,10 @@ impl StackController {
 		out
 	}
 	pub fn offset_read(&self, mem: &mut [u8; POWER_16]) -> u8 {
-		mem[(self.top_pointer.wrapping_sub(self.offset as u16)) as usize]
+		mem[(self.top_pointer.wrapping_add(self.offset as u16 + 0xFF00).wrapping_add(1)) as usize]
 	}
 	pub fn offset_write(&self, value: u8, mem: &mut [u8; POWER_16]) {
-		mem[(self.top_pointer.wrapping_sub(self.offset as u16)) as usize] = value;
+		mem[(self.top_pointer.wrapping_add(self.offset as u16 + 0xFF00).wrapping_add(1)) as usize] = value;
 	}
 	/// Does exactly what the hardware does
 	/// ```

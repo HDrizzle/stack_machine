@@ -177,7 +177,7 @@ pub fn assemble_instruction(line: &Vec<Token>, config: &AssemblerConfig) -> Resu
 			}
 			// Bits 4 - 11 raw hex value
 			let write_value_token = &line[1];
-			let write_value: u8 = if let TokenEnum::Literal{n, bit_size} = &write_value_token.enum_ {
+			let mut  write_value: u8 = if let TokenEnum::Literal{n, bit_size} = &write_value_token.enum_ {
 				if *bit_size == 8 {
 					*n
 				}
@@ -194,6 +194,10 @@ pub fn assemble_instruction(line: &Vec<Token>, config: &AssemblerConfig) -> Resu
 				Ok(word) => word.id_,
 				Err(err_enum) => {return Err((err_enum, None));}
 			};
+			// Check if writing to the stack offset
+			if read_addr == 13 {
+				write_value = 0xFF - write_value;
+			}
 			// Add to instruction
 			instruction |= ((write_value as u16) << 4) | ((read_addr as u16) << 12);
 		},

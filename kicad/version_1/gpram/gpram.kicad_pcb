@@ -46580,10 +46580,6 @@
 		)
 	)
 	(group ""
-		(uuid "f3705339-b92f-4033-9aee-21803135b6b3")
-		(members "25ad054e-6cfc-4f17-8d4e-f6064d2fd33c" "a5a32eda-5f09-452e-9aa8-fef9a9faaf32")
-	)
-	(group ""
 		(uuid "769365b7-a5cb-489f-adf7-88999edeb1a8")
 		(members "25cd39d2-3fbe-4999-84e9-37ede8518055" "6e70000c-50aa-41be-b177-775f9073f11d")
 	)

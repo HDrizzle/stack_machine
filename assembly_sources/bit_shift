@@ -1,9 +1,9 @@
-write 0xFF gpio-write-a
-write 0x03 goto-a
-write 0x00 goto-b
-write 0x01 alu-a
-move gpio-read-a stack-push
-move stack-pop alu-b
-move shift alu gpio-write-a
-move shift alu alu-a
-goto
+write 0xFF gpio-write-a;
+write 0x01 alu-a;
+
+@anchor(loop-begin);
+move gpio-read-a alu-b;#move gpio-read-a stack-push;
+#move stack-pop alu-b;
+move shift alu gpio-write-a;
+move shift alu alu-a;
+@goto(loop-begin);

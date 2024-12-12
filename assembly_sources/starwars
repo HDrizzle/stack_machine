@@ -6,7 +6,7 @@
 #@push_anchor_address(test2);
 #write 0x0A stack-push;
 #write 0x00 stack-push;
-#@call(loop-n);
+#@call(loop-n-16);
 #@call(write-newline);
 #halt;
 #@anchor(test2);
@@ -14,15 +14,12 @@
 #return;
 
 # Hello World!
-@push_anchor_address(write-char-from-gpram);
-write 0x00 gpram-addr-a;write 0x00 gpram-addr-b;
-@write_string("Hello world!\n");
-write 0x00 gpram-addr-a;write 0x00 gpram-addr-b;
-@call(loop-n);
-halt;
-@anchor(write-char-from-gpram);
-move gpram-inc-addr stack-push;@call(write-char);
-return;
+#@push_anchor_address(write-char-from-gpram);
+#@call(set-gpram-addr-string);
+#@write_string("Hello world!\n");
+#@call(set-gpram-addr-string);
+#@call(loop-n-16);
+#halt;
 
 # testing
 #write 0x01 stack-push;write 0x02 stack-push;@call(test-eq-8);
@@ -32,53 +29,59 @@ return;
 #halt;
 
 # --------------------------------- </Testing> ---------------------------------
-write 0xFF gpio-write-a;
+# --------------------------------- <Main> ---------------------------------
+write 0x0A gpio-write-a;
 
-# Write size of song, TODO
-write 0x00 stack-push;
+@push_anchor_address(play-note);
 
-# Call function to write data into GPRAM, TODO
+# Print Loading...
+@push_anchor_address(write-char-from-gpram);
+@call(set-gpram-addr-string);
+@write_string("Loading...\n");
+@call(set-gpram-addr-string);
+@call(loop-n-16);
+
+# Call function to write data into GPRAM
 @call(write-song);
 
+# Print Imperial March!
+@push_anchor_address(write-char-from-gpram);
+@call(set-gpram-addr-string);
+@write_string("Imperial March!\n");
+@call(set-gpram-addr-string);
+@call(loop-n-16);
+
+# Stack: play-note A, play-note B, Song len A, Song len B
 # Call main loop
-@call(main);
+@call(set-gpram-addr-song);
+@call(loop-n-16);
 halt;
 
-# Main loop
-@anchor(main);
-# Reset GPRAM address
-write 0x00 gpram-addr-a;
-write 0x00 gpram-addr-b;
-# Current progress
-write 0x00 stack-push;
-@anchor(main-loop-begin);
-@call(play-note);
-# Increment progress
-write 0x00 alu-c-in;
-move stack-pop alu-a;
-write 0x01 alu-b;
-move add alu stack-push;
-# Check if done
-move add alu alu-a;
-write 0x01 set-stack-offset;
-move offset-read alu-b;
-move eq alu alu-a;
-move not alu goto-decider;
-@goto_if(main-loop-begin);
-move stack-pop none;
-return;
-
+# --------------------------------- </Main> ---------------------------------
 # Play note function, uses current byte from GPRAM
 @anchor(play-note);
 # TODO
 return;
 
-# Write data into GPRAM
+# Write data into GPRAM, pushes 16 bit int onto stack for song size
 @anchor(write-song);
+@call(set-gpram-addr-song);
+# TODO
+# Push song length, TODO
+write 0x00 stack-push;write 0x00 stack-push;
+return;
+
+@anchor(set-gpram-addr-string);
 write 0x00 gpram-addr-a;
 write 0x00 gpram-addr-b;
-# TODO
 return;
+
+@anchor(set-gpram-addr-song);
+write 0x00 gpram-addr-a;
+write 0x10 gpram-addr-b;
+return;
+
+# --------------------------------- <STD> ----------------------------------
 
 # 16-bit add, uses two 16-bit integers on the stack, lower byte lower on the stack
 # 0.A, 0.B, 1.A, 1.B
@@ -104,12 +107,12 @@ move stack-pop none;move stack-pop none;
 return;
 
 # Loop, takes 4 values from the stack: Addr A, Addr B, Count A, Count B
-@anchor(loop-n)
+@anchor(loop-n-16)
 # 2 new values for current iteration
 write 0x00 stack-push;
 write 0x00 stack-push;
 # Stack: Addr A, Addr B, Count A, Count B, Curr. Iter A, Curr. Iter B
-@anchor(loop-n-beginning)
+@anchor(loop-n-16-beginning)
 # Prepare GOTO latches and call function
 write 0x05 set-stack-offset;move offset-read goto-a;
 write 0x04 set-stack-offset;move offset-read goto-b;
@@ -131,7 +134,10 @@ move eq alu stack-push;
 # Stack: Addr A, Addr B, Count A, Count B, Curr. Iter A, Curr. Iter B, c.A == i.A, c.B == i.B
 # AND the equality results and load into goto decider
 move stack-pop alu-a;move stack-pop alu-b;move and alu alu-a;move not alu goto-decider;
-@goto_if(loop-n-beginning);
+@goto_if(loop-n-16-beginning);
+# Stack: Addr A, Addr B, Count A, Count B, Curr. Iter A, Curr. Iter B
+# Clear stack
+move stack-pop none;move stack-pop none;move stack-pop none;move stack-pop none;move stack-pop none;move stack-pop none;
 return;
 
 # Test
@@ -158,6 +164,11 @@ return;
 # Write char
 @anchor(write-char);
 move stack-pop gpio-write-a;
+return;
+
+# Write char from GPRAM
+@anchor(write-char-from-gpram);
+move gpram-inc-addr gpio-write-a;
 return;
 
 # Newline

@@ -1,0 +1,11 @@
+@anchor(loop-begin);
+move gpio-read-a alu-a;
+write 0x00 alu-b;move shift alu gpio-write-a;
+write 0x01 alu-b;move shift alu gpio-write-a;
+write 0x02 alu-b;move shift alu gpio-write-a;
+write 0x03 alu-b;move shift alu gpio-write-a;
+write 0x04 alu-b;move shift alu gpio-write-a;
+write 0x05 alu-b;move shift alu gpio-write-a;
+write 0x06 alu-b;move shift alu gpio-write-a;
+write 0x07 alu-b;move shift alu gpio-write-a;
+@goto(loop-begin);
