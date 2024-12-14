@@ -24,7 +24,7 @@ which will be expanded to three instructions: `write 0xXX goto-a`, `write 0xXX g
 
 ### Write string
 
-Another macro is `@write_string("Hellow world")` which will write each character of the given string (in ASCII) to the GPRAM starting at wherever the address is currently set to.
+Another macro is `@write_string("Hello world")` which will write each character of the given string (in ASCII) to the GPRAM starting at wherever the address is currently set to.
 
 ### Get anchor address
 

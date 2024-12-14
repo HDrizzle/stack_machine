@@ -1,0 +1,27 @@
+write 0x00 stack-push;
+# Write sequence to GPRAM
+write 0x00 gpram-addr-a;
+write 0x00 gpram-addr-b;
+write 0x05 gpram-inc-addr;
+write 0x06 gpram-inc-addr;
+write 0x0A gpram-inc-addr;
+write 0x09 gpram-inc-addr;
+
+# Loop
+@anchor(loop-start);
+move gpram gpio-write-a;
+move gpram-addr-a alu-a;
+@call(get-shift-value);
+move add alu alu-a;
+write 0x03 alu-b;
+move and alu gpram-addr-a;
+@goto(loop-start);
+
+# Get shift value into `alu-b`
+@anchor(get-shift-value);
+write 0x07 alu-b;
+move gpio-read-a goto-decider;
+@goto_if(skip-shift-right);
+write 0x01 alu-b;
+@anchor(skip-shift-right);
+return;
