@@ -1876,7 +1876,7 @@
 				)
 			)
 		)
-		(symbol "custom_symbol_lib:led_block_16_x_8"
+		(symbol "custom_symbol_lib:led_block_16_x_8_left"
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
@@ -1896,7 +1896,7 @@
 					)
 				)
 			)
-			(property "Footprint" "custom_footprint_library:led_block_16_x_8"
+			(property "Footprint" "custom_footprint_library:led_block_16_x_8_left"
 				(at -0.254 -18.542 0)
 				(effects
 					(font
@@ -1923,7 +1923,7 @@
 					(hide yes)
 				)
 			)
-			(symbol "led_block_16_x_8_0_1"
+			(symbol "led_block_16_x_8_left_0_1"
 				(rectangle
 					(start -7.62 16.51)
 					(end 7.62 -16.51)
@@ -1936,8 +1936,511 @@
 					)
 				)
 			)
-			(symbol "led_block_16_x_8_1_1"
-				(text "16 C x 8 R\nLEDs"
+			(symbol "led_block_16_x_8_left_1_1"
+				(text "16 C x 8 R\nLEDs\n(LEFT)"
+					(at 1.016 -0.508 0)
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 15.24 0)
+					(length 2.54)
+					(name "C0"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 3.81 0)
+					(length 2.54)
+					(name "C9"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "10"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 2.54 0)
+					(length 2.54)
+					(name "C10"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "11"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 1.27 0)
+					(length 2.54)
+					(name "C11"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "12"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 0 0)
+					(length 2.54)
+					(name "C12"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "13"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 -1.27 0)
+					(length 2.54)
+					(name "C13"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "14"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 -2.54 0)
+					(length 2.54)
+					(name "C14"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "15"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 -3.81 0)
+					(length 2.54)
+					(name "C15"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "16"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 -6.35 0)
+					(length 2.54)
+					(name "R0"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "17"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 -7.62 0)
+					(length 2.54)
+					(name "R1"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "18"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 -8.89 0)
+					(length 2.54)
+					(name "R2"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "19"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 13.97 0)
+					(length 2.54)
+					(name "C1"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 -10.16 0)
+					(length 2.54)
+					(name "R3"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "20"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 -11.43 0)
+					(length 2.54)
+					(name "R4"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "21"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 -12.7 0)
+					(length 2.54)
+					(name "R5"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "22"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 -13.97 0)
+					(length 2.54)
+					(name "R6"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "23"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 -15.24 0)
+					(length 2.54)
+					(name "R7"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "24"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 12.7 0)
+					(length 2.54)
+					(name "C2"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 11.43 0)
+					(length 2.54)
+					(name "C3"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 10.16 0)
+					(length 2.54)
+					(name "C4"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 8.89 0)
+					(length 2.54)
+					(name "C5"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 7.62 0)
+					(length 2.54)
+					(name "C6"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 6.35 0)
+					(length 2.54)
+					(name "C7"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -10.16 5.08 0)
+					(length 2.54)
+					(name "C8"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+					(number "9"
+						(effects
+							(font
+								(size 0.889 0.889)
+							)
+						)
+					)
+				)
+			)
+		)
+		(symbol "custom_symbol_lib:led_block_16_x_8_right"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "U"
+				(at 0 3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" ""
+				(at 0 3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" "custom_footprint_library:led_block_16_x_8_right"
+				(at -0.254 -18.542 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" ""
+				(at 0 3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "led_block_16_x_8_right_0_1"
+				(rectangle
+					(start -7.62 16.51)
+					(end 7.62 -16.51)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "led_block_16_x_8_right_1_1"
+				(text "16 C x 8 R\nLEDs\n(RIGHT)"
 					(at 1.016 -0.508 0)
 					(effects
 						(font
@@ -8239,142 +8742,6 @@
 		(uuid "e91dde9c-e36f-4b28-97f0-37fb076dad52")
 	)
 	(symbol
-		(lib_id "custom_symbol_lib:led_block_16_x_8")
-		(at 511.81 124.46 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "05d4f7ff-8fca-4b81-a8ef-9b3efdae2acf")
-		(property "Reference" "U9"
-			(at 520.7 123.8249 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "~"
-			(at 520.7 125.73 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "custom_footprint_library:led_block_16_x_8"
-			(at 511.556 143.002 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 511.81 120.65 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 511.81 120.65 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "31b70657-d315-48a0-86bd-62ae01fbf024")
-		)
-		(pin "19"
-			(uuid "f3fd6890-be23-4e43-a284-1f5ad5b6b44f")
-		)
-		(pin "9"
-			(uuid "19a6eef3-9e91-48e2-9d9a-59a26430afb9")
-		)
-		(pin "18"
-			(uuid "e6b43a24-5870-4adc-9eac-d4266512c598")
-		)
-		(pin "16"
-			(uuid "b397354a-9bad-476e-a332-e9033f9702a4")
-		)
-		(pin "7"
-			(uuid "d23c92da-49ee-4dfd-af39-3c9bab52e519")
-		)
-		(pin "8"
-			(uuid "502ff7b1-4e83-419f-b0f8-bcfacbe0a6d2")
-		)
-		(pin "15"
-			(uuid "d6a824ef-4d97-45b7-a60d-e58584bd0f07")
-		)
-		(pin "22"
-			(uuid "8df54837-de95-4017-a753-02f40c22161b")
-		)
-		(pin "20"
-			(uuid "55d63f9d-5c8c-416a-94e4-9d7dafc8d4cc")
-		)
-		(pin "11"
-			(uuid "8407c368-43d4-4fd3-9757-93aa0347a7a7")
-		)
-		(pin "14"
-			(uuid "23c71d20-6567-45d4-8c40-9ebbc19d6a4b")
-		)
-		(pin "2"
-			(uuid "dd191b5b-df35-45e9-810b-9b26daba1054")
-		)
-		(pin "10"
-			(uuid "4af51e53-a962-4ae7-85ac-a0456104b204")
-		)
-		(pin "21"
-			(uuid "f8ee5a30-ce61-4da6-9489-6c8d36bfc934")
-		)
-		(pin "13"
-			(uuid "855907d1-d049-42a0-9aa1-05cf96266076")
-		)
-		(pin "5"
-			(uuid "01228689-7dd1-4128-8b60-f8df0e3bdb93")
-		)
-		(pin "6"
-			(uuid "fd38c591-28fb-4422-9661-2e171e62c612")
-		)
-		(pin "23"
-			(uuid "0a44626a-dd96-4896-bafe-7925dbf0719b")
-		)
-		(pin "24"
-			(uuid "ee5f936e-592d-4773-806f-54da90206c36")
-		)
-		(pin "3"
-			(uuid "c974d9de-405c-4528-a315-729f0d3c3524")
-		)
-		(pin "4"
-			(uuid "ec13ca9b-a105-41b1-9698-c80b022d7b4b")
-		)
-		(pin "17"
-			(uuid "922e75f9-ca3c-4f1a-884e-ad8b12109fa8")
-		)
-		(pin "12"
-			(uuid "098e0101-694a-4322-b11a-bc92ece44195")
-		)
-		(instances
-			(project "led_matrix"
-				(path "/a1a7da7f-7eb9-43c4-aa69-1acd2315447a"
-					(reference "U9")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "custom_symbol_lib:led_sink_16_bit")
 		(at 481.33 226.06 0)
 		(unit 1)
@@ -8753,278 +9120,6 @@
 		)
 	)
 	(symbol
-		(lib_id "custom_symbol_lib:led_block_16_x_8")
-		(at 511.81 88.9 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "17cc205c-39b9-4a71-b631-e49b8737d026")
-		(property "Reference" "U7"
-			(at 520.7 88.2649 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "~"
-			(at 520.7 90.17 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "custom_footprint_library:led_block_16_x_8"
-			(at 511.556 107.442 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 511.81 85.09 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 511.81 85.09 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "9ae0cc2c-30fb-4df2-a748-f30590b0e066")
-		)
-		(pin "19"
-			(uuid "8d04379b-45e9-44c5-8477-b623c5584a8d")
-		)
-		(pin "9"
-			(uuid "6eb41ad1-3ba9-4cea-afcc-7e88649e073b")
-		)
-		(pin "18"
-			(uuid "17d37cd3-aeab-493a-9932-e32fb3240e85")
-		)
-		(pin "16"
-			(uuid "f7c8d89b-6680-4a4a-abd5-f3544b0ddaa1")
-		)
-		(pin "7"
-			(uuid "ab7ef361-6903-45b7-bba3-f481d9c5e273")
-		)
-		(pin "8"
-			(uuid "428eaef6-ceaf-4193-9e52-6abe1eb96bb5")
-		)
-		(pin "15"
-			(uuid "fb033f4e-a0b6-46db-9cc7-be2bb812aee1")
-		)
-		(pin "22"
-			(uuid "e0356f58-9adc-47ed-8d63-72b6bc90b1cd")
-		)
-		(pin "20"
-			(uuid "869528ca-7671-4605-a182-4cf34422b9a8")
-		)
-		(pin "11"
-			(uuid "5e72a5ea-6fc4-43b0-bd01-c66c1b5be961")
-		)
-		(pin "14"
-			(uuid "7f2049a0-3aaf-4352-bd19-dc6e7ff6f3e8")
-		)
-		(pin "2"
-			(uuid "c48def20-8042-4bf6-abaf-5c459ab283a6")
-		)
-		(pin "10"
-			(uuid "cb4a46fa-b09d-4b3a-98ae-ac1238f6c5b6")
-		)
-		(pin "21"
-			(uuid "6f3fa5ee-889b-48f6-afc3-cdaff1188077")
-		)
-		(pin "13"
-			(uuid "164929f9-381e-4167-8268-e37fdf877241")
-		)
-		(pin "5"
-			(uuid "4a75a36b-f644-4da3-a7bf-027bf9ae6ce5")
-		)
-		(pin "6"
-			(uuid "d08b4765-ffe5-402f-b16e-8c2c793fe47f")
-		)
-		(pin "23"
-			(uuid "3f29bed7-7735-473d-b520-eedad6cfddaa")
-		)
-		(pin "24"
-			(uuid "d91fe215-db9a-4b34-bfe5-b0fac007d79a")
-		)
-		(pin "3"
-			(uuid "29b23842-5da3-443e-a260-77791a6e4f05")
-		)
-		(pin "4"
-			(uuid "7894c1ac-77c5-48eb-8faa-2bde27aa6057")
-		)
-		(pin "17"
-			(uuid "13918b1b-b4ff-4765-b584-875489446af6")
-		)
-		(pin "12"
-			(uuid "118f0867-0215-423a-8ec3-1d099a7cc6cf")
-		)
-		(instances
-			(project "led_matrix"
-				(path "/a1a7da7f-7eb9-43c4-aa69-1acd2315447a"
-					(reference "U7")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "custom_symbol_lib:led_block_16_x_8")
-		(at 511.81 53.34 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "19bc2f53-c9c3-459e-9a63-0d8820687c67")
-		(property "Reference" "U5"
-			(at 520.7 52.7049 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "~"
-			(at 520.7 54.61 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "custom_footprint_library:led_block_16_x_8"
-			(at 511.556 71.882 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 511.81 49.53 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 511.81 49.53 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "83b22b89-fa50-4f76-a044-c4268b0e5209")
-		)
-		(pin "19"
-			(uuid "d0695f4b-0192-49ea-9167-eaea04445e52")
-		)
-		(pin "9"
-			(uuid "1289a2bb-2128-40ac-910f-2abadb0d69cc")
-		)
-		(pin "18"
-			(uuid "30179f78-42c2-49fa-8012-606d47e8c98e")
-		)
-		(pin "16"
-			(uuid "258c5a11-ad6b-4559-86f1-b3297e89e836")
-		)
-		(pin "7"
-			(uuid "9cf86b2e-835e-4540-84b0-6644c1a5ff86")
-		)
-		(pin "8"
-			(uuid "091cdd3f-a256-475b-bfe8-4d7029446fb3")
-		)
-		(pin "15"
-			(uuid "1d73f95b-0389-47c9-9358-eb748b5c43cd")
-		)
-		(pin "22"
-			(uuid "60815fc0-0576-4eb5-a925-0a29db3e334b")
-		)
-		(pin "20"
-			(uuid "8a7b18b4-53ef-41ff-8490-be68bb3263de")
-		)
-		(pin "11"
-			(uuid "5726ccfe-7630-4545-a89d-b8995fe8d265")
-		)
-		(pin "14"
-			(uuid "ba7ef467-dc88-4fba-accc-ff52df0df26d")
-		)
-		(pin "2"
-			(uuid "b7e58e85-c7de-4860-9146-cd2415b9e982")
-		)
-		(pin "10"
-			(uuid "31f7229f-735a-4e04-9fe6-bc380168ca63")
-		)
-		(pin "21"
-			(uuid "dc5733ab-c89f-484a-89ba-5d3b1c7dc0e6")
-		)
-		(pin "13"
-			(uuid "35c58162-9382-4558-a190-65da7e35e8d2")
-		)
-		(pin "5"
-			(uuid "55711947-a8be-425e-90c4-df17b3de7d33")
-		)
-		(pin "6"
-			(uuid "a2f124f8-06b0-4067-b3a8-59b1b2bc4856")
-		)
-		(pin "23"
-			(uuid "c40e8b8d-29b9-444b-b2d4-4df8fbca8f37")
-		)
-		(pin "24"
-			(uuid "ec65240f-fed3-45ba-afb3-f1758340342e")
-		)
-		(pin "3"
-			(uuid "2ae425f7-97f5-462b-b23a-beeaec86eb56")
-		)
-		(pin "4"
-			(uuid "5f902d1c-f994-4803-93aa-6a0e2bdcccf3")
-		)
-		(pin "17"
-			(uuid "ab00b9d3-8cb0-4842-9fb9-88a5c360c732")
-		)
-		(pin "12"
-			(uuid "233d7fa7-2bd4-403e-b0f3-afebced6b679")
-		)
-		(instances
-			(project "led_matrix"
-				(path "/a1a7da7f-7eb9-43c4-aa69-1acd2315447a"
-					(reference "U5")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "custom_symbol_lib:led_sink_16_bit")
 		(at 481.33 154.94 0)
 		(unit 1)
@@ -9161,7 +9256,7 @@
 		)
 	)
 	(symbol
-		(lib_id "custom_symbol_lib:led_block_16_x_8")
+		(lib_id "custom_symbol_lib:led_block_16_x_8_left")
 		(at 511.81 266.7 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -9169,8 +9264,8 @@
 		(on_board yes)
 		(dnp no)
 		(fields_autoplaced yes)
-		(uuid "31238e55-9e20-40d6-a185-d614b818825e")
-		(property "Reference" "U22"
+		(uuid "27657584-71de-46e8-8355-c1cb3c2935e6")
+		(property "Reference" "U11"
 			(at 520.7 266.0649 0)
 			(effects
 				(font
@@ -9188,7 +9283,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "custom_footprint_library:led_block_16_x_8"
+		(property "Footprint" "custom_footprint_library:led_block_16_x_8_left"
 			(at 511.556 285.242 0)
 			(effects
 				(font
@@ -9216,81 +9311,81 @@
 			)
 		)
 		(pin "1"
-			(uuid "28cf2ced-f511-40cd-b3fe-bf762c21226e")
-		)
-		(pin "19"
-			(uuid "1a817e05-cb03-4839-8471-123da4448a6d")
-		)
-		(pin "9"
-			(uuid "c374c425-cbc2-4c08-920f-4d26be57065b")
-		)
-		(pin "18"
-			(uuid "bda50824-3594-47ac-b619-4c88c798f05b")
-		)
-		(pin "16"
-			(uuid "731820e1-0a80-4642-a64e-cb926d2ef4e2")
-		)
-		(pin "7"
-			(uuid "ac06a0bb-ccd8-4870-bd70-0d287a77ed8e")
-		)
-		(pin "8"
-			(uuid "a1468ef1-0cc2-4060-88c7-1d6f2b7025f5")
-		)
-		(pin "15"
-			(uuid "1ecf336e-5a82-483c-af99-a5edbe614326")
-		)
-		(pin "22"
-			(uuid "46b9efc1-2369-4589-b181-68a98bd1941b")
-		)
-		(pin "20"
-			(uuid "e4b70b9d-8904-4b2d-9e36-998f1d6b31fb")
-		)
-		(pin "11"
-			(uuid "2617145c-a9b7-4f00-8468-7412a6dc0a00")
+			(uuid "b7e41d65-ea55-489a-92f8-b5da80f9973d")
 		)
 		(pin "14"
-			(uuid "b30b638f-3f85-462c-83b2-2c072839abcb")
+			(uuid "1390a766-6876-40ed-9895-6aec67cee660")
 		)
-		(pin "2"
-			(uuid "fe312e20-f85d-46bd-a018-82de801f4c32")
-		)
-		(pin "10"
-			(uuid "18556865-86fa-4664-a4f1-59e126b63536")
-		)
-		(pin "21"
-			(uuid "de28706a-1538-4885-96d6-feae9b923287")
-		)
-		(pin "13"
-			(uuid "62f7ceca-40de-4332-90f4-e96fcb27d4eb")
-		)
-		(pin "5"
-			(uuid "37350fca-9912-41f0-900b-b531c235c288")
-		)
-		(pin "6"
-			(uuid "0c86a9c7-aa30-41b7-8e42-215747d2cf7a")
+		(pin "16"
+			(uuid "c418826c-5d34-44bd-ba9f-bb64be31654d")
 		)
 		(pin "23"
-			(uuid "f07d6057-cb0b-436f-9c3e-7a9333e0a85b")
+			(uuid "e35f654e-649c-4d18-a9cd-e0e6c7a12146")
 		)
 		(pin "24"
-			(uuid "7f5f09fe-829b-47a3-860a-ec01d2e97d1d")
+			(uuid "6a073401-a8f3-425a-8ae2-32f00992ac7a")
 		)
 		(pin "3"
-			(uuid "f7ae1e6a-d443-4108-8753-210800f01a7c")
+			(uuid "2c05759b-83e6-47ce-9643-14de20c716e3")
 		)
 		(pin "4"
-			(uuid "080d4f71-c4db-479f-a696-94d0e34c9b63")
+			(uuid "d5ef4251-0277-4032-999a-fbef1eee4809")
 		)
-		(pin "17"
-			(uuid "46f7c7c0-97d8-4409-a10a-a1be4b35cf68")
+		(pin "21"
+			(uuid "9119cca6-f85e-434b-9159-c103fc157273")
+		)
+		(pin "20"
+			(uuid "5b476355-06da-4806-b49b-54bc9c778f49")
+		)
+		(pin "2"
+			(uuid "14b7c7df-973d-4f5a-812c-afd85aa5140c")
+		)
+		(pin "10"
+			(uuid "f694c7c1-c134-4f2f-87d4-7ef1379c6989")
+		)
+		(pin "7"
+			(uuid "72aa9db2-ad36-4834-843c-6fcb8f79a573")
+		)
+		(pin "8"
+			(uuid "de6f7336-ca35-45aa-af94-12fd0bc6b7f9")
+		)
+		(pin "9"
+			(uuid "0ecd74f5-03b7-4c24-95fb-27a83df652fd")
+		)
+		(pin "11"
+			(uuid "e681562e-3b3c-4468-837d-d5f98fb48041")
 		)
 		(pin "12"
-			(uuid "cd6643e9-0ee1-4b48-b052-16f53ff58119")
+			(uuid "15cdb96c-f083-4e8a-bdf2-d9413abff980")
+		)
+		(pin "22"
+			(uuid "d8d9228a-f3f9-4977-b141-1d0d0558e66e")
+		)
+		(pin "5"
+			(uuid "aed6c8ef-2848-4130-be58-44fdfac68fe0")
+		)
+		(pin "6"
+			(uuid "52fb00d1-5761-4c30-a8af-0e3d8adfc862")
+		)
+		(pin "17"
+			(uuid "64ebb171-3d40-4673-a903-324f8becd289")
+		)
+		(pin "15"
+			(uuid "c474bbc4-2a0b-4971-b01b-b7f68ac2af4d")
+		)
+		(pin "13"
+			(uuid "33708575-b4a3-4344-9f3c-1177f326e46e")
+		)
+		(pin "18"
+			(uuid "73aa5582-b294-4b9f-84ad-0b84b2eaaafa")
+		)
+		(pin "19"
+			(uuid "8813cdb7-10bf-425c-88b6-9047485b0d0b")
 		)
 		(instances
 			(project "led_matrix"
 				(path "/a1a7da7f-7eb9-43c4-aa69-1acd2315447a"
-					(reference "U22")
+					(reference "U11")
 					(unit 1)
 				)
 			)
@@ -9543,142 +9638,6 @@
 			(project "led_matrix"
 				(path "/a1a7da7f-7eb9-43c4-aa69-1acd2315447a"
 					(reference "R4")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "custom_symbol_lib:led_block_16_x_8")
-		(at 511.81 160.02 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "3f842e59-9bb2-4c3d-8d90-aa571e7a268a")
-		(property "Reference" "U11"
-			(at 520.7 159.3849 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "~"
-			(at 520.7 161.29 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "custom_footprint_library:led_block_16_x_8"
-			(at 511.556 178.562 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 511.81 156.21 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 511.81 156.21 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "45d6278e-d7f4-4c15-be0a-244844fe9b74")
-		)
-		(pin "19"
-			(uuid "43b89fdb-c731-4908-a380-ad53a554e14b")
-		)
-		(pin "9"
-			(uuid "0ab85e06-d4d0-46c6-8ecb-975ed9dc01d5")
-		)
-		(pin "18"
-			(uuid "682e8635-9e78-41c5-9bbd-e37fb02c142c")
-		)
-		(pin "16"
-			(uuid "8ae3b391-31ec-4217-b930-5b005eaf7d1e")
-		)
-		(pin "7"
-			(uuid "5f256785-36d9-41c3-9e7f-853e7284271e")
-		)
-		(pin "8"
-			(uuid "74a4081e-313a-43df-bbb3-2cf5808ed902")
-		)
-		(pin "15"
-			(uuid "a9f74e84-ac9d-4974-8752-b73e74524a2e")
-		)
-		(pin "22"
-			(uuid "bccabeec-dbf0-4d9d-852c-90c25fc68078")
-		)
-		(pin "20"
-			(uuid "21fd7813-7c4f-4a99-a207-45a23b6dc985")
-		)
-		(pin "11"
-			(uuid "5ae4af01-31a3-40ec-b771-4403f3fa6147")
-		)
-		(pin "14"
-			(uuid "cbf7d9d3-9aad-4b75-853b-91d30575f2f9")
-		)
-		(pin "2"
-			(uuid "91e4b79c-775d-4bc1-a955-697fb2080028")
-		)
-		(pin "10"
-			(uuid "63800fa9-ab5b-402e-af0e-545bc30d51f3")
-		)
-		(pin "21"
-			(uuid "36370cd3-9694-4fe3-bc68-b4e8f25abdc5")
-		)
-		(pin "13"
-			(uuid "ce987e83-13ed-460e-a876-968a7f6ef9ed")
-		)
-		(pin "5"
-			(uuid "33b39026-5770-4c07-ad8f-d95d05b0dd4b")
-		)
-		(pin "6"
-			(uuid "ac562023-3557-4c66-93a3-62fffbf153cf")
-		)
-		(pin "23"
-			(uuid "bef7f833-21d4-4c78-b230-f3895824f532")
-		)
-		(pin "24"
-			(uuid "ba57cdd5-cf51-456d-ba13-808bd8b0f83e")
-		)
-		(pin "3"
-			(uuid "d2b2bae7-3df2-4106-afe8-f1d55d5635f5")
-		)
-		(pin "4"
-			(uuid "600b0ffb-66af-4061-91ba-5a5fa044e9a0")
-		)
-		(pin "17"
-			(uuid "61158e9f-2cee-4b67-af92-a74b8cc7b6a1")
-		)
-		(pin "12"
-			(uuid "a8fa79c1-91aa-4132-98cf-fb10223d8099")
-		)
-		(instances
-			(project "led_matrix"
-				(path "/a1a7da7f-7eb9-43c4-aa69-1acd2315447a"
-					(reference "U11")
 					(unit 1)
 				)
 			)
@@ -9949,6 +9908,142 @@
 		)
 	)
 	(symbol
+		(lib_id "custom_symbol_lib:led_block_16_x_8_left")
+		(at 511.81 195.58 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "6153c0fd-6b2f-4848-9fe2-e7ba309c12af")
+		(property "Reference" "U9"
+			(at 520.7 194.9449 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "~"
+			(at 520.7 196.85 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "custom_footprint_library:led_block_16_x_8_left"
+			(at 511.556 214.122 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 511.81 191.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 511.81 191.77 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5d30f4b7-f289-40ff-a06b-6be9a398b71b")
+		)
+		(pin "14"
+			(uuid "85317ecc-8514-4c5e-bbf4-6ba731b3c486")
+		)
+		(pin "16"
+			(uuid "623ba307-5d57-483e-b7db-488d944237ad")
+		)
+		(pin "23"
+			(uuid "ce0b1b9c-5d55-4194-aa2d-7b68af319b0a")
+		)
+		(pin "24"
+			(uuid "dc33fae3-e252-44c1-b500-3880263721e2")
+		)
+		(pin "3"
+			(uuid "7c500def-0e2a-4f62-95a6-73e141ac8e19")
+		)
+		(pin "4"
+			(uuid "a021bf0e-336f-4400-834a-bbef3087af94")
+		)
+		(pin "21"
+			(uuid "7efd348b-d191-4ffd-bbb2-ba1607599d08")
+		)
+		(pin "20"
+			(uuid "354e4b2c-2457-4f79-a025-c5d11c476770")
+		)
+		(pin "2"
+			(uuid "4b47fff9-c764-40a3-950d-6e017a54d1df")
+		)
+		(pin "10"
+			(uuid "6486a7d1-f78f-4150-9138-5bf4b7cd6e11")
+		)
+		(pin "7"
+			(uuid "0260461e-1956-49bd-933f-99d558b38ef5")
+		)
+		(pin "8"
+			(uuid "8d7340cd-ee5b-40cd-8a01-80de8037c8f6")
+		)
+		(pin "9"
+			(uuid "db388a1b-26d9-4880-9b1c-f0e870d224fe")
+		)
+		(pin "11"
+			(uuid "c5a490f1-2704-4ce3-a463-70bec5dc62e1")
+		)
+		(pin "12"
+			(uuid "8498f239-a277-46c5-884c-e0de87866de7")
+		)
+		(pin "22"
+			(uuid "409de3e6-a901-4364-9d5a-2c8c5a9823e5")
+		)
+		(pin "5"
+			(uuid "b7b0a9b2-1ee7-4aba-b408-78eca319d5ef")
+		)
+		(pin "6"
+			(uuid "3752e23b-ec60-48c1-837b-ebf3800eb7cd")
+		)
+		(pin "17"
+			(uuid "0b818223-6dd7-451d-9da9-aad0904736bf")
+		)
+		(pin "15"
+			(uuid "d2d715f9-1d19-474f-b1a3-3d40549e0a93")
+		)
+		(pin "13"
+			(uuid "4da949a1-0fcf-47ca-b46c-29a138a5c6f6")
+		)
+		(pin "18"
+			(uuid "fb6fd53b-2e91-4133-86ba-6f0a6768872f")
+		)
+		(pin "19"
+			(uuid "a0be8089-a155-4254-93f6-9b584749842c")
+		)
+		(instances
+			(project "led_matrix"
+				(path "/a1a7da7f-7eb9-43c4-aa69-1acd2315447a"
+					(reference "U9")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "custom_symbol_lib:led_sink_16_bit")
 		(at 481.33 261.62 0)
 		(unit 1)
@@ -10085,7 +10180,7 @@
 		)
 	)
 	(symbol
-		(lib_id "custom_symbol_lib:led_block_16_x_8")
+		(lib_id "custom_symbol_lib:led_block_16_x_8_right")
 		(at 511.81 231.14 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -10093,8 +10188,8 @@
 		(on_board yes)
 		(dnp no)
 		(fields_autoplaced yes)
-		(uuid "6bc84a6f-646f-4e66-9f89-11abc6f33d00")
-		(property "Reference" "U21"
+		(uuid "710a98be-373f-4050-979c-bdd3df7f5169")
+		(property "Reference" "U22"
 			(at 520.7 230.5049 0)
 			(effects
 				(font
@@ -10112,7 +10207,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "custom_footprint_library:led_block_16_x_8"
+		(property "Footprint" "custom_footprint_library:led_block_16_x_8_right"
 			(at 511.556 249.682 0)
 			(effects
 				(font
@@ -10140,81 +10235,81 @@
 			)
 		)
 		(pin "1"
-			(uuid "31ae99cd-b3de-4616-bcd2-6e29574ba0ef")
-		)
-		(pin "19"
-			(uuid "d7090e3c-c603-4518-8a2a-b4be1909c959")
-		)
-		(pin "9"
-			(uuid "9a598637-522a-479d-a331-987e50649f77")
-		)
-		(pin "18"
-			(uuid "69ff0459-0c82-4bd7-8edd-7d1f09e44e51")
-		)
-		(pin "16"
-			(uuid "bcc3d30b-833f-4ffe-9059-f697f2eda596")
-		)
-		(pin "7"
-			(uuid "5f3a0575-a187-4c0c-8130-4ec5a962898f")
-		)
-		(pin "8"
-			(uuid "1cda81df-cc97-4ff7-8ea6-868b451a7d59")
-		)
-		(pin "15"
-			(uuid "ffac2de5-1f58-40ba-a72b-087424a3a52c")
-		)
-		(pin "22"
-			(uuid "7290fda5-2955-46d5-8162-13cfa43475ee")
-		)
-		(pin "20"
-			(uuid "cea3e921-c7aa-4955-b583-8f7b094bb374")
-		)
-		(pin "11"
-			(uuid "dbd4d518-bd9c-4c8f-97c8-b8626fffaf8d")
-		)
-		(pin "14"
-			(uuid "675d16f2-c411-412e-8d95-d236a30519f0")
-		)
-		(pin "2"
-			(uuid "2ae17d20-4c6b-40c5-8555-795d71cf36ca")
-		)
-		(pin "10"
-			(uuid "3fa68f01-9116-4aae-84b2-2c2c2ac8e310")
-		)
-		(pin "21"
-			(uuid "149baabb-075b-45f4-945a-8e187bee519d")
-		)
-		(pin "13"
-			(uuid "72e41f9c-1f43-475b-b019-edeb52611909")
-		)
-		(pin "5"
-			(uuid "040797aa-9758-491b-ac89-ea4a885770aa")
-		)
-		(pin "6"
-			(uuid "0340c2fa-8463-4566-9307-3cb32e119196")
-		)
-		(pin "23"
-			(uuid "fee392ad-3581-4014-987c-e9d22c6c636c")
+			(uuid "fc18762e-0777-4ac2-99bf-47b0d72d7bdf")
 		)
 		(pin "24"
-			(uuid "68b3d00d-1239-44fb-8899-0dd33c3dbd2f")
-		)
-		(pin "3"
-			(uuid "0829037c-352b-422e-970f-cd0fc83d13f3")
-		)
-		(pin "4"
-			(uuid "0b7f2464-4cfa-4d63-9e74-cdd630598eee")
+			(uuid "87b0ac33-d5d9-47ad-9bf6-54d69e67a92b")
 		)
 		(pin "17"
-			(uuid "c1b2660a-97c6-4796-ad6b-89fd4d7a3725")
+			(uuid "6166d2f5-769d-4d28-8670-1c33e2320499")
+		)
+		(pin "14"
+			(uuid "cd04ef05-437e-443a-85a1-1d5918731166")
+		)
+		(pin "3"
+			(uuid "c4da5859-24e2-4b18-bb09-daa66baec37a")
+		)
+		(pin "11"
+			(uuid "26586ba6-061b-4389-877b-fabc820f2687")
+		)
+		(pin "22"
+			(uuid "07311eb8-5e7e-43ba-b2a2-642044deee9b")
+		)
+		(pin "23"
+			(uuid "eb593b97-e7b0-4a29-8ae6-cfd2d5dc0325")
+		)
+		(pin "16"
+			(uuid "1992f509-b108-434f-809f-f7bba9403a11")
+		)
+		(pin "10"
+			(uuid "8c0a88ed-a190-49dc-93ce-c912115c1360")
+		)
+		(pin "21"
+			(uuid "425fc0ec-96a6-433d-8488-68762dd9e500")
+		)
+		(pin "5"
+			(uuid "2952193d-07d7-4c01-9223-711bc824b87c")
+		)
+		(pin "6"
+			(uuid "09dd9325-67f9-4b86-bb20-3a59d02e29d4")
+		)
+		(pin "15"
+			(uuid "d953e7d5-e1e0-42c5-b544-7c4817f0ecac")
+		)
+		(pin "19"
+			(uuid "397782a7-b15d-433e-a2f6-e67517c15f90")
+		)
+		(pin "7"
+			(uuid "84382179-202f-4a2a-b783-964b871f2bc2")
+		)
+		(pin "8"
+			(uuid "132ab841-8258-4706-a24e-fced3026fe78")
+		)
+		(pin "20"
+			(uuid "40f0d177-2398-4d03-b56f-bbc1d9502df9")
+		)
+		(pin "9"
+			(uuid "d1223214-9e59-4a08-bffd-1642c4d4c928")
+		)
+		(pin "4"
+			(uuid "b9b13796-09ae-48cd-939c-3540c3d9a7c8")
+		)
+		(pin "13"
+			(uuid "2e1b1651-9213-426e-b144-c1b463c80a63")
 		)
 		(pin "12"
-			(uuid "e8bc10ea-f98e-4635-84c8-b9f21d3d5cd2")
+			(uuid "8a7b4cdf-3e2a-4984-9bc9-88679bf461fe")
+		)
+		(pin "18"
+			(uuid "b6b81335-6617-4f7b-b87b-9d92fdc8803e")
+		)
+		(pin "2"
+			(uuid "1f729b48-521e-45d9-88a8-b775215a579a")
 		)
 		(instances
 			(project "led_matrix"
 				(path "/a1a7da7f-7eb9-43c4-aa69-1acd2315447a"
-					(reference "U21")
+					(reference "U22")
 					(unit 1)
 				)
 			)
@@ -10631,6 +10726,142 @@
 			(project "led_matrix"
 				(path "/a1a7da7f-7eb9-43c4-aa69-1acd2315447a"
 					(reference "R11")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "custom_symbol_lib:led_block_16_x_8_left")
+		(at 511.81 124.46 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "8ed3d014-e22d-4494-ae8b-150a19a9dbb6")
+		(property "Reference" "U7"
+			(at 520.7 123.8249 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "~"
+			(at 520.7 125.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "custom_footprint_library:led_block_16_x_8_left"
+			(at 511.556 143.002 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 511.81 120.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 511.81 120.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "45ec9820-6b64-421c-b44d-8c48910f0fc4")
+		)
+		(pin "14"
+			(uuid "29e0d585-71b9-471d-9d02-00c1fd3e1e29")
+		)
+		(pin "16"
+			(uuid "9833cd92-1257-41cc-a7ed-841a196cf1c0")
+		)
+		(pin "23"
+			(uuid "710de24b-a784-424d-a47f-61b9cc6f5bc2")
+		)
+		(pin "24"
+			(uuid "d1313335-dc17-4933-bd74-ddad6978a9d6")
+		)
+		(pin "3"
+			(uuid "b4eb83ec-71af-4784-8227-4c5313439bf3")
+		)
+		(pin "4"
+			(uuid "37668ca7-974d-46b5-b735-463c10521267")
+		)
+		(pin "21"
+			(uuid "04139333-d504-4182-b063-8a9bafd40654")
+		)
+		(pin "20"
+			(uuid "1d11765a-e045-450b-9ac1-7d222a176eb0")
+		)
+		(pin "2"
+			(uuid "82db06a2-f42a-41c4-93c5-2880cf34140a")
+		)
+		(pin "10"
+			(uuid "cbd0825c-d7a8-4385-9a69-8f7b808887ff")
+		)
+		(pin "7"
+			(uuid "c3e9faff-f613-44ef-a943-9f4f1cd0ea72")
+		)
+		(pin "8"
+			(uuid "99423d39-7631-49e9-8fb8-4346d32cd401")
+		)
+		(pin "9"
+			(uuid "30c7f178-6767-4466-8945-af3256d0f885")
+		)
+		(pin "11"
+			(uuid "0f6fcbfe-f49a-4b02-b0c0-4289df4c9d61")
+		)
+		(pin "12"
+			(uuid "7df758b0-5a7a-4d97-8c76-3fbd7ee0c01f")
+		)
+		(pin "22"
+			(uuid "4433653d-43ec-47ee-8e4d-ecab9e34d481")
+		)
+		(pin "5"
+			(uuid "31d68d54-263e-4758-ba97-893d52bbf2be")
+		)
+		(pin "6"
+			(uuid "cb1dc173-7930-46ef-a706-b82b626989b1")
+		)
+		(pin "17"
+			(uuid "bba7e3df-abf2-4fdf-9308-b35931d82c22")
+		)
+		(pin "15"
+			(uuid "8f8b82d7-581e-48b9-8ffd-fface8e86181")
+		)
+		(pin "13"
+			(uuid "d2916691-caac-4805-9e9d-1c1d53187339")
+		)
+		(pin "18"
+			(uuid "2083d4ad-632b-400f-9f15-a96ac20176a2")
+		)
+		(pin "19"
+			(uuid "c009f504-bf97-43b1-afe7-c595059279e1")
+		)
+		(instances
+			(project "led_matrix"
+				(path "/a1a7da7f-7eb9-43c4-aa69-1acd2315447a"
+					(reference "U7")
 					(unit 1)
 				)
 			)
@@ -11165,6 +11396,142 @@
 		)
 	)
 	(symbol
+		(lib_id "custom_symbol_lib:led_block_16_x_8_right")
+		(at 511.81 160.02 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "b4163c3e-89ba-404f-942b-67fc04bf98c4")
+		(property "Reference" "U21"
+			(at 520.7 159.3849 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "~"
+			(at 520.7 161.29 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "custom_footprint_library:led_block_16_x_8_right"
+			(at 511.556 178.562 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 511.81 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 511.81 156.21 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "63a8dcde-5357-45cc-bd48-a227e4536f3b")
+		)
+		(pin "24"
+			(uuid "0fb20e26-41a5-48de-8fca-8046ac1ccf8e")
+		)
+		(pin "17"
+			(uuid "9a636ba3-c4f4-4ada-b2fe-b7abe538a17c")
+		)
+		(pin "14"
+			(uuid "152006a1-6fe8-449d-babe-302e2c89899f")
+		)
+		(pin "3"
+			(uuid "128b32b5-c8ba-4325-a4d6-2fcf671cf2c7")
+		)
+		(pin "11"
+			(uuid "7022974e-5ee7-40c4-8110-3732716df063")
+		)
+		(pin "22"
+			(uuid "6374b494-4b84-43ab-9108-9357e89fd8ea")
+		)
+		(pin "23"
+			(uuid "89dab9c6-bbb3-4dbc-b713-4ca2634fb53c")
+		)
+		(pin "16"
+			(uuid "3a75d9be-25bb-4f45-90a1-faa24ff5f9d5")
+		)
+		(pin "10"
+			(uuid "9f6ff9de-586d-45c6-932a-d6bc73f425ea")
+		)
+		(pin "21"
+			(uuid "13ab0a12-e661-4f3d-88e9-be94597f22f8")
+		)
+		(pin "5"
+			(uuid "9699d215-f378-4ace-9205-1823a5cc42ec")
+		)
+		(pin "6"
+			(uuid "bebc6cba-eda5-46c1-9ba8-65899485f043")
+		)
+		(pin "15"
+			(uuid "47c57c36-9b5a-4f87-9fbe-945c70e8df90")
+		)
+		(pin "19"
+			(uuid "76d47f59-1f93-4cf1-ad82-03bb69e560ba")
+		)
+		(pin "7"
+			(uuid "d8a1443b-9959-48bf-beb6-ea439eeb5647")
+		)
+		(pin "8"
+			(uuid "c78ac374-3139-4358-ab4d-220ef1e3330a")
+		)
+		(pin "20"
+			(uuid "3fd33093-14ae-44b7-9ca6-d1c455944610")
+		)
+		(pin "9"
+			(uuid "ace17c3e-0f9e-407f-a48f-1fae7b0c7ee5")
+		)
+		(pin "4"
+			(uuid "f1ad9b72-56a1-4ed2-9955-12a7c3a58a13")
+		)
+		(pin "13"
+			(uuid "78fc27bd-c965-4545-99e1-a2e76883e663")
+		)
+		(pin "12"
+			(uuid "359e7221-a258-4dfe-9353-5a81f8738648")
+		)
+		(pin "18"
+			(uuid "54a8d091-63f0-455a-85a4-5253c3f724f1")
+		)
+		(pin "2"
+			(uuid "e3fe0547-1416-4073-8d43-69d16ccbaa09")
+		)
+		(instances
+			(project "led_matrix"
+				(path "/a1a7da7f-7eb9-43c4-aa69-1acd2315447a"
+					(reference "U21")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "custom_symbol_lib:power_and_clk")
 		(at 49.53 100.33 0)
 		(mirror y)
@@ -11232,6 +11599,278 @@
 			(project "led_matrix"
 				(path "/a1a7da7f-7eb9-43c4-aa69-1acd2315447a"
 					(reference "U2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "custom_symbol_lib:led_block_16_x_8_left")
+		(at 511.81 53.34 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "bb8f151f-7f67-4811-be32-46ef5f07649d")
+		(property "Reference" "U5"
+			(at 520.7 52.7049 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "~"
+			(at 520.7 54.61 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "custom_footprint_library:led_block_16_x_8_left"
+			(at 511.556 71.882 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 511.81 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 511.81 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "d74eb267-dd33-4b16-918e-bc088b40807d")
+		)
+		(pin "14"
+			(uuid "5a2ad4bc-6b48-4709-8819-74fb8133fa9b")
+		)
+		(pin "16"
+			(uuid "b6e4ac43-a521-406a-822e-96ca7b84e051")
+		)
+		(pin "23"
+			(uuid "e7fd54d0-2716-46f0-ac67-d3c51da52737")
+		)
+		(pin "24"
+			(uuid "9febff76-6088-4b71-84e3-6c2e0a7fc344")
+		)
+		(pin "3"
+			(uuid "eec6930f-71e5-449c-9278-74d33478ff3e")
+		)
+		(pin "4"
+			(uuid "8c2c5bbf-8c04-4690-82f8-27fc3b974c23")
+		)
+		(pin "21"
+			(uuid "d1bf193f-3545-48f7-85a2-90172c459bdf")
+		)
+		(pin "20"
+			(uuid "9a319144-7711-49c9-9ecb-ace5074b501f")
+		)
+		(pin "2"
+			(uuid "a95b6f64-d78c-4e60-a7ec-43a5cb9286d5")
+		)
+		(pin "10"
+			(uuid "dc71c67f-4cf3-4d85-b1cc-6f116c0ff491")
+		)
+		(pin "7"
+			(uuid "507afaab-2117-4f1b-8a4d-cd066f524f57")
+		)
+		(pin "8"
+			(uuid "6e1ad636-71ac-4f89-b73c-73cadd56be67")
+		)
+		(pin "9"
+			(uuid "9a46d36e-419e-40c1-b080-227dc15b40d3")
+		)
+		(pin "11"
+			(uuid "70107446-cf08-488d-9b67-53e04e278500")
+		)
+		(pin "12"
+			(uuid "f71d8d2c-fbb8-49bb-980f-e48b61da4076")
+		)
+		(pin "22"
+			(uuid "fe4c2828-30c1-44b3-bbb9-75368ce7ceb5")
+		)
+		(pin "5"
+			(uuid "9c47ba5c-593b-42a3-8c41-ffcd0b9ec987")
+		)
+		(pin "6"
+			(uuid "e7ff5fe6-ebf4-4bf3-a29a-1e8717f7884d")
+		)
+		(pin "17"
+			(uuid "fe7e62ee-f528-402d-87db-f22346aecf1c")
+		)
+		(pin "15"
+			(uuid "0d2ec7ab-59e8-43b9-b407-1061c253a856")
+		)
+		(pin "13"
+			(uuid "549fb884-fd24-40b8-a912-6cde28c9a5d0")
+		)
+		(pin "18"
+			(uuid "a64a2e57-7a66-459e-a04d-5cf2a58a3048")
+		)
+		(pin "19"
+			(uuid "ed1cff2f-999c-4dfb-8a5b-6090b7eab3b2")
+		)
+		(instances
+			(project "led_matrix"
+				(path "/a1a7da7f-7eb9-43c4-aa69-1acd2315447a"
+					(reference "U5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "custom_symbol_lib:led_block_16_x_8_right")
+		(at 511.81 88.9 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "d009ad5d-9d71-4844-841b-c7c61a51c40a")
+		(property "Reference" "U20"
+			(at 520.7 88.2649 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "~"
+			(at 520.7 90.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "custom_footprint_library:led_block_16_x_8_right"
+			(at 511.556 107.442 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 511.81 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 511.81 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "0738e3e1-22a5-4c8b-94ff-210f5f040ad7")
+		)
+		(pin "24"
+			(uuid "d4c55e30-f763-4854-b69b-83757a8ed3b3")
+		)
+		(pin "17"
+			(uuid "69820fe2-6cb1-4871-aa8f-57df2fab615c")
+		)
+		(pin "14"
+			(uuid "ab4ab282-481e-4aef-9229-cc8d131fced7")
+		)
+		(pin "3"
+			(uuid "d9888872-92e7-4e61-af9b-438fde9b0dd4")
+		)
+		(pin "11"
+			(uuid "fadc5531-9477-4974-8068-1bb7a53b183a")
+		)
+		(pin "22"
+			(uuid "4ca7dbbf-1e30-495e-a4c7-a69e3f30e1dd")
+		)
+		(pin "23"
+			(uuid "539a94ff-4e67-422d-8d58-397b32f2179d")
+		)
+		(pin "16"
+			(uuid "8ea394e8-e4f8-4976-9e3b-3c344ca56e4a")
+		)
+		(pin "10"
+			(uuid "3c6a0788-dbe2-4497-98fc-52cb385116e3")
+		)
+		(pin "21"
+			(uuid "83e918b5-4400-49b3-8b3b-7c9ba373b483")
+		)
+		(pin "5"
+			(uuid "c63a4ce6-e0ac-4c63-b804-c54303d0a957")
+		)
+		(pin "6"
+			(uuid "8395894d-e6e7-4c38-9dcf-694e8df9553d")
+		)
+		(pin "15"
+			(uuid "de4dad0d-ad40-4430-bc86-814330ffc31f")
+		)
+		(pin "19"
+			(uuid "8f0d0aae-fb80-4c37-91b6-defd10ee68b6")
+		)
+		(pin "7"
+			(uuid "c90049fe-d385-4d5d-b755-4503cddac9e7")
+		)
+		(pin "8"
+			(uuid "62476156-5e72-450f-805e-b3b0aa4f50e4")
+		)
+		(pin "20"
+			(uuid "61a805e2-c3c1-4269-b39f-aa8e9daae348")
+		)
+		(pin "9"
+			(uuid "b0d333fe-ba41-4f25-858c-05fac8f5d2ea")
+		)
+		(pin "4"
+			(uuid "6e06ab30-ae5b-43a1-8e44-5a743ac91b69")
+		)
+		(pin "13"
+			(uuid "7ab4567d-bc24-4c77-b067-9a2c0f1e6d4a")
+		)
+		(pin "12"
+			(uuid "919f384f-4bc1-43b4-8dd9-21eb820b8eb8")
+		)
+		(pin "18"
+			(uuid "fbf0e522-cb23-402f-9e27-be7254903752")
+		)
+		(pin "2"
+			(uuid "a2f07022-8f5f-4ea9-a27c-1f97285c16cc")
+		)
+		(instances
+			(project "led_matrix"
+				(path "/a1a7da7f-7eb9-43c4-aa69-1acd2315447a"
+					(reference "U20")
 					(unit 1)
 				)
 			)
@@ -11356,142 +11995,6 @@
 			(project "led_matrix"
 				(path "/a1a7da7f-7eb9-43c4-aa69-1acd2315447a"
 					(reference "U3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "custom_symbol_lib:led_block_16_x_8")
-		(at 511.81 302.26 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "d69daccf-ac9d-4440-b4da-d413df678b5a")
-		(property "Reference" "U23"
-			(at 520.7 301.6249 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "~"
-			(at 520.7 303.53 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "custom_footprint_library:led_block_16_x_8"
-			(at 511.556 320.802 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 511.81 298.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 511.81 298.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "c4e55f00-d57b-4596-b580-2745abe882be")
-		)
-		(pin "19"
-			(uuid "3ce3ad6f-f783-4b52-83d3-980515717a56")
-		)
-		(pin "9"
-			(uuid "073aaff3-ec19-4f8a-baa3-54757f13e3f0")
-		)
-		(pin "18"
-			(uuid "25ed493f-1a97-4cb7-97a3-02467b80aa7a")
-		)
-		(pin "16"
-			(uuid "6dfeccb3-0dbd-479b-ab38-02c453d0162e")
-		)
-		(pin "7"
-			(uuid "c71da69f-0289-4213-8b78-a16d57838b24")
-		)
-		(pin "8"
-			(uuid "54eb534b-9b3b-4d1f-95cb-95bf70a4af19")
-		)
-		(pin "15"
-			(uuid "2737f845-1a6b-4c09-ad73-78f89b862798")
-		)
-		(pin "22"
-			(uuid "6b4c575e-2138-4770-a8d2-46dcb95af32d")
-		)
-		(pin "20"
-			(uuid "8b2288a8-45d1-4150-b9b0-ec43fa1821f6")
-		)
-		(pin "11"
-			(uuid "1c98eb15-6089-4032-b38b-488aeb24eccf")
-		)
-		(pin "14"
-			(uuid "17304030-5392-4656-b299-6bd5e5803768")
-		)
-		(pin "2"
-			(uuid "de0046f3-b168-42d5-af32-e4e9bd43dda3")
-		)
-		(pin "10"
-			(uuid "37946311-bc5e-4ce0-951c-f94b7f66a78c")
-		)
-		(pin "21"
-			(uuid "3df5b01b-da74-470a-bbce-6be7fa454c99")
-		)
-		(pin "13"
-			(uuid "d98ee2aa-c6b3-47a5-84ce-b3ac47f27212")
-		)
-		(pin "5"
-			(uuid "06240eb4-70dc-4a06-9c49-39fbb1fb811e")
-		)
-		(pin "6"
-			(uuid "6a74d73d-68af-4bb1-8699-3fa749240c6c")
-		)
-		(pin "23"
-			(uuid "c680f5ee-cb28-40bb-93fb-0e58c5e9a6d1")
-		)
-		(pin "24"
-			(uuid "bd9ab8ed-faf5-4b25-8339-ecc99a4005fd")
-		)
-		(pin "3"
-			(uuid "0747af41-bda2-473f-86ae-9dad49975ea5")
-		)
-		(pin "4"
-			(uuid "8efb4b7b-17b4-4a04-b455-8e2622e777e9")
-		)
-		(pin "17"
-			(uuid "55262a09-4dbb-4069-a9f5-3b111431c03c")
-		)
-		(pin "12"
-			(uuid "cf534a64-ef48-47c8-ace7-f3a81372620a")
-		)
-		(instances
-			(project "led_matrix"
-				(path "/a1a7da7f-7eb9-43c4-aa69-1acd2315447a"
-					(reference "U23")
 					(unit 1)
 				)
 			)
@@ -11988,17 +12491,17 @@
 		)
 	)
 	(symbol
-		(lib_id "custom_symbol_lib:led_block_16_x_8")
-		(at 511.81 195.58 0)
+		(lib_id "custom_symbol_lib:led_block_16_x_8_right")
+		(at 511.81 302.26 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(fields_autoplaced yes)
-		(uuid "eda6dea3-ca01-4d4b-ba9d-d42573072d27")
-		(property "Reference" "U20"
-			(at 520.7 194.9449 0)
+		(uuid "f448d8de-49e1-4084-aa41-bc0cbed498e4")
+		(property "Reference" "U23"
+			(at 520.7 301.6249 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12007,7 +12510,7 @@
 			)
 		)
 		(property "Value" "~"
-			(at 520.7 196.85 0)
+			(at 520.7 303.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12015,8 +12518,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "custom_footprint_library:led_block_16_x_8"
-			(at 511.556 214.122 0)
+		(property "Footprint" "custom_footprint_library:led_block_16_x_8_right"
+			(at 511.556 320.802 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12025,7 +12528,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 511.81 191.77 0)
+			(at 511.81 298.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12034,7 +12537,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 511.81 191.77 0)
+			(at 511.81 298.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12043,81 +12546,81 @@
 			)
 		)
 		(pin "1"
-			(uuid "c196bac7-1773-4995-a15b-3fad31dc6e94")
-		)
-		(pin "19"
-			(uuid "86345f3a-eeca-4bb1-817d-70407a07c165")
-		)
-		(pin "9"
-			(uuid "215ebf97-0aa1-4194-a6a4-bf1a5f091804")
-		)
-		(pin "18"
-			(uuid "6df03d91-2d72-4e42-ae4a-0f65440644e7")
-		)
-		(pin "16"
-			(uuid "79d7d5aa-ef4b-46d0-9023-a4eb9d309c71")
-		)
-		(pin "7"
-			(uuid "466d03c3-d980-4f02-89d1-dce0669cf1a0")
-		)
-		(pin "8"
-			(uuid "9c01eea5-673d-4644-b3b8-82cc3c35b172")
-		)
-		(pin "15"
-			(uuid "c141cfb0-1aed-4374-bdb6-b535a4378e9d")
-		)
-		(pin "22"
-			(uuid "80f63701-4a2e-4120-9d29-badd60c693ee")
-		)
-		(pin "20"
-			(uuid "2a0325a1-aab2-4e78-ad20-79342f282b70")
-		)
-		(pin "11"
-			(uuid "9bf62b3a-4d77-471a-a640-f985709802bb")
-		)
-		(pin "14"
-			(uuid "041449cb-6766-4413-9c64-1594b7fa8802")
-		)
-		(pin "2"
-			(uuid "83e89d7d-f66c-4b77-82e3-44e783556cce")
-		)
-		(pin "10"
-			(uuid "16e671e1-2425-442b-a514-1aa174977f2c")
-		)
-		(pin "21"
-			(uuid "211a05be-c03c-4d2e-b9e7-1c4e79e1c6ec")
-		)
-		(pin "13"
-			(uuid "95206a0c-97f9-4b00-8e94-1cba9d3de7d0")
-		)
-		(pin "5"
-			(uuid "8b881a26-2533-4c17-9131-268148f5e9cf")
-		)
-		(pin "6"
-			(uuid "a85d637c-d79f-4ef5-95ec-179be931e9f9")
-		)
-		(pin "23"
-			(uuid "0dc80db7-d36b-4466-ac4c-ba05db52135a")
+			(uuid "4f8e81e2-7515-479c-b8b9-d15b9022339a")
 		)
 		(pin "24"
-			(uuid "4cc42261-4c54-4561-b9e2-bfd88842ad53")
-		)
-		(pin "3"
-			(uuid "c436c8af-0d26-4cac-b470-7a61d7d767ad")
-		)
-		(pin "4"
-			(uuid "578daccc-f161-4abe-b6aa-ffe3e55677c8")
+			(uuid "bba35d22-3839-4045-a38f-6174884fadb4")
 		)
 		(pin "17"
-			(uuid "9aae97ff-3a7e-4cc4-8954-0d186ae0668e")
+			(uuid "8fb0167c-4bf0-438d-8db1-448065bac89a")
+		)
+		(pin "14"
+			(uuid "cbee3c1e-00f4-4ca7-bf9e-a48acb010df4")
+		)
+		(pin "3"
+			(uuid "0fa72d4c-d7fd-4ac7-b8df-1bb608201eac")
+		)
+		(pin "11"
+			(uuid "2b09c2c8-8ecb-4136-91be-d70ebe3baa05")
+		)
+		(pin "22"
+			(uuid "ef2971f6-d370-420b-bf31-70638fb65b32")
+		)
+		(pin "23"
+			(uuid "ca9f527d-6a5e-49ab-b543-3cac99262914")
+		)
+		(pin "16"
+			(uuid "1e9ca171-378f-4915-8f4f-96dcd5fdf4ec")
+		)
+		(pin "10"
+			(uuid "4f163a9c-37a7-49a8-96c2-0c22e6412ce8")
+		)
+		(pin "21"
+			(uuid "c2f54eb4-e899-4c31-83d0-7cf6a43c291f")
+		)
+		(pin "5"
+			(uuid "5691684b-dd47-4abf-a43d-d1e7f021543f")
+		)
+		(pin "6"
+			(uuid "4decbb03-d08e-4472-80e0-7c3cfed92d9d")
+		)
+		(pin "15"
+			(uuid "ff0188d8-ef1b-4a39-8279-66d516c62345")
+		)
+		(pin "19"
+			(uuid "8872e70c-da0e-4b62-8a7c-70f05f4f1092")
+		)
+		(pin "7"
+			(uuid "c38775dd-1310-4c0d-822d-8c3e7bb4e00f")
+		)
+		(pin "8"
+			(uuid "fc3cf073-898a-4793-891b-cd6ee46525b2")
+		)
+		(pin "20"
+			(uuid "bb2d40a0-ad96-4d48-bc3a-8d1bfab235f1")
+		)
+		(pin "9"
+			(uuid "bdfe6a17-de89-42a0-aedd-4dc840d63e60")
+		)
+		(pin "4"
+			(uuid "fc1a38f1-3992-49f8-83ba-4a6491ce1f12")
+		)
+		(pin "13"
+			(uuid "b9d62dc0-6fc8-43bd-b814-07395f1e3cb3")
 		)
 		(pin "12"
-			(uuid "8d28c7cb-95fb-4c04-a310-7283a59565a0")
+			(uuid "94d61ac2-74aa-49c6-bc79-3f0236298480")
+		)
+		(pin "18"
+			(uuid "88830c9b-5240-4284-8695-787840dc6fc1")
+		)
+		(pin "2"
+			(uuid "ee25f1ec-99d4-48a8-89c8-3f40dd636a60")
 		)
 		(instances
 			(project "led_matrix"
 				(path "/a1a7da7f-7eb9-43c4-aa69-1acd2315447a"
-					(reference "U20")
+					(reference "U23")
 					(unit 1)
 				)
 			)
