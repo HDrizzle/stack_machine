@@ -20,13 +20,13 @@ For each iteration, 1024/16 = 64 words will be accessed. Each of the 8 drivers w
 ### For each row activation (0 - 7)
 
 Every bit in each 16-bit word should be used during the same multiplex iteration.
-For each LED driver: Load in the 16-bit word located at address `row_activation + (driver * 8)`
+For each LED driver: Load in the 16-bit word located at address `(floor(driver / 2) * 16) + (driver % 2) + (2 * row_activation)`, this can be implemented easily by concatenating the bits of each term together.
 Set the row source from previous row to this one.
 
 ## LED drivers
 
 1024 x 20 mA per LED is 20 A (a bit more then 1 A per driver), at 5 volts thats 100 W!! (new screen metric just dropped: 0.1 W/pixel)
-Going to use high-side MOSFET switches, havent't figured out exact type yet.
+Going to use high-side N-channel enhancement MOSFET switches. Update: using the IRF9540.
 
 ## Timing
 
@@ -40,13 +40,40 @@ for row_activation in 0..8 {
 			Clock bit into driver
 		}
 		Update driver latch
+		Load latest written address/data into memory (this isn't necessary but is simpler then having another piece of logic that unly updates on input update)
 	}
 }
 ```
 
 Since each variable iterates over a power of two, all 3 counters will just loop over. There is no need to explicitely reset them because that will happen on startup. The bit address counter is driven by the main clock anded with the `Bit address counter enable` signal.
 
-LED driver uptating, representing the pseudo-code inside the `for driver in 0..8` for-loop
+LED driver uptating, representing the pseudo-code inside the `for driver in 0..8` for-loop.
+NOTE: The clock pulse that brings the counter from 15 to 0 will be really small since it will be disabled when the counter overflows, although this cannot be represented with the diming diagram, it won't be a race condition.
 ```
+{
+  signal: [
+    {name: "CLK", wave: "p|.......|"},
+    {},
+    {name: "Memory read", wave: "l|..h.l..|"},
+    {name: "Memory output latch CLK", wave: "l|...hl..|"},
+    {name: "Bit address", wave: "2222..2222", data: ["13", "14", "15", "0", "1", "2", "3", "4"]},
+    {name: "Counter enable", wave: "h|.l..h..|"},
+    {name: "Counter CLK", wave: "p|..l.p..|"},
+    {name: "Driver CLK enable", wave: "h|.l.nh..|"},
+    {name: "Driver CLK", wave: "n|.l.nn..|"},
+    {name: "Driver LE", wave: "l|.hl....|"},
+    {},
+    {name: "Memory write set data", wave: "l|....h.l|"},
+    {name: "Memory write", wave: "l|.....pl|"},
+  ]
+}
+```
+I made sure there is a time gap between when the counter rolls over and when `Momery read` goes high because I don't know whether the memory read is edge or level triggered.
 
-```
+The `Memory write set data` signal will control some further combinational logic as follows:
+* Low: the read address transparent latch is enabled
+* High: The data input address latch is enabled, one of the data input data latches is enabled depending on the LSB of the address.
+
+The `Memory write` should only write to one of the memory chips based on the LSB of the data address, just like the two data latches.
+
+https://pdftobrainrot.org/share/072650e9ef6a43f492dbb5a2f9bec8e8
