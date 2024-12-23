@@ -10301,7 +10301,7 @@
 				)
 			)
 		)
-		(property "Footprint" "custom_footprint_library:led_block_16_x_8_left"
+		(property "Footprint" "custom_footprint_library:led_block_16_x_8_left_decoy"
 			(at -0.254 -18.542 0)
 			(effects
 				(font
@@ -10804,7 +10804,7 @@
 				)
 			)
 		)
-		(property "Footprint" "custom_footprint_library:led_block_16_x_8_right"
+		(property "Footprint" "custom_footprint_library:led_block_16_x_8_right_decoy"
 			(at -0.254 -18.542 0)
 			(effects
 				(font
