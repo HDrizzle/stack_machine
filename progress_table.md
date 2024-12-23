@@ -9,7 +9,7 @@
 | Bus/Motherboard | Done | Done | Done | Done | Done | - | - | - |
 | Startup controller | Done | Done | Done | Done | Done | - | - | - |
 | ALU | Not needed | Done | Done | Done | Done | - | - | - |
-| Clock | Done | Done | Redesign | Done | - | - | - | - |
+| Clock | Done | Done | Redesign (Done) | Done | Done | - | - | - |
 | Stack controller | Done | Done | Redesign | Done | - | - | - | - |
 | GPRAM controller | Done | Done | Done | Done | Done | - | - | - |
 | I/O controller | Not needed | Done | Redesign | - | - | - | - | - |

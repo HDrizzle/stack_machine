@@ -10,7 +10,7 @@
 * The bits comming from both of the counters on the clock board are swaped when put on the bus.
 * The enable signal on the stack controller board is not connected to the enable pin
 * DO NOT USE 4000B series logic, also >= 4.7k ohm on ALL LEDs. A lot of logic signals are low (like 3 volts) because of LED current draw.
-* The post-adder latches for the GPRAM address aren't needed, instead use 10K resistors. Thia also meant the `post adder CLK` and `post adder OE` signals are irrelevent.
+* The post-adder latches for the GPRAM address aren't needed, instead use 10K resistors. Thia also means the `post adder CLK` and `post adder OE` signals are irrelevent.
 
 ### Stack controller timing issues (FIXED FOR VERSION 2)
 
