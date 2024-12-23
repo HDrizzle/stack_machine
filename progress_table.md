@@ -4,7 +4,7 @@
 | - | - | - | - | - | - | - | - | - |
 | Ctrl unit central timing | Done | Done | Redesign | Done | - | - | - | - |
 | Call stack | Done | Done | Done | Done | Done | - | -| - |
-| Prog memory module | Done | Not needed | Redesign | Done | - | - | - | - |
+| Prog memory module | Done | Not needed | Redesign (Done) | Done | Done | - | - | - |
 | Ctrl unit main board | Not needed | Done | Done | Done | Done | - | - | - |
 | Bus/Motherboard | Done | Done | Done | Done | Done | - | - | - |
 | Startup controller | Done | Done | Done | Done | Done | - | - | - |
@@ -12,5 +12,5 @@
 | Clock | Done | Done | Redesign | Done | - | - | - | - |
 | Stack controller | Done | Done | Redesign | Done | - | - | - | - |
 | GPRAM controller | Done | Done | Done | Done | Done | - | - | - |
-| I/O controller | Not needed | Done | Redesign | Done | - | - | - | - |
+| I/O controller | Not needed | Done | Redesign | - | - | - | - | - |
 | LED Display | Done | Done | Done | Done | Done | - | - | - |
