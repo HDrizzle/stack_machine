@@ -6,6 +6,7 @@ pub mod compiler;
 pub mod emulator;
 pub mod resources;
 pub mod program_upload;
+pub mod display_emulator;
 pub use crate::prelude::*;
 #[cfg(test)]
 mod tests;
@@ -260,6 +261,26 @@ pub fn ui_main() {
 						Ok(program) => {
 							let mut machine = Machine::new(program);
 							machine.run(&mut CliInterface::new()).unwrap();
+						},
+						Err(s) => println!("{}", s)
+					}
+				}
+			},
+			"-run-with-display" => {
+				if args.len() < 3 {
+					println!("Plz include name of file in `{}`", resources::ASSEMBLY_SOURCES_DIR);
+				}
+				else {
+					let name = &args[2];
+					let path: String = resources::ASSEMBLY_SOURCES_DIR.to_owned() + name;
+					let file_raw = match fs::read_to_string(&path) {
+						Ok(s) => s,
+						Err(e) => panic!("Could not load test file at \"{}\" because {}", &path, e)
+					};
+					match compiler::compiler_pipeline_formated_errors(&file_raw, &assembler_config) {
+						Ok(program) => {
+							let machine = Machine::new(program);
+							display_emulator::start_gui(machine);
 						},
 						Err(s) => println!("{}", s)
 					}

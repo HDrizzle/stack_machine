@@ -14,12 +14,12 @@
 #return;
 
 # Hello World!
-#@push_anchor_address(write-char-from-gpram);
-#@call(set-gpram-addr-string);
-#@write_string("Hello world!\n");
-#@call(set-gpram-addr-string);
-#@call(loop-n-16);
-#halt;
+@push_anchor_address(write-char-from-gpram);
+@call(set-gpram-addr-string);
+@write_string("Hello world!\n");
+@call(set-gpram-addr-string);
+@call(loop-n-16);
+halt;
 
 # testing
 #write 0x01 stack-push;write 0x02 stack-push;@call(test-eq-8);
@@ -83,7 +83,7 @@ return;
 
 # --------------------------------- <STD> ----------------------------------
 
-# 16-bit add, uses two 16-bit integers on the stack, lower byte lower on the stack
+# 16-bit add, uses two 16-bit integers on the stack, lower byte deeper on the stack
 # 0.A, 0.B, 1.A, 1.B
 @anchor(16-bit-add);
 # Set carry to 0

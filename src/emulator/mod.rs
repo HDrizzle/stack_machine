@@ -264,7 +264,7 @@ impl Machine {
 			n => return Err(EmulationError::new(EmulationErrorEnum::InvalidOpcode(n), self.execution_pointer))
 		};
 		// Increment execution pointer
-		self.execution_pointer += 1;
+		self.execution_pointer = self.execution_pointer.wrapping_add(1);
 		debug_print("");
 		// Done
 		Ok(false)
@@ -451,6 +451,9 @@ impl EmulationError {
 			enum_,
 			prog_addr
 		}
+	}
+	pub fn to_string(&self) -> String {
+		format!("{:?} with the program pointer at {}", self.enum_, self.prog_addr)
 	}
 }
 

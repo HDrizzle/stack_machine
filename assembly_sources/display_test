@@ -1,0 +1,5 @@
+# GPIO-A is address, GPIO-B is data, display updated when GPIO-B is written
+@anchor(loop-start);
+write 0x00 gpio-write-a;
+write 0xAA gpio-write-b;
+@goto(loop-start);

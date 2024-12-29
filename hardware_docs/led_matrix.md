@@ -2,7 +2,7 @@
 
 Each LED is either on or off
 
-To write to display: Set the 16 bit input so that the first 8 bits address a "byte" of "data" to write to on the display.
+To write to display: Set the 16 bit input so that the first 8 bits address a "byte" of "data" to write to on the display (LSB-to-MSB left-to-right).
 Specifically, the bits 0 - 1 address the column and bits 2 - 6 address the row. Bit 7 does nothing.
 
 Each column is 8 bits/pixels wide and is set on a row all at once with bits 8 - 15.

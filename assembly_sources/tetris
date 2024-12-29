@@ -1,0 +1,190 @@
+# Tetris implementation
+# Blocks at: https://docs.google.com/spreadsheets/d/1tb9R2Y6Wr4T2g81XD9d3jRF-j7dfjZBMvmKckkSev1U/edit?usp=sharing
+# In keeping w/ tradition, screen coordinates will start at the top-left of the display
+# Key bindings: bit indices of `gpio-read-a`
+#   0. Restart game
+#   1. Shift left
+#   2. Shift right
+#   3. Rotate CCW
+#   4. Rotate CW
+# Display layout: Tetris arena size is 10 x 20 blocks, since the display is 32 by 32 pixels, each block will be one pixel
+#   There will be a 12 x 22 chunk for the arena with a white border with the top-left starting at (0, 9) and ending at (11, 31)
+#   The "next shape" will be shown starting at (16, 2) and ending at (19, 5)
+#   Each shape is a 4x4 grid of pixels which can be rotated
+# Memory layout:
+#   Arena: 0x0000
+#     To increae performance, each pixel in the arena will be represented as an entire byte with only the LSB used
+#     The arena data will be stored in GPRAM as a 16 x 20 = 320 byte chunk starting at 0x0000
+#   List of shapes: 0x0200
+#     Each of the 6 shapes will be represented by 2 bytes (4 bit segments, top to bottom)
+#   Current shape: 0x0300
+#     The current shape will be represented by 6 bytes, the first 4 bytes are the shape itself where each one represents a vertical slice of the shape with its first 4 bits and the LSB at the bottom.
+#     The last two bytes are the horizontal and vertical displacement of the bottom-left corner of the shape WRT the bottom-left of the arena.
+#   Most recent input state: 0x0400
+#     Every time `read-input` is called with a key index, it uses the byte at 0x0400 to compare it to the previous state to detect rising edges.
+#   Pseudo-random number generator: 0x0500
+#     TODO
+
+# --------------------------------- <Init> ---------------------------------
+
+# Write shapes
+@call(set-pointer-shapes);
+# "O"
+write 0x60 gpram-inc-addr;write 0x06 gpram-inc-addr;
+# "I"
+write 0x22 gpram-inc-addr;write 0x22 gpram-inc-addr;
+# "S"
+write 0xC0 gpram-inc-addr;write 0x06 gpram-inc-addr;
+# "Z"
+write 0x30 gpram-inc-addr;write 0x06 gpram-inc-addr;
+# "L"
+write 0x22 gpram-inc-addr;write 0x06 gpram-inc-addr;
+# "J"
+write 0x44 gpram-inc-addr;write 0x06 gpram-inc-addr;
+# "T"
+write 0x70 gpram-inc-addr;write 0x02 gpram-inc-addr;
+
+# --------------------------------- </Init> ---------------------------------
+
+# --------------------------------- <Loop> ---------------------------------
+write 0x00 stack-push;
+write 0x00 set-stack-offset;
+write 0x01 alu-b;
+@anchor(main-loop-start);
+move offset-read alu-a;
+move offset-read alu-a;
+write 0xFF gpio-write-b;
+@goto(main-loop-start);
+
+# --------------------------------- </Loop> ---------------------------------
+
+# --------------------------------- <Functions> ---------------------------------
+
+@anchor(set-pointer-arena);
+write 0x00 gpram-addr-a;
+write 0x00 gpram-addr-b;
+return;
+
+@anchor(set-pointer-shapes);
+write 0x00 gpram-addr-a;
+write 0x02 gpram-addr-b;
+return;
+
+@anchor(set-pointer-current-shape);
+write 0x00 gpram-addr-a;
+write 0x03 gpram-addr-b;
+return;
+
+@anchor(set-pointer-input-state);
+write 0x00 gpram-addr-a;
+write 0x04 gpram-addr-b;
+return;
+
+@anchor(set-pointer-rand-gen);
+write 0x00 gpram-addr-a;
+write 0x05 gpram-addr-b;
+return;
+
+# Pops 1 byte: bit index for the 
+@anchor(read-input);
+@call(set-pointer-input-state);
+# TODO
+return;
+
+# --------------------------------- </Functions> ---------------------------------
+
+# --------------------------------- <STD> ----------------------------------
+# Copied from `starwars`
+
+# 16-bit add, uses two 16-bit integers on the stack, lower byte deeper on the stack
+# 0.A, 0.B, 1.A, 1.B
+@anchor(16-bit-add);
+# Set carry to 0
+write 0x00 alu-c-in;
+# Read 0.A
+write 0x03 set-stack-offset;move offset-read alu-a;
+# Read 1.A
+write 0x01 set-stack-offset;move offset-read alu-b;
+# Move 0.A + 1.A in place of 0.A
+write 0x03 set-stack-offset;move add alu offset-write;
+# Carry
+move add-c alu alu-c-in;
+# Read 0.B
+write 0x02 set-stack-offset;move offset-read alu-a;
+# Read 1.B
+write 0x00 set-stack-offset;move offset-read alu-b;
+# Move 0.B + 1.B in place of 0.B
+write 0x02 set-stack-offset;move add alu offset-write;
+# delete uneeded data from stack
+move stack-pop none;move stack-pop none;
+return;
+
+# Loop, takes 4 values from the stack: Addr A, Addr B, Count A, Count B
+@anchor(loop-n-16)
+# 2 new values for current iteration
+write 0x00 stack-push;
+write 0x00 stack-push;
+# Stack: Addr A, Addr B, Count A, Count B, Curr. Iter A, Curr. Iter B
+@anchor(loop-n-16-beginning)
+# Prepare GOTO latches and call function
+write 0x05 set-stack-offset;move offset-read goto-a;
+write 0x04 set-stack-offset;move offset-read goto-b;
+call;
+# Increment iteration count
+write 0x01 stack-push;
+write 0x00 stack-push;
+@call(16-bit-add);
+# Check if equal
+# Compare Count A and Curr. Iter A
+write 0x03 set-stack-offset;move offset-read alu-a;
+write 0x01 set-stack-offset;move offset-read alu-b;
+move eq alu stack-push;
+# Stack: Addr A, Addr B, Count A, Count B, Curr. Iter A, Curr. Iter B, c.A == i.A
+# Compare Count B and Curr. Iter B
+write 0x03 set-stack-offset;move offset-read alu-a;
+write 0x01 set-stack-offset;move offset-read alu-b;
+move eq alu stack-push;
+# Stack: Addr A, Addr B, Count A, Count B, Curr. Iter A, Curr. Iter B, c.A == i.A, c.B == i.B
+# AND the equality results and load into goto decider
+move stack-pop alu-a;move stack-pop alu-b;move and alu alu-a;move not alu goto-decider;
+@goto_if(loop-n-16-beginning);
+# Stack: Addr A, Addr B, Count A, Count B, Curr. Iter A, Curr. Iter B
+# Clear stack
+move stack-pop none;move stack-pop none;move stack-pop none;move stack-pop none;move stack-pop none;move stack-pop none;
+return;
+
+# Test
+@anchor(test-eq-8)
+move stack-pop alu-a;move stack-pop alu-b;
+move eq alu goto-decider;
+@goto_if(test-eq-8-pass);
+# Print "FAIL\n"
+write 0x46 stack-push;@call(write-char);
+write 0x41 stack-push;@call(write-char);
+write 0x49 stack-push;@call(write-char);
+write 0x4C stack-push;@call(write-char);
+@call(write-newline);
+return;
+# print "PASS\n"
+@anchor(test-eq-8-pass);
+write 0x50 stack-push;@call(write-char);
+write 0x41 stack-push;@call(write-char);
+write 0x53 stack-push;@call(write-char);
+write 0x53 stack-push;@call(write-char);
+@call(write-newline);
+return;
+
+# Write char
+@anchor(write-char);
+move stack-pop gpio-write-a;
+return;
+
+# Write char from GPRAM
+@anchor(write-char-from-gpram);
+move gpram-inc-addr gpio-write-a;
+return;
+
+# Newline
+@anchor(write-newline);
+write 0x0A gpio-write-a;
+return;
