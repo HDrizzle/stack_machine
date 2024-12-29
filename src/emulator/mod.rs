@@ -63,6 +63,13 @@ pub struct ALU {
 }
 
 impl ALU {
+	/// ```
+	/// use stack_machine::emulator::ALU;
+	/// let mut alu = ALU{latch_a: 0x0F, latch_b: 0x06, latch_c: 0x00};
+	/// assert_eq!(alu.compute(6).unwrap(), 0b11000011);
+	/// alu = ALU{latch_a: 0b00111100, latch_b: 0x02, latch_c: 0x00};
+	/// assert_eq!(alu.compute(6).unwrap(), 0b11110000);
+	/// ```
 	pub fn compute(&self, opcode: u8) -> Result<u8, EmulationErrorEnum> {
 		let a = self.latch_a;
 		let b = self.latch_b;
@@ -86,7 +93,10 @@ impl ALU {
 				!(a ^ b)
 			},
 			6 => {// SHIFT
-				a << (b & 0b111)
+				//WrappingShl::wrapping_shl(&a, (b & 0b111) as u32)
+				//(a << (b & 0b111)) | (a >> (8 - (b & 0b111)))
+				//a << (b & 0b111)
+				a.rotate_left((b & 0b111) as u32)// Thanks ChatGPT
 			},
 			7 => {// EQ
 				(a == b) as u8

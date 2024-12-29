@@ -9,6 +9,7 @@ use eframe::egui::Key;
 const DISPLAY_WIDTH: usize = 32;
 const DISPLAY_HEIGHT: usize = 32;
 const PIXEL_SIZE: usize = 15;
+const INSTRUCTIONS_PER_FRAME: usize = 100;
 
 struct GpioInterfaceDisplay {
 	pub display_state: [u8; 128],
@@ -80,22 +81,26 @@ impl eframe::App for EguiApp {
 			}
 		}
 		self.interface.input = gpio_in;
-		// Step machine by 1 instruction
+		// Step machine
 		if self.running {
-			match self.machine.execute_instruction(&mut self.interface) {
-				Ok(done) => {
-					if done {
+			for _ in 0..INSTRUCTIONS_PER_FRAME {
+				match self.machine.execute_instruction(&mut self.interface) {
+					Ok(done) => {
+						if done {
+							self.is_done = true;
+						}  
+					},
+					Err(e) => {
 						self.is_done = true;
-					}  
-				},
-				Err(e) => {
-					self.is_done = true;
-					self.err_opt = Some(e);
+						self.err_opt = Some(e);
+					}
 				}
 			}
 		}
 		// GUI time
 		egui::CentralPanel::default().show(ctx, |ui| {
+			// This function ny default is only run upon user interaction, so copied this from https://users.rust-lang.org/t/issues-while-writing-a-clock-with-egui/102752
+			ui.ctx().request_repaint();
 			if self.is_done {
 				match &self.err_opt {
 					Some(e) => {ui.label(e.to_string());},
