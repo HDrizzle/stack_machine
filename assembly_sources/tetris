@@ -15,9 +15,9 @@
 # Memory layout:
 #   Display buffer: 0x0000
 #     Same format that that the display uses, 128 bytes.
-#   Arena: 0x0080
+#   Arena: 0x0100
 #     To increae performance, each pixel in the arena will be represented as an entire byte with only the LSB used.
-#     The arena data will be stored in GPRAM as a 32 columns x 10 rows = 320 byte chunk starting at 0x0000, each column will start at the bottom and go up, with the columns going from left to right.
+#     The arena data will be stored in GPRAM as a 10 columns x 20 rows = 200 byte chunk. Each column will start at the bottom and go up, with the columns going from left to right.
 #   List of shapes: 0x0200
 #     Each of the 7 shapes will be represented by 2 bytes (4 rows left to right, bottom to top)
 #   Current shape: 0x0300
@@ -31,8 +31,32 @@
 # --------------------------------- <Testing> ---------------------------------
 
 @call(init-shapes);
-@call(init-arena-outline);
+#@call(init-arena-outline);
+
+#write 0x00 stack-push;
+#write 0x09 stack-push;
+#write 0x01 stack-push;
+#@call(draw-pixel-in-arena);
+
+@call(set-pointer-arena);
+#write 0x00 gpram-inc-addr;
+#write 0x01 gpram-inc-addr;
+#write 0x00 gpram-inc-addr;
+#write 0x01 gpram-inc-addr;
+#write 0x00 gpram-inc-addr;
+write 0x01 gpram-inc-addr;
+@call(draw-arena);
+
+# Print out gpram pointers
+#move gpram-addr-b stack-push;
+#move gpram-addr-a stack-push;
+#@call(set-pointer-display-buffer);
+#move stack-pop gpram-inc-addr;
+#move stack-pop gpram-inc-addr;
+
 @call(update-display);
+
+
 
 write 0x00 stack-push;
 @anchor(test-loop-start);
@@ -59,8 +83,6 @@ move not alu goto-decider;
 @goto_if(test-loop-start);
 write 0x00 offset-write;
 @goto(test-loop-start);
-
-
 # --------------------------------- </Testing> ---------------------------------
 
 # --------------------------------- <Init> ---------------------------------
@@ -86,8 +108,8 @@ write 0x00 gpram-addr-b;
 return;
 
 @anchor(set-pointer-arena);
-write 0x80 gpram-addr-a;
-write 0x00 gpram-addr-b;
+write 0x00 gpram-addr-a;
+write 0x01 gpram-addr-b;
 return;
 
 @anchor(set-pointer-shapes);
@@ -163,11 +185,11 @@ write 0x7C gpram-addr-a;
 write 0xFF gpram-inc-addr;
 write 0x0F gpram-inc-addr;
 # Top horizontal
-write 0x24 gpram-addr-a;
+write 0x28 gpram-addr-a;
 write 0xFF gpram-inc-addr;
 write 0x0F gpram-inc-addr;
 # Verticals
-write 0x28 stack-push;
+write 0x2C stack-push;
 write 0x00 set-stack-offset;
 # Loop
 @anchor(init-arena-outline-loop-start);
@@ -213,7 +235,7 @@ move and alu stack-push;
 # Second half
 write 0xF0 alu-b;
 move and alu alu-a;
-write 0x04 alu-b;# TODO: fix shift
+write 0x04 alu-b;
 move shift alu stack-push;
 # Byte 1, first half
 move gpram-inc-addr alu-a;
@@ -222,7 +244,7 @@ move and alu stack-push;
 # Second half
 write 0xF0 alu-b;
 move and alu alu-a;
-write 0x04 alu-b;# TODO: fix shift
+write 0x04 alu-b;
 move shift alu stack-push;
 # Pop display bytes off stack and place them in display buffer, reverse order
 @call(set-pointer-display-buffer);
@@ -256,22 +278,147 @@ write 0x70 gpram-inc-addr;write 0x02 gpram-inc-addr;
 return;
 
 @anchor(draw-arena);
-# TODO
+@call(set-pointer-arena);
+write 0x00 stack-push;# TODO: change back
+write 0x00 stack-push;
+# Loop over columns & rows
+@anchor(draw-arena-loop-start);
+# Stack: Column/X count, Row/Y count
+# Save GPRAM address
+move gpram-addr-a stack-push;
+move gpram-addr-b stack-push;
+# Stack: Column/X count, Row/Y count, GPRAM A, GPRAM B
+# Load from GPRAM and copy stack data for the pixel draw function
+move gpram-inc-addr stack-push;
+write 0x04 set-stack-offset;
+move offset-read stack-push;
+move offset-read stack-push;
+# Draw pixel
+@call(draw-pixel-in-arena);
+# Restore GPRAM address
+move stack-pop gpram-addr-b;
+move stack-pop gpram-addr-a;
+# Stack: Column/X count, Row/Y count
+# Increment Y
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if Y=20 (0x14)
+write 0x13 alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(draw-arena-loop-start);
+# Increment X
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu offset-write;
+move add alu alu-a;
+# Check if X=10
+write 0x0A alu-b;# TODO: change back
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(draw-arena-loop-start);
+# Delete stack variables
+move stack-pop none;
+move stack-pop none;
 return;
 
-@anchor(draw_pixel);
+# Works
+@anchor(draw-pixel-in-arena);
 # Pops 3 bytes: (1st is deepest on stack)
 #   0. Byte with pixel value as LSB
 #   1. X coord (left from arena edge)
 #   2. Y coord (up from arena bottom)
 # Calculate which byte to manipulate
-# TODO
+# Find byte X coord by adding 1 then dividing by 8
+write 0x01 set-stack-offset;
+# Add
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu alu-a;
+# Shift and clear potential overflowed bits, shift left by 5 is the same as right shift by 3
+write 0x05 alu-b;
+move shift alu alu-a;
+write 0x1F alu-b;
+move and alu stack-push;
+# Stack: Px val, X, Y, Byte X
+# Calculate bit index
+write 0x02 set-stack-offset;
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu alu-a;
+write 0x07 alu-b;
+move and alu stack-push;
+# Stack: Px val, X, Y, Byte X, Bit index
+# Calculate byte Y (= 30 - Y), then multiply by 4 to get address of beginning of display row. X-Y = X+(~Y)+1
+# Load Y and invert it
+move offset-read alu-a;
+move not alu alu-a;
+# Add 31 (30 + 1)
+write 0x1F alu-b;
+move add alu alu-a;
+# Shift and clear two lower bits in case of wraparound
+write 0x02 alu-b;
+move shift alu alu-a;
+write 0xFC alu-b;
+move and alu stack-push;
+# Stack: Px val, X, Y, Byte X, Bit index, Byte row beginning address
+# Now, add "Byte row beginning address" + "Byte X" to get display byte address
+move offset-read alu-a;
+write 0x00 set-stack-offset;
+move offset-read alu-b;
+move add alu gpram-addr-a;
+write 0x00 gpram-addr-b;
+# ----------- TEST ----------- <- Everything until here works!
+#write 0x01 alu-a;
+#write 0x01 set-stack-offset;
+#move offset-read alu-b;
+#move shift alu gpram;
+#return;
+# Get byte and right shift it by bit index (left shift by 8 - bit_index)
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+move not alu alu-a;
+write 0x09 alu-b;
+move add alu alu-b;
+move gpram alu-a;
+move shift alu alu-a;
+# Now either `and` it with 0b1111 1110 if "Px val" is 0 or `or` it with 0b0000 0001 if it is 1
+write 0x05 set-stack-offset;
+move offset-read goto-decider;
+@goto_if(draw-pixel-in-arena-px-1);
+# Px = 0
+write 0xFE alu-b;
+move and alu stack-push;
+@goto(draw-pixel-in-arena-finish);
+@anchor(draw-pixel-in-arena-px-1);
+# Px = 1
+write 0x01 alu-b;
+move or alu stack-push;
+@anchor(draw-pixel-in-arena-finish);
+# Stack: Px val, X, Y, Byte X, Bit index, Byte row beginning address, New shifted byte
+# Shift it back the other way
+write 0x02 set-stack-offset;
+move offset-read alu-b;
+# Shift and finally put back into GPRAM
+move stack-pop alu-a;
+move shift alu gpram;
+# Stack: Px val, X, Y, Byte X, Bit index, Byte row beginning address
+# Correct the stack
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
 return;
 
 # --------------------------------- </Functions> ---------------------------------
 
 # --------------------------------- <STD> ----------------------------------
-# Copied from `starwars`
+# More recent then `starwars`
 
 # 16-bit add, uses two 16-bit integers on the stack, lower byte deeper on the stack
 # 0.A, 0.B, 1.A, 1.B
@@ -294,6 +441,8 @@ write 0x00 set-stack-offset;move offset-read alu-b;
 write 0x02 set-stack-offset;move add alu offset-write;
 # delete uneeded data from stack
 move stack-pop none;move stack-pop none;
+# Reset ALU carry
+write 0x00 alu-c-in;
 return;
 
 # Loop, takes 4 values from the stack: Addr A, Addr B, Count A, Count B
