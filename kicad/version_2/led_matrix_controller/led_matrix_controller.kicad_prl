@@ -74,7 +74,7 @@
     "ssh_key": ""
   },
   "meta": {
-    "filename": "io_controller.kicad_prl",
+    "filename": "led_matrix_controller.kicad_prl",
     "version": 3
   },
   "project": {

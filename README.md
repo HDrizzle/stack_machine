@@ -66,10 +66,6 @@ There will be two ways to access the stack:
 1. Push and Pop
 2. Using the current ToS pointer - stack offset (`OFFSET-WRITE` and `OFFSET-READ`) (does not change ToS). The stack offset will be a 1-byte number set from the bus (`SET-STACK-OFFSET`) and will not affect pushes and pops.
 
-# Call stack
-
-Whenever a "function" is called (using the `CALL` instruction), the current program counter will be pushed onto the call stack. The call stack will be a seperate stack memory containing 256 (1 byte address size) 16-bit words. Each word will be a return address - where to set the program counter during a `RETURN` instruction.
-
 # ALU
 
 The ALU uses 2 8-bit latches for input and has 1 output. The specific operation it does is controlled by 4 bits (2^4 = 16 operations). All operations that result in a boolean output all `0`s except for the result which is the LSB.
@@ -93,17 +89,19 @@ The ALU uses 2 8-bit latches for input and has 1 output. The specific operation 
 
 # Flow Control
 
-In the actual machine code there are no such things as functions, loops, if-statements, etc. Instead, these will be converted by the compiler into instructions which explicitly set the program execution pointer.
+There are four instructions for flow control: `GOTO`, `GOTO-IF`, `CALL`, and `RETURN`.
 
 ## GOTO and GOTO-IF
 
-A goto will first need to use the bus usage instruction (Instruction 0) twice to set both of the execution pointer A and B goto latches, probably comming from the stack. This is for returning from a function using the return address, but if calling a function, the compiler can just `WRITE` the hardcoded values directly to the A and B latches. Then the GOTO instruction will be used which uses the A and B goto latches to set the execution pointer.
+A `GOTO` instruction is used to jump to anywhere in the program. it uses the two 8-bit latches (`GOTO-A` and `GOTO-B`) to set the 16-bit program counter. Due to how the hardware is set up, the PC will be increented after each goto instruction. This means that the previous address to where the execution should jump to must be used.
 
-GOTO-IF: First, move a value into the control unit GOTO decider latch, then use the GOTO-IF instruction. This will do the same as the GOTO instruction described above ONLY if the LSB of the latch is 1.
+`GOTO-IF` is a conditional goto which will do what is described above only if the bit set by `GOTO-DECIDER` from the LSB of the bus is 1, otherwise it does nothing. This is the only instruction that allows the computer to "branch" or "make decisions".
 
-## Function calling
+## Functions and the call stack
 
-Functions in the machine code are only defined by `CALL` and `RETURN` instructions. To call a function, make sure the correct pointer to the beginning of the function is stored in the control unit goto A and B latches. Then use the `CALL` instruction which is basically a GOTO but will first put the current program counter value onto the call stack as the return address.
+Functions in the machine code are defined by `CALL` and `RETURN` instructions. To call a function, make sure the correct pointer to the beginning of the function is stored in the control unit goto A and B latches. Then use the `CALL` instruction which is basically a GOTO but will first put the current program counter value onto the call stack as the return address. The return instruction pops a return address off of the call stack and continues execution.
+
+The call stack is a seperate stack memory containing 256 (1 byte address size) 16-bit words. Each word will be a return address - where to set the program counter during a `RETURN` instruction.
 
 # I/O
 
@@ -111,6 +109,6 @@ There are 16 input and 16 seperate output pins.
 
 # General purpose static-RAM (GPRAM)
 
-This piece of memory will not have any hardware protection like the stack and can be writen to and read from at any location. It will have a 16-bit address by 8-bit word size (65,536 bytes) just like the stack.
+This piece of memory does not have any hardware protection like the stack and can be writen to and read from at any location. It will have a 16-bit address by 8-bit word size (65,536 bytes) just like the stack.
 
-It's address latch can be optionally incremented upon reads/writes and can be directly set by 2 8-bit latches (`GPRAM-ADDR-A` and `GPRAM-ADDR-B`) from the bus. If the address is incremented, the read/write will happen first, then the incrementation.
+Its address can be optionally incremented upon reads/writes and can be directly set from the bus (`GPRAM-ADDR-A` and `GPRAM-ADDR-B`). For the instructions where the address is incremented, that will happen after the read/write.

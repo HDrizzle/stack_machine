@@ -13,4 +13,5 @@
 | Stack controller | Done | Done | Redesign | Done | - | - | - | - |
 | GPRAM controller | Done | Done | Done | Done | Done | - | - | - |
 | I/O controller | Not needed | Done | Redesign (Done) | Done | Done | - | - | - |
-| LED Display | Done | Done | Done | Done | Done | - | - | - |
+| LED Display | Done | Done | Done | Done | - | - | - | - |
+| LED Display (Controller) | Done | Done | Done | Done | Done | - | - | - |
