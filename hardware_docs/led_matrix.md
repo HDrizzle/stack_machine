@@ -25,7 +25,7 @@ Set the row source from previous row to this one.
 
 ## LED drivers
 
-1024 x 20 mA per LED is 20 A (a bit more then 1 A per driver), at 5 volts thats 100 W!! (new screen metric just dropped: 0.1 W/pixel)
+1024 x 20 mA per LED / 8 for multiplexing is 2.5 A, at 5 volts thats 12.5 W!! (new screen metric just dropped: 12.5 mW/pixel)
 Going to use high-side N-channel enhancement MOSFET switches. Update: using the IRF9540.
 
 ## Timing
@@ -33,6 +33,7 @@ Going to use high-side N-channel enhancement MOSFET switches. Update: using the 
 The logic will represent a for loop like so:
 ```
 for row_activation in 0..8 {
+  Pulse LE
 	for driver in 0..8 {
 		Set memory address
 		Get 16-bit word
@@ -40,7 +41,7 @@ for row_activation in 0..8 {
 			Clock bit into driver
 		}
 		Update driver latch
-		Load latest written address/data into memory (this isn't necessary but is simpler then having another piece of logic that unly updates on input update)
+		Load latest written address/data into memory (this isn't necessary but is simpler then having another piece of logic that only updates on input update)
 	}
 }
 ```
@@ -57,15 +58,17 @@ NOTE: The clock pulse that brings the counter from 15 to 0 will be really small 
     {name: "Memory read", wave: "l|..h.l..|"},
     {name: "Memory output latch CLK", wave: "l|...hl..|"},
     {name: "Bit address", wave: "2222..2222", data: ["13", "14", "15", "0", "1", "2", "3", "4"]},
+    {name: "Driver address", wave: "2..2......", data: ["7", "0"], node: "...a"},
     {name: "Counter enable", wave: "h|.l..h..|"},
     {name: "Counter CLK", wave: "p|..l.p..|"},
     {name: "Driver CLK enable", wave: "h|.l.nh..|"},
     {name: "Driver CLK", wave: "n|.l.nn..|"},
-    {name: "Driver LE", wave: "l|.hl....|"},
+    {name: "Driver LE", wave: "l|.hl....|", node: "...b"},
     {},
     {name: "Memory write set data", wave: "l|....h.l|"},
     {name: "Memory write", wave: "l|.....pl|"},
-  ]
+  ],
+  edge:['a~>b causes']
 }
 ```
 I made sure there is a time gap between when the counter rolls over and when `Momery read` goes high because I don't know whether the memory read is edge or level triggered.
