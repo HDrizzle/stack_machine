@@ -23,12 +23,12 @@
 #   Current shape: 0x0300
 #     The current shape will be represented by 18 bytes, the first 16 bytes represent the shape itself in the same format as the arena.
 #     The last two bytes are the horizontal and vertical displacement of the bottom-left corner of the shape WRT the bottom-left of the arena.
-#   Next shape: 0x0380
-#     16 bytes, same format as current shape
-#   Most recent input state: 0x0400
 #     Every time `read-input` is called with a key index, it uses the byte at 0x0400 to compare it to the previous state to detect rising edges.
 #   Pseudo-random number generator: 0x0500
 #     TODO
+#   Next shape: 0x0600
+#     16 bytes, same format as current shape
+#   Most recent input state: 0x0400
 
 # --------------------------------- <Testing> ---------------------------------
 
@@ -72,8 +72,8 @@ write 0x00 set-stack-offset;
 move offset-read stack-push;
 #@call(display-shape-storage-format);
 @call(init-shape-from-storage);
-write 0x20 stack-push;
-write 0x0A stack-push;
+write 0x00 stack-push;
+write 0x00 stack-push;
 @call(set-pointer-next-shape);
 @call(draw-shape);
 # Increment counter by 1
@@ -129,11 +129,6 @@ write 0x00 gpram-addr-a;
 write 0x03 gpram-addr-b;
 return;
 
-@anchor(set-pointer-next-shape);
-write 0x80 gpram-addr-a;
-write 0x03 gpram-addr-b;
-return;
-
 @anchor(set-pointer-input-state);
 write 0x00 gpram-addr-a;
 write 0x04 gpram-addr-b;
@@ -142,6 +137,11 @@ return;
 @anchor(set-pointer-rand-gen);
 write 0x00 gpram-addr-a;
 write 0x05 gpram-addr-b;
+return;
+
+@anchor(set-pointer-next-shape);
+write 0x00 gpram-addr-a;
+write 0x06 gpram-addr-b;
 return;
 
 @anchor(read-input);

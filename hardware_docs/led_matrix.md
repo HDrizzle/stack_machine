@@ -48,7 +48,7 @@ for row_activation in 0..8 {
 
 Since each variable iterates over a power of two, all 3 counters will just loop over. There is no need to explicitely reset them because that will happen on startup. The bit address counter is driven by the main clock anded with the `Bit address counter enable` signal.
 
-LED driver uptating, representing the pseudo-code inside the `for driver in 0..8` for-loop.
+LED driver updating, representing the pseudo-code inside the `for driver in 0..8` for-loop.
 NOTE: The clock pulse that brings the counter from 15 to 0 will be really small since it will be disabled when the counter overflows, although this cannot be represented with the diming diagram, it won't be a race condition.
 ```
 {

@@ -1,4 +1,4 @@
-23370162588785562
+23370162586164567
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -95347,12 +95347,12 @@ custom_footprint_library
 2
 2
 custom_footprint_library
-8_x_8_led_matrix_KWM-30881CVB
+adafruit_8_x_8_led_matrix
 
 
 0
-16
-16
+0
+0
 custom_footprint_library
 bus_connector
 
