@@ -128,6 +128,11 @@ move stack-pop gpram-inc-addr;
 move stack-pop gpram-inc-addr;
 move stack-pop gpram-inc-addr;
 
+# Rotate shape
+write 0x01 stack-push;
+@call(set-pointer-next-shape);
+@call(rotate-shape);
+
 # Draw shape at (0,0)
 write 0x00 stack-push;
 write 0x00 stack-push;
@@ -328,7 +333,134 @@ write 0x2A gpram-addr-a;
 move stack-pop gpram;
 return;
 
-# TODO: Test
+# Works for regular shapes
+@anchor(rotate-shape);
+# Pops 1 byte: LSB rotates CCW if 1, CW if 0
+# Assumes the GPRAM address for the shape data has already been set and that it is at the beginning of a 256 byte block
+# Stack: Direction
+# Loop to push 16 values from GPRAM onto stack
+write 0x00 alu-a;
+@anchor(rotate-shape-push-loop-start);
+move gpram-inc-addr stack-push;
+# Increment count and check if done, the stack is not used at all during this
+write 0x01 alu-b;
+move add alu alu-a;
+write 0x10 alu-b;
+move eq alu goto-decider;
+@goto_if(rotate-shape-push-loop-end);
+@goto(rotate-shape-push-loop-start);
+@anchor(rotate-shape-push-loop-end);
+# Stack: Direction, <16 values>
+# Decision
+write 0x10 set-stack-offset;
+move offset-read goto-decider;
+@goto_if(rotate-shape-ccw);
+# Rotate: CW
+# 15 -> 12
+write 0x0C gpram-addr-a;
+move stack-pop gpram;
+# 14 -> 8
+write 0x08 gpram-addr-a;
+move stack-pop gpram;
+# 13 -> 4
+write 0x04 gpram-addr-a;
+move stack-pop gpram;
+# 12 -> 0
+write 0x00 gpram-addr-a;
+move stack-pop gpram;
+# 11 -> 13
+write 0x0D gpram-addr-a;
+move stack-pop gpram;
+# 10 -> 9
+write 0x09 gpram-addr-a;
+move stack-pop gpram;
+# 9 -> 5
+write 0x05 gpram-addr-a;
+move stack-pop gpram;
+# 8 -> 1
+write 0x01 gpram-addr-a;
+move stack-pop gpram;
+# 7 -> 14
+write 0x0E gpram-addr-a;
+move stack-pop gpram;
+# 6 -> 10
+write 0x0A gpram-addr-a;
+move stack-pop gpram;
+# 5 -> 6
+write 0x06 gpram-addr-a;
+move stack-pop gpram;
+# 4 -> 2
+write 0x02 gpram-addr-a;
+move stack-pop gpram;
+# 3 -> 15
+write 0x0F gpram-addr-a;
+move stack-pop gpram;
+# 2 -> 11
+write 0x0B gpram-addr-a;
+move stack-pop gpram;
+# 1 -> 7
+write 0x07 gpram-addr-a;
+move stack-pop gpram;
+# 0 -> 3
+write 0x03 gpram-addr-a;
+move stack-pop gpram;
+@goto(rotate-shape-skip-ccw);
+# Rotate: CCW
+@anchor(rotate-shape-ccw);
+# 15 -> 3
+write 0x03 gpram-addr-a;
+move stack-pop gpram;
+# 14 -> 7
+write 0x07 gpram-addr-a;
+move stack-pop gpram;
+# 13 -> 11
+write 0x0B gpram-addr-a;
+move stack-pop gpram;
+# 12 -> 15
+write 0x0F gpram-addr-a;
+move stack-pop gpram;
+# 11 -> 2
+write 0x02 gpram-addr-a;
+move stack-pop gpram;
+# 10 -> 6
+write 0x06 gpram-addr-a;
+move stack-pop gpram;
+# 9 -> 10
+write 0x0A gpram-addr-a;
+move stack-pop gpram;
+# 8 -> 14
+write 0x0E gpram-addr-a;
+move stack-pop gpram;
+# 7 -> 1
+write 0x01 gpram-addr-a;
+move stack-pop gpram;
+# 6 -> 5
+write 0x05 gpram-addr-a;
+move stack-pop gpram;
+# 5 -> 9
+write 0x09 gpram-addr-a;
+move stack-pop gpram;
+# 4 -> 13
+write 0x0D gpram-addr-a;
+move stack-pop gpram;
+# 3 -> 0
+write 0x00 gpram-addr-a;
+move stack-pop gpram;
+# 2 -> 4
+write 0x04 gpram-addr-a;
+move stack-pop gpram;
+# 1 -> 8
+write 0x08 gpram-addr-a;
+move stack-pop gpram;
+# 0 -> 12
+write 0x0C gpram-addr-a;
+move stack-pop gpram;
+@anchor(rotate-shape-skip-ccw);
+# Delete stack variables
+move stack-pop none;
+return;
+
+# Works
 @anchor(init-next-shape-from-storage);
 # Pops 1 byte: shape index
 # Writes the new shape in memory at the "next shape" location
