@@ -114,6 +114,7 @@ impl eframe::App for EguiApp {
 					ui.code(format!("{:#018b}", self.interface.input));
 				});
 				// Display matrix
+				let stroke = egui::Stroke{width: 1.0, color: egui::Color32::from_rgb(255, 0, 0)};
 				let start_offset = egui::Vec2{x: 10.0, y: 50.0};
 				let pixel_size_offset = egui::Vec2{x: PIXEL_SIZE as f32 - 1.0, y: PIXEL_SIZE as f32 - 1.0};
 				let (_response, painter) = ui.allocate_painter(egui::Vec2{x: (DISPLAY_WIDTH*PIXEL_SIZE) as f32 + 10.0, y: (DISPLAY_HEIGHT*PIXEL_SIZE) as f32 + 100.0}, egui::Sense{click: false, drag: false, focusable: false});
@@ -136,8 +137,17 @@ impl eframe::App for EguiApp {
 						max: egui::Pos2{x: (PIXEL_SIZE*DISPLAY_WIDTH) as f32, y: (PIXEL_SIZE*DISPLAY_WIDTH) as f32} + start_offset + egui::Vec2{x: 1.0, y: 1.0}
 					},
 					egui::Rounding::ZERO,
-					egui::Stroke{width: 1.0, color: egui::Color32::from_rgb(255, 0, 0)}
+					stroke
 				);
+				for vert_line_i in 1..4_usize {
+					painter.line_segment(
+						[
+							(start_offset + egui::Vec2{x: (vert_line_i*PIXEL_SIZE*8) as f32, y: 0.0}).to_pos2(),
+							(start_offset + egui::Vec2{x: (vert_line_i*PIXEL_SIZE*8) as f32, y: (32*PIXEL_SIZE) as f32}).to_pos2()
+						],
+						stroke
+					);
+				}
 			}
 		});
 	}

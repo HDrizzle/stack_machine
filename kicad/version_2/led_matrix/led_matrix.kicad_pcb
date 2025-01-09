@@ -14596,14 +14596,14 @@
 		(layer "Edge.Cuts")
 		(uuid "f7880098-9553-412e-8d64-b0739c225086")
 	)
-	(gr_text "32 X 32 LED DISPLAY\n1:8 MULTIPLEXED"
+	(gr_text "32 X 32 LED DISPLAY\n1:8 MULTIPLEXED\nMAX CURRENT DRAW 2.56 A"
 		(at 521 261.25 0)
 		(layer "F.SilkS")
 		(uuid "96055ac9-22da-467d-91ff-9d7a4e45b3ce")
 		(effects
 			(font
-				(size 4.5 4.5)
-				(thickness 0.9)
+				(size 3 3)
+				(thickness 0.6)
 				(bold yes)
 			)
 		)
