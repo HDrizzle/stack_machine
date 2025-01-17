@@ -159,7 +159,9 @@ pub fn start_gui(machine: Machine) {
 		Key::ArrowLeft,
 		Key::ArrowRight,
 		Key::A,
-		Key::D
+		Key::D,
+		Key::ArrowDown,
+		Key::ArrowUp
 	];
 	let native_options = eframe::NativeOptions::default();
 	eframe::run_native("Stack machine emulator", native_options, Box::new(|cc| Ok(Box::new(EguiApp::new(cc, machine, keys))))).unwrap();
