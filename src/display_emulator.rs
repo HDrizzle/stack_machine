@@ -9,7 +9,7 @@ use eframe::egui::Key;
 const DISPLAY_WIDTH: usize = 32;
 const DISPLAY_HEIGHT: usize = 32;
 const PIXEL_SIZE: usize = 15;
-const INSTRUCTIONS_PER_FRAME: usize = 100;
+const INSTRUCTIONS_PER_FRAME: usize = 1000;
 
 struct GpioInterfaceDisplay {
 	pub display_state: [u8; 128],

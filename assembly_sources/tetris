@@ -44,6 +44,15 @@
 #write 0x01 stack-push;
 #@call(draw-pixel-in-arena);
 
+@call(set-pointer-arena);
+write 0x0A gpram-addr-a;
+write 0x01 gpram;
+write 0x1E gpram-addr-a;
+write 0x01 gpram-inc-addr;
+write 0x01 gpram-inc-addr;
+write 0x32 gpram-addr-a;
+write 0x01 gpram;
+
 @call(draw-arena);
 
 # Print out gpram pointers
@@ -59,7 +68,15 @@
 
 write 0x00 stack-push;
 @anchor(test-loop-start);
-@call(draw-arena);# Arena must be drawn BEFORE current shape so that it will overwrite the previous rendering of the shape
+# Collision test
+@call(set-pointer-current-shape);
+@call(collision-check);
+@call(set-pointer-display-buffer);
+write 0x02 gpram-addr-a;
+move stack-pop gpram-inc-addr;
+move stack-pop gpram;
+# Arena must be drawn BEFORE current shape so that it will overwrite the previous rendering of the shape
+@call(draw-arena);
 # Draw current shape
 @call(draw-current-shape);
 # Update display
@@ -73,8 +90,13 @@ write 0x00 stack-push;# Key index
 move stack-pop alu-a; move not alu goto-decider;
 @goto_if(test-loop-start);
 
+@call(put-current-shape-onto-arena);
+
 # Update current shape before next shape
-@call(init-current-shape);
+@call(init-current-shape-and-collision-check);
+@call(set-pointer-display-buffer);
+write 0x04 gpram-addr-a;
+move stack-pop gpram;
 
 # New thing, works
 write 0x00 set-stack-offset;
@@ -147,7 +169,7 @@ return;
 
 @anchor(set-pointer-input-state);
 write 0x00 gpram-addr-a;
-write 0x04 gpram-addr-b;
+write 0x00 gpram-addr-b;# TODO: Change back to 0x04 when done
 return;
 
 @anchor(set-pointer-rand-gen);
@@ -319,21 +341,24 @@ write 0x2A gpram-addr-a;
 move stack-pop gpram;
 return;
 
-# TODO: Test
+# There is a minor bug where edge collisions and arena collisions are mutually exclusive, but this shouldn't affect the game logic
 @anchor(collision-check);
 # Pops 0 bytes
 # Assumes the GPRAM address has already been set, probably to either the current shape or the collision test alternate memory location
 # Checks for collision between the given shape and both the arena and the boundary
-# Returns: Whether the given shape is overlapping anything
-# Return value, initially false
+# Returns 2 values:
+#   0. Whether the given shape is overlapping anything in the arena
+#   1. Whether it is overlapping the edge
+# Return values, initially false
+write 0x00 stack-push;
 write 0x00 stack-push;
 # Get offset of shape
 write 0x10 gpram-addr-a;
 move gpram-inc-addr stack-push;
-move gpram-inc-addr stack-push;
+move gpram stack-push;
 # Loop 0..16, calculate local (X,Y) each iteration
 write 0x00 stack-push;
-# Stack: Return, X offset, Y offset, i
+# Stack: Return (arena), Return (edge), X offset, Y offset, i
 @anchor(collision-check-shape-loop-start);
 # Calculate X and Y from i
 # X, divide by 4
@@ -343,13 +368,13 @@ write 0x06 alu-b;
 move shift alu alu-a;
 write 0x3F alu-b;# Chop off any 1s that wraped around
 move and alu stack-push;
-# Stack: Return, X offset, Y offset, i, Local X
+# Stack: Return (arena), Return (edge), X offset, Y offset, i, Local X
 # Y, lower 2 bits
 write 0x01 set-stack-offset;
 move offset-read alu-a;
 write 0x03 alu-b;
 move and alu stack-push;
-# Stack: Return, X offset, Y offset, i, Local X, Local Y
+# Stack: Return (arena), Return (edge), X offset, Y offset, i, Local X, Local Y
 # Add offsets to X and Y, in-place
 # X
 write 0x04 set-stack-offset;
@@ -363,7 +388,7 @@ move offset-read alu-a;
 write 0x00 set-stack-offset;
 move offset-read alu-b;
 move add alu offset-write;
-# Stack: Return, X offset, Y offset, i, X arena, Y arena
+# Stack: Return (arena), Return (edge), X offset, Y offset, i, X arena, Y arena
 # Get shape value at location
 write 0x02 set-stack-offset;
 move offset-read gpram-addr-a;
@@ -374,7 +399,7 @@ move not alu goto-decider;
 # Before checking arena collision, check for edge collision
 write 0x05 set-stack-offset;
 move offset-read stack-push;
-# Stack: Return, X offset, Y offset, i, X arena, Y arena, Return (recent)
+# Stack: Return (arena), Return (edge), X offset, Y offset, i, X arena, Y arena, Return (edge) (recent)
 # X=255 (left edge)
 write 0x02 set-stack-offset;
 move offset-read alu-a;
@@ -403,13 +428,16 @@ move stack-pop alu-b;
 move or alu stack-push;
 # Done with edge checking, update OG return variable
 move stack-pop alu-a;
-write 0x06 set-stack-offset;
+write 0x05 set-stack-offset;
 move offset-read alu-b;
 move or alu offset-write;
-# Stack: Return, X offset, Y offset, i, X arena, Y arena
+# Stack: Return (arena), Return (edge), X offset, Y offset, i, X arena, Y arena
+# If there is an edge collision, don't check for arena collision because there could be weird (literal) edge cases
+move a alu goto-decider;
+@goto_if(collision-check-skip-arena-and-edge-check);
 # Save GPRAM B address
 move gpram-addr-b stack-push;
-# Stack: Return, X offset, Y offset, i, X arena, Y arena, GPRAM B (shape)
+# Stack: Return (arena), Return (edge), X offset, Y offset, i, X arena, Y arena, GPRAM B (shape)
 # Calculate arena index using (X,Y), start by multiplying X by 20 (*16 + *4)
 write 0x02 set-stack-offset;
 move offset-read alu-a;
@@ -422,11 +450,11 @@ move add alu alu-a;
 # Now add Y
 write 0x01 set-stack-offset;
 move offset-read alu-b;
-# Set GPRAM address
-@call(set-pointer-display-buffer);
+# Set GPRAM address to arena
+@call(set-pointer-arena);
 move add alu gpram-addr-a;
 # OR arena value with current return value
-write 0x06 set-stack-offset;
+write 0x07 set-stack-offset;
 move offset-read alu-a;
 move gpram alu-b;
 move or alu offset-write;
@@ -436,7 +464,7 @@ move stack-pop gpram-addr-b;
 # Clear X arena and Y arena
 move stack-pop none;
 move stack-pop none;
-# Stack: Return, X offset, Y offset, i
+# Stack: Return (arena), Return (edge), X offset, Y offset, i
 # Increment i
 move stack-pop alu-a;
 write 0x01 alu-b;
@@ -451,10 +479,97 @@ move not alu goto-decider;
 move stack-pop none;
 move stack-pop none;
 move stack-pop none;
-# Stack: Return
+# Stack: Return (arena), Return (edge)
 return;
 
-# TODO: Test
+# Works
+@anchor(put-current-shape-onto-arena);
+# DOES NOT check if shape is overlapping edge
+# Mostly copied from `collision-check`
+# Get offset of shape
+@call(set-pointer-current-shape);
+write 0x10 gpram-addr-a;
+move gpram-inc-addr stack-push;
+move gpram stack-push;
+# Loop 0..16, calculate local (X,Y) each iteration
+write 0x00 stack-push;
+# Stack: X offset, Y offset, i
+@anchor(put-current-shape-onto-arena-loop-start);
+# Calculate X and Y from i
+# X, divide by 4
+write 0x00 set-stack-offset;
+move offset-read alu-a;
+write 0x06 alu-b;
+move shift alu alu-a;
+write 0x3F alu-b;# Chop off any 1s that wraped around
+move and alu stack-push;
+# Stack: X offset, Y offset, i, Local X
+# Y, lower 2 bits
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x03 alu-b;
+move and alu stack-push;
+# Stack: X offset, Y offset, i, Local X, Local Y
+# Add offsets to X and Y, in-place
+# X
+write 0x04 set-stack-offset;
+move offset-read alu-a;
+write 0x01 set-stack-offset;
+move offset-read alu-b;
+move add alu offset-write;
+# Y
+write 0x03 set-stack-offset;
+move offset-read alu-a;
+write 0x00 set-stack-offset;
+move offset-read alu-b;
+move add alu offset-write;
+# Stack: X offset, Y offset, i, X arena, Y arena
+# Get shape value at location
+@call(set-pointer-current-shape);
+write 0x02 set-stack-offset;
+move offset-read gpram-addr-a;
+move gpram alu-a;
+move not alu goto-decider;
+@goto_if(put-current-shape-onto-arena-skip-or);
+# Calculate arena index using (X,Y), start by multiplying X by 20 (*16 + *4)
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x04 alu-b;
+move shift alu stack-push;
+write 0x02 alu-b;
+move shift alu alu-a;
+move stack-pop alu-b;
+move add alu alu-a;
+# Now add Y
+write 0x00 set-stack-offset;
+move offset-read alu-b;
+# Set GPRAM address to arena
+@call(set-pointer-arena);
+move add alu gpram-addr-a;
+# Set arena value to 1
+write 0x01 gpram;
+@anchor(put-current-shape-onto-arena-skip-or);
+# Clear X arena and Y arena
+move stack-pop none;
+move stack-pop none;
+# Stack: X offset, Y offset, i
+# Increment i
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if i=16
+write 0x10 alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(put-current-shape-onto-arena-loop-start);
+# Clear stack variables
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+return;
+
+# Works
 @anchor(init-current-shape);
 # Copies the shape at the "next shape" location into the "current shape" location, the initial (X,Y) is hardcoded as (3,16)
 # First, copy next shape onto the stack;
@@ -477,6 +592,51 @@ move eq alu goto-decider;# 0xFF is already in alu-b so it can be used to check i
 write 0x10 gpram-addr-a;
 write 0x03 gpram-inc-addr;
 write 0x10 gpram;
+return;
+
+# Works
+@anchor(init-current-shape-and-collision-check);
+# Calls `init-current-shape`, then moves shape up as fas as possible without hitting the top edge, if at this point it is overlapping with the arena, an LSB of 1 will be returned
+# Returns 1 byte: Whether the game is over
+@call(init-current-shape);
+# While-loop to move shape up until it hits the top edge
+write 0x00 stack-push;# Safety counter
+@anchor(init-current-shape-and-collision-check-while-loop-start);
+@call(set-pointer-current-shape);
+@call(collision-check);
+# Stack: Safety counter, Arena collision, Edge collision
+move stack-pop goto-decider;
+move stack-pop none;
+@goto_if(init-current-shape-and-collision-check-while-loop-end);
+# Move up by 1
+@call(set-pointer-current-shape);
+write 0x11 gpram-addr-a;
+move gpram alu-a;
+write 0x01 alu-b;
+move add alu gpram;
+# Increment safety counter
+move stack-pop alu-a;
+move add alu stack-push;
+move add alu alu-a;
+# Check if safety counter is 4
+write 0x04 alu-b;
+move eq alu goto-decider;
+@goto_if(init-current-shape-and-collision-check-while-loop-end);
+@goto(init-current-shape-and-collision-check-while-loop-start);
+@anchor(init-current-shape-and-collision-check-while-loop-end);
+# Delete safety counter
+move stack-pop none;
+# Move down by 1
+@call(set-pointer-current-shape);
+write 0x11 gpram-addr-a;
+move gpram alu-a;
+write 0xFF alu-b;
+move add alu gpram;
+# Check for arena collision
+@call(collision-check);
+# Stack: Arena collision, Edge collision
+move stack-pop none;
+# Stack: Arena collision
 return;
 
 @anchor(draw-current-shape);
@@ -524,7 +684,7 @@ move stack-pop alu-b;
 move xnor alu goto-decider;
 @goto_if(read-input-to-shift-current-shape-skip-horizontal);
 # Multiply alu-a by 2 and subtract 1, then add to horizontal position of current shape
-write 0x7F alu-b;
+write 0x01 alu-b;
 move and alu alu-a;
 write 0x01 alu-b;
 move shift alu alu-a;
@@ -547,7 +707,7 @@ move stack-pop alu-b;
 move xnor alu goto-decider;
 @goto_if(read-input-to-shift-current-shape-skip-vertical);
 # Multiply alu-a by 2 and subtract 1, then add to vertical position of current shape
-write 0x7F alu-b;
+write 0x01 alu-b;
 move and alu alu-a;
 write 0x01 alu-b;
 move shift alu alu-a;
@@ -561,7 +721,7 @@ move add alu gpram;
 return;
 
 @anchor(try-shift-current-shape);
-# Pops 1 byte: LSB rotates shifts right if 1, left if 0
+# Pops 1 byte: LSB shifts right if 1, left if 0
 # TODO
 return;
 
