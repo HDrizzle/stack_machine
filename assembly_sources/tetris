@@ -92,6 +92,10 @@ move stack-pop alu-a; move not alu goto-decider;
 
 @call(put-current-shape-onto-arena);
 
+# Clear completed rows
+@call(clear-completed-rows);
+move stack-pop none;
+
 # Update current shape before next shape
 @call(init-current-shape-and-collision-check);
 @call(set-pointer-display-buffer);
@@ -348,7 +352,7 @@ return;
 # Checks for collision between the given shape and both the arena and the boundary
 # Returns 2 values:
 #   0. Whether the given shape is overlapping anything in the arena
-#   1. Whether it is overlapping the edge
+#   1. Whether it is overlapping the edge, the first 4 bits correspond to (LSB first) left, right, bottom, top
 # Return values, initially false
 write 0x00 stack-push;
 write 0x00 stack-push;
@@ -411,6 +415,8 @@ move or alu stack-push;
 move offset-read alu-a;
 write 0x0A alu-b;
 move eq alu alu-a;
+write 0x01 alu-b;
+move shift alu alu-a;
 move stack-pop alu-b;
 move or alu stack-push;
 # Y=255 (bottom edge)
@@ -418,12 +424,16 @@ write 0x01 set-stack-offset;
 move offset-read alu-a;
 write 0xFF alu-b;
 move eq alu alu-a;
+write 0x02 alu-b;
+move shift alu alu-a;
 move stack-pop alu-b;
 move or alu stack-push;
 # X=20 (top edge)
 move offset-read alu-a;
 write 0x14 alu-b;
 move eq alu alu-a;
+write 0x03 alu-b;
+move shift alu alu-a;
 move stack-pop alu-b;
 move or alu stack-push;
 # Done with edge checking, update OG return variable
@@ -570,6 +580,161 @@ move stack-pop none;
 return;
 
 # Works
+@anchor(check-row-is-complete);
+# Pops 1 byte: Row Y value
+# Pushes 1 byte: Result
+write 0x01 stack-push;
+write 0x00 stack-push;
+# Stack: Y, Result, X
+@call(set-pointer-arena);
+# Loop that `AND`s each arena value with 0x01, only if they are all filled in will the result stil be 0x01
+@anchor(check-row-is-complete-loop-start);
+# Calculate arena index using (X,Y), start by multiplying X by 20 (*16 + *4)
+write 0x00 set-stack-offset;
+move offset-read alu-a;
+write 0x04 alu-b;
+move shift alu stack-push;
+write 0x02 alu-b;
+move shift alu alu-a;
+move stack-pop alu-b;
+move add alu alu-a;
+# Now add Y
+write 0x02 set-stack-offset;
+move offset-read alu-b;
+# Set GPRAM address
+move add alu gpram-addr-a;
+# AND with result
+move gpram alu-a;
+write 0x01 set-stack-offset;
+move offset-read alu-b;
+move and alu offset-write;
+# Increment X
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if x=10
+write 0x0A alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(check-row-is-complete-loop-start);
+# Done
+move stack-pop none;
+write 0x00 set-stack-offset;
+move stack-pop offset-write;
+return;
+
+# NO WAY IT WORKS FIRST TRY!!!!!!! (besides compiler errors but whatever)
+@anchor(clear-completed-rows);
+# Pushes 1 byte: Number of rows cleared (to add to score)
+write 0x00 stack-push;
+write 0x13 stack-push;
+# Stack: Clear count, Y
+# For-loop to iterate y down to 0 and check each row
+@anchor(clear-completed-rows-main-loop);
+# Check if row is complete
+write 0x00 set-stack-offset;
+move offset-read stack-push;
+@call(check-row-is-complete);
+move stack-pop alu-a;
+move not alu goto-decider;
+@goto_if(clear-completed-rows-skip-clear);
+# Iterate from X=0 to X=10, then from Y=(outer loop Y) to Y=20, shift data down by 1
+write 0x00 stack-push;
+# Stack: Clear count, Y, Clear X
+@call(set-pointer-arena);
+@anchor(clear-completed-rows-clear-outer-loop-x);
+# Multiply Clear X by 20
+write 0x00 set-stack-offset;
+move offset-read alu-a;
+write 0x04 alu-b;
+move shift alu stack-push;
+write 0x02 alu-b;
+move shift alu alu-a;
+move stack-pop alu-b;
+move add alu stack-push;
+# Stack: Clear count, Y, Clear X, Arena index (by clear X)
+write 0x02 set-stack-offset;
+move offset-read stack-push;
+# Stack: Clear count, Y, Clear X, Arena index (by clear X), Clear Y
+@anchor(clear-completed-rows-clear-inner-loop-y);
+# Get arena index
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x00 set-stack-offset;
+move offset-read alu-b;
+move add alu stack-push;
+# Stack: Clear count, Y, Clear X, Arena index (by clear X), Clear Y, Arena index (absolute)
+# Check if `Clear Y`=19, meaning DON'T increment the GPRAM address to get the replacement value, instead just write 0x00
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x13 alu-b;
+move eq alu goto-decider;
+@goto_if(clear-completed-rows-clear-inner-loop-y-use-constant-replacement);
+# Use next arena value
+write 0x00 set-stack-offset;
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu gpram-addr-a;
+move gpram stack-push;
+@goto(clear-completed-rows-clear-inner-loop-y-end-replacement-find-if-else);
+@anchor(clear-completed-rows-clear-inner-loop-y-use-constant-replacement);
+# Top of arena, use 0x00
+write 0x00 stack-push;
+@anchor(clear-completed-rows-clear-inner-loop-y-end-replacement-find-if-else);
+# Stack: Clear count, Y, Clear X, Arena index (by clear X), Clear Y, Arena index (absolute), Replacement
+# Put replacement value into arena, using alu-a to temporarily store it
+move stack-pop alu-a;
+move stack-pop gpram-addr-a;
+move a alu gpram;
+# Stack: Clear count, Y, Clear X, Arena index (by clear X), Clear Y
+# Increment Clear Y
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if `Clear Y`=20
+write 0x14 alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(clear-completed-rows-clear-inner-loop-y);
+# Clear `Clear Y` and `Arena index (by X)`
+move stack-pop none;
+move stack-pop none;
+# Stack: Clear count, Y, Clear X
+# Increment Clear X
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if `Clear X`=10
+write 0x0A alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(clear-completed-rows-clear-outer-loop-x);
+# Delete `Clear X`
+move stack-pop none;
+# Stack: Clear count, Y
+# Increment clear count
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu offset-write;
+@anchor(clear-completed-rows-skip-clear);
+# Decrement Y
+move stack-pop alu-a;
+write 0xFF alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if Y=255 (it wrapped around)
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(clear-completed-rows-main-loop);
+# Delete Y
+move stack-pop none;
+return;
+
+# Works
 @anchor(init-current-shape);
 # Copies the shape at the "next shape" location into the "current shape" location, the initial (X,Y) is hardcoded as (3,16)
 # First, copy next shape onto the stack;
@@ -605,7 +770,9 @@ write 0x00 stack-push;# Safety counter
 @call(set-pointer-current-shape);
 @call(collision-check);
 # Stack: Safety counter, Arena collision, Edge collision
-move stack-pop goto-decider;
+move stack-pop alu-a;
+write 0x05 alu-b;
+move shift alu goto-decider;
 move stack-pop none;
 @goto_if(init-current-shape-and-collision-check-while-loop-end);
 # Move up by 1
