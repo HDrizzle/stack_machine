@@ -1,6 +1,5 @@
 # Tetris implementation
 # Blocks at: https://docs.google.com/spreadsheets/d/1tb9R2Y6Wr4T2g81XD9d3jRF-j7dfjZBMvmKckkSev1U/edit?usp=sharing
-# In keeping w/ tradition, screen coordinates will start at the top-left of the display
 # Key bindings: bit indices of `gpio-read-a`
 #   0. Restart game
 #   1. Shift left
@@ -31,8 +30,9 @@
 #     TODO
 #   Next shape: 0x0600
 #     16 bytes, same format as current shape but without the arena location
-#   Current shape collision test: 0x0700
-#     Same format as current shape, used in intermediate processing for collision testing
+
+# Comment out for testing
+@goto(init);
 
 # --------------------------------- <Testing> ---------------------------------
 
@@ -44,15 +44,6 @@
 #write 0x01 stack-push;
 #@call(draw-pixel-in-arena);
 
-@call(set-pointer-arena);
-write 0x0A gpram-addr-a;
-write 0x01 gpram;
-write 0x1E gpram-addr-a;
-write 0x01 gpram-inc-addr;
-write 0x01 gpram-inc-addr;
-write 0x32 gpram-addr-a;
-write 0x01 gpram;
-
 @call(draw-arena);
 
 # Print out gpram pointers
@@ -63,10 +54,10 @@ write 0x01 gpram;
 #move stack-pop gpram-inc-addr;
 
 @call(update-display);
+@call(pseudo-random-init);
 
 
 
-write 0x00 stack-push;
 @anchor(test-loop-start);
 # Collision test
 @call(set-pointer-current-shape);
@@ -81,7 +72,7 @@ move stack-pop gpram;
 @call(draw-current-shape);
 # Update display
 @call(update-display);
-# Read input for rotation
+# Read input
 @call(read-input-to-rotate-current-shape);
 @call(read-input-to-shift-current-shape);
 # Check to run shape update
@@ -103,8 +94,7 @@ write 0x04 gpram-addr-a;
 move stack-pop gpram;
 
 # New thing, works
-write 0x00 set-stack-offset;
-move offset-read stack-push;
+@call(pseudo-random-get);
 @call(init-next-shape-from-storage);
 
 # Draw next shape at (15,16)
@@ -114,39 +104,87 @@ write 0x10 stack-push;
 @call(set-pointer-next-shape);
 @call(draw-shape);
 
-# Increment counter by 1
-move stack-pop alu-a;
-write 0x01 alu-b;
-move add alu stack-push;
-# Check if counter is 7
-write 0x00 set-stack-offset;
-move offset-read alu-a;
-write 0x07 alu-b;
-move eq alu alu-a;
-move not alu goto-decider;
-@goto_if(test-loop-start);
-write 0x00 offset-write;
 @goto(test-loop-start);
-
-# Loop
-@anchor(collision-traverse);
-# TODO
 
 # --------------------------------- </Testing> ---------------------------------
 
 # --------------------------------- <Init> ---------------------------------
+@anchor(init);
+@call(init-shapes);
+@call(init-arena-outline);
+@call(pseudo-random-init);
+@call(clear-arena);
+@call(draw-arena);
+# Render everything so far
+@call(update-display);
 # --------------------------------- </Init> ---------------------------------
 
 # --------------------------------- <Loop> ---------------------------------
+@anchor(outer-loop-start);
+# New game, wait for button 0 to be pressed
 write 0x00 stack-push;
-write 0x00 set-stack-offset;
-write 0x01 alu-b;
-@anchor(main-loop-start);
-move offset-read alu-a;
-move offset-read alu-a;
-write 0xFF gpio-write-b;
-@goto(main-loop-start);
-
+@call(read-input);
+move stack-pop alu-a;
+move not alu goto-decider;
+@goto_if(outer-loop-start);
+# Clear arena
+@call(clear-arena);
+# Initial shapes
+# Current shape
+@call(pseudo-random-get);
+@call(init-next-shape-from-storage);
+@call(init-current-shape-and-collision-check);
+# Next shape
+@call(pseudo-random-get);
+@call(init-next-shape-from-storage);
+# Draw next shape at (15,16)
+write 0x00 stack-push;
+write 0x0F stack-push;
+write 0x10 stack-push;
+@call(set-pointer-next-shape);
+@call(draw-shape);
+# Game loop start
+@anchor(game-loop-start);
+# Read input
+@call(read-input-to-rotate-current-shape);
+@call(read-input-to-shift-current-shape);
+# Shift down?, collision check
+# TODO: Not every frame
+@call(try-shift-current-shape-down);
+move stack-pop goto-decider;
+@goto_if(game-loop-new-shape);
+@goto(game-loop-skip-new-shape);
+@anchor(game-loop-new-shape);
+# Save previous shape to arena
+@call(put-current-shape-onto-arena);
+# Clear completed rows
+@call(clear-completed-rows);
+move stack-pop none;
+# New current shape, read arena collision result
+@call(init-current-shape-and-collision-check);
+move stack-pop goto-decider;
+@goto_if(game-loop-end);
+# Update next shape
+@call(pseudo-random-get);
+@call(init-next-shape-from-storage);
+# Draw next shape at (15,16)
+write 0x00 stack-push;
+write 0x0F stack-push;
+write 0x10 stack-push;
+@call(set-pointer-next-shape);
+@call(draw-shape);
+@anchor(game-loop-skip-new-shape);
+# Update graphics
+# Arena must be drawn BEFORE current shape so that it will overwrite the previous rendering of the shape
+@call(draw-arena);
+# Draw current shape
+@call(draw-current-shape);
+# Update display
+@call(update-display);
+# Goto beginning of game loop
+@goto(game-loop-start);
+@anchor(game-loop-end);
+@goto(outer-loop-start);
 # --------------------------------- </Loop> ---------------------------------
 
 # --------------------------------- <Functions> ---------------------------------
@@ -186,9 +224,29 @@ write 0x00 gpram-addr-a;
 write 0x06 gpram-addr-b;
 return;
 
-@anchor(set-pointer-current-shape-collision-test);
-write 0x00 gpram-addr-a;
-write 0x06 gpram-addr-b;
+@anchor(pseudo-random-init);
+@call(set-pointer-rand-gen);
+write 0x00 gpram;
+return;
+
+@anchor(pseudo-random-get);
+# Pushes 1 byte: New "random" value
+@call(set-pointer-rand-gen);
+move gpram stack-push;
+# Increment value
+move gpram alu-a;
+write 0x01 alu-b;
+move add alu alu-a;
+# Check if it is 7
+write 0x07 alu-b;
+move eq alu goto-decider;
+@goto_if(pseudo-random-get-reset);
+@goto(pseudo-random-get-skip-reset);
+@anchor(pseudo-random-get-reset);
+# Reset
+write 0x00 alu-a;
+@anchor(pseudo-random-get-skip-reset);
+move a alu gpram;
 return;
 
 # Works
@@ -263,6 +321,19 @@ move not alu goto-decider;
 @goto_if(update-display-loop-start);
 # Done
 move stack-pop none;
+return;
+
+# TODO: Test
+@anchor(clear-arena);
+@call(set-pointer-arena);
+@anchor(clear-arena-loop-start);
+write 0x00 gpram-inc-addr;
+move gpram-addr-a alu-a;
+write 0xC8 alu-b;# 200
+move eq alu goto-decider;
+@goto_if(clear-arena-loop-end);
+@goto(clear-arena-loop-start);
+@anchor(clear-arena-loop-end);
 return;
 
 @anchor(init-arena-outline);
@@ -831,12 +902,41 @@ move eq alu goto-decider;
 @anchor(push-16-values-onto-stack-push-loop-end);
 return;
 
+@anchor(try-shift-current-shape-down);
+# Returns 1 byte: Whether there is an edge or arena collision
+# Shift current shape down
+@call(set-pointer-current-shape);
+write 0x11 gpram-addr-a;
+move gpram alu-a;
+write 0xFF alu-b;
+move add alu gpram;
+# Collision check
+@call(collision-check);
+# Stack: Arena collision, Edge collision
+move stack-pop alu-a;
+write 0x00 alu-b;
+move eq alu alu-a;
+move not alu alu-a;
+move stack-pop alu-b;
+move or alu stack-push;
+move or alu goto-decider;
+# Stack: Collision
+@goto_if(try-shift-current-shape-down-undo);
+@goto(try-shift-current-shape-down-skip-undo);
+@anchor(try-shift-current-shape-down-undo);
+# Move back up by 1
+@call(set-pointer-current-shape);
+write 0x11 gpram-addr-a;
+move gpram alu-a;
+write 0x01 alu-b;
+move add alu gpram;
+@anchor(try-shift-current-shape-down-skip-undo);
+return;
+
 # Currently used for collision testing, TODO: use `try-shift-current-shape`
 @anchor(read-input-to-shift-current-shape);
 #   1. Shift left
 #   2. Shift right
-#   3. Rotate CCW
-#   4. Rotate CW
 #   5. Shift Down (temporary)
 #   6. Shift Up (temporary)
 # Horizontal shift
@@ -850,18 +950,25 @@ move stack-pop alu-a;
 move stack-pop alu-b;
 move xnor alu goto-decider;
 @goto_if(read-input-to-shift-current-shape-skip-horizontal);
+
+# Use shift attempt function
+move a alu stack-push;
+@call(try-shift-current-shape);
+
 # Multiply alu-a by 2 and subtract 1, then add to horizontal position of current shape
-write 0x01 alu-b;
-move and alu alu-a;
-write 0x01 alu-b;
-move shift alu alu-a;
-write 0xFF alu-b;
-move add alu alu-a;
-@call(set-pointer-current-shape);
-write 0x10 gpram-addr-a;
-move gpram alu-b;
-move add alu gpram;
+#write 0x01 alu-b;
+#move and alu alu-a;
+#move shift alu alu-a;
+#write 0xFF alu-b;
+#move add alu alu-a;
+#@call(set-pointer-current-shape);
+#write 0x10 gpram-addr-a;
+#move gpram alu-b;
+#move add alu gpram;
+
 @anchor(read-input-to-shift-current-shape-skip-horizontal);
+# Comment out for testing
+@goto(read-input-to-shift-current-shape-skip-vertical);
 # Vertical shift, TODO
 write 0x05 stack-push;
 @call(read-input);
@@ -876,7 +983,6 @@ move xnor alu goto-decider;
 # Multiply alu-a by 2 and subtract 1, then add to vertical position of current shape
 write 0x01 alu-b;
 move and alu alu-a;
-write 0x01 alu-b;
 move shift alu alu-a;
 write 0xFF alu-b;
 move add alu alu-a;
@@ -887,9 +993,52 @@ move add alu gpram;
 @anchor(read-input-to-shift-current-shape-skip-vertical);
 return;
 
+# Works
 @anchor(try-shift-current-shape);
 # Pops 1 byte: LSB shifts right if 1, left if 0
-# TODO
+# Make sure only the LSB can be set
+move stack-pop alu-a;
+write 0x01 alu-b;
+move and alu alu-a;
+# Multiply by 2 and subtract 1
+write 0x01 alu-b;
+move shift alu alu-a;
+write 0xFF alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Stack: Shift
+# Apply shift
+@call(set-pointer-current-shape);
+write 0x10 gpram-addr-a;
+move gpram alu-b;
+move add alu gpram;
+# Collision check
+@call(collision-check);
+# Stack: Shift, Arena collision, Edge collision
+# AND edge collision with 0x00, if there is any collision then it will return false
+move stack-pop alu-a;
+write 0x00 alu-b;
+move eq alu alu-a;
+move not alu alu-a;
+# OR with arena collision
+move stack-pop alu-b;
+move or alu alu-a;
+move not alu goto-decider;
+# Stack: Shift
+move stack-pop alu-a;# Do this before decision so the shift byte will be popped either way
+# Stack:
+@goto_if(try-shift-current-shape-skip-undo);
+# There is a collision: shift the other way
+# Negate shift
+move not alu alu-a;
+write 0x01 alu-b;
+move add alu alu-a;
+# Apply opposite shift
+@call(set-pointer-current-shape);
+write 0x10 gpram-addr-a;
+move gpram alu-b;
+move add alu gpram;
+@anchor(try-shift-current-shape-skip-undo);
 return;
 
 # Currently used for collision testing, TODO: use `try-rotate-current-shape`
@@ -910,13 +1059,103 @@ move xnor alu goto-decider;
 # Rotate
 @call(set-pointer-current-shape);
 move b alu stack-push;
-@call(rotate-shape);
+@call(try-rotate-current-shape);#@call(rotate-shape);
 @anchor(read-input-to-rotate-current-shape-end);
 return;
 
+# Works
 @anchor(try-rotate-current-shape);
 # Pops 1 byte: LSB rotates CCW if 1, CW if 0
-# TODO
+@call(set-pointer-current-shape);
+write 0x10 gpram-addr-a;
+move gpram-inc-addr stack-push;
+move gpram stack-push;
+# Stack: Rotate, X original, Y original
+# Apply rotation
+write 0x02 set-stack-offset;
+move offset-read stack-push;
+@call(rotate-shape);
+# Horizontal collision resolve
+@anchor(try-rotate-current-shape-horizontal-loop-start);
+@call(collision-check);
+# Stack: Rotate, X original, Y original, Arena collision, Edge collision
+move stack-pop alu-a;
+move stack-pop none;
+write 0x03 alu-b;# Only allow first two bits (left and right collision) to be set
+move and alu alu-a;
+write 0x00 alu-b;
+move eq alu goto-decider;
+# Stack: Rotate, X original, Y original
+@goto_if(try-rotate-current-shape-horizontal-loop-end);
+# There is either a left or right edge collision
+# The bit pattern in `alu-a` is now either 01 (left) or 10 (right), so -(((`alu-a` - 1) * 2) - 1) = -(2 * `alu-a` - 3) = ~(2 * `alu-a` - 3) + 1 = ~(2 * `alu-a` - 4) would give the X shift to help undo the collision
+write 0x01 alu-b;
+move shift alu alu-a;
+write 0xFC alu-b;
+move add alu alu-a;
+move not alu alu-a;
+# Now add `alu-a` to the current shape X value
+@call(set-pointer-current-shape);
+write 0x10 gpram-addr-a;
+move gpram alu-b;
+move add alu gpram;
+@goto(try-rotate-current-shape-horizontal-loop-start);
+@anchor(try-rotate-current-shape-horizontal-loop-end);
+# Vertical collision resolve
+@anchor(try-rotate-current-shape-vertical-loop-start);
+@call(collision-check);
+# Stack: Rotate, X original, Y original, Arena collision, Edge collision
+move stack-pop alu-a;
+move stack-pop none;
+write 0x0C alu-b;# Only allow 3rd & 4th bits (bottom and top collision) to be set
+move and alu alu-a;
+write 0x06 alu-b;
+move shift alu alu-a;
+write 0x00 alu-b;
+move eq alu goto-decider;
+# Stack: Rotate, X original, Y original
+@goto_if(try-rotate-current-shape-vertical-loop-end);
+# There is either a bottom or top edge collision
+# The bit pattern in `alu-a` is now either 01 (bottom) or 10 (top), so -(((`alu-a` - 1) * 2) - 1) = -(2 * `alu-a` - 3) = ~(2 * `alu-a` - 3) + 1 = ~(2 * `alu-a` - 4) would give the Y shift to help undo the collision
+write 0x01 alu-b;
+move shift alu alu-a;
+write 0xFC alu-b;
+move add alu alu-a;
+move not alu alu-a;
+# Now add `alu-a` to the current shape Y value
+@call(set-pointer-current-shape);
+write 0x11 gpram-addr-a;
+move gpram alu-b;
+move add alu gpram;
+@goto(try-rotate-current-shape-vertical-loop-start);
+@anchor(try-rotate-current-shape-vertical-loop-end);
+# Check arena collision
+@call(set-pointer-current-shape);
+@call(collision-check);
+# Stack: Rotate, X original, Y original, Arena collision, Edge collision
+move stack-pop none;
+move stack-pop goto-decider;
+# Stack: Rotate, X original, Y original
+@goto_if(try-rotate-current-shape-undo-transformation);
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+@goto(try-rotate-current-shape-end);
+@anchor(try-rotate-current-shape-undo-transformation);
+# There is an arena collision after rotating and avoiding the edge: undo everything
+# Stack: Rotate, X original, Y original
+@call(set-pointer-current-shape);
+# Reset X and Y
+write 0x11 gpram-addr-a;
+move stack-pop gpram;
+write 0x10 gpram-addr-a;
+move stack-pop gpram;
+# Stack: Rotate
+# Reset rotate
+move stack-pop alu-a;
+move not alu stack-push;
+@call(rotate-shape);
+@anchor(try-rotate-current-shape-end);
 return;
 
 # Works for regular shapes
@@ -924,6 +1163,7 @@ return;
 # Pops 1 byte: LSB rotates CCW if 1, CW if 0
 # Assumes the GPRAM address for the shape data has already been set and that it is at the beginning of a 256 byte block
 # Stack: Direction
+write 0x00 gpram-addr-a;
 @call(push-16-values-onto-stack);
 # Stack: Direction, <16 values>
 # Decision
