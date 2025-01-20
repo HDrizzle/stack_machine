@@ -1,4 +1,5 @@
 # Tetris implementation
+# Works best at ~600,000 instructions/sec
 # Blocks at: https://docs.google.com/spreadsheets/d/1tb9R2Y6Wr4T2g81XD9d3jRF-j7dfjZBMvmKckkSev1U/edit?usp=sharing
 # Key bindings: bit indices of `gpio-read-a`
 #   0. Restart game
@@ -30,6 +31,7 @@
 #     TODO
 #   Next shape: 0x0600
 #     16 bytes, same format as current shape but without the arena location
+#   Score: 0x0700
 
 # Comment out for testing
 @goto(init);
@@ -127,6 +129,7 @@ write 0x00 stack-push;
 move stack-pop alu-a;
 move not alu goto-decider;
 @goto_if(outer-loop-start);
+@call(clear-score);
 # Clear arena
 @call(clear-arena);
 # Initial shapes
@@ -143,13 +146,26 @@ write 0x0F stack-push;
 write 0x10 stack-push;
 @call(set-pointer-next-shape);
 @call(draw-shape);
+# Frames since last shift down
+write 0x00 stack-push;
 # Game loop start
 @anchor(game-loop-start);
 # Read input
 @call(read-input-to-rotate-current-shape);
 @call(read-input-to-shift-current-shape);
-# Shift down?, collision check
-# TODO: Not every frame
+# Determine if shift down
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+write 0x0A alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(game-loop-skip-new-shape);
+# Reset frame count to shift shape down
+move stack-pop none;
+write 0x00 stack-push;
+# Shift down, collision check
 @call(try-shift-current-shape-down);
 move stack-pop goto-decider;
 @goto_if(game-loop-new-shape);
@@ -159,7 +175,7 @@ move stack-pop goto-decider;
 @call(put-current-shape-onto-arena);
 # Clear completed rows
 @call(clear-completed-rows);
-move stack-pop none;
+@call(update-score);
 # New current shape, read arena collision result
 @call(init-current-shape-and-collision-check);
 move stack-pop goto-decider;
@@ -184,6 +200,11 @@ write 0x10 stack-push;
 # Goto beginning of game loop
 @goto(game-loop-start);
 @anchor(game-loop-end);
+move stack-pop none;
+# Draw current shape
+@call(draw-current-shape);
+# Update display
+@call(update-display);
 @goto(outer-loop-start);
 # --------------------------------- </Loop> ---------------------------------
 
@@ -226,6 +247,21 @@ return;
 
 @anchor(pseudo-random-init);
 @call(set-pointer-rand-gen);
+write 0x00 gpram;
+return;
+
+@anchor(update-score);
+# Pops 1 byte: amount to add to score
+write 0x00 gpram-addr-a;
+write 0x07 gpram-addr-b;
+move stack-pop alu-a;
+move gpram alu-b;
+move add alu gpram;
+return;
+
+@anchor(clear-score);
+write 0x00 gpram-addr-a;
+write 0x07 gpram-addr-b;
 write 0x00 gpram;
 return;
 
