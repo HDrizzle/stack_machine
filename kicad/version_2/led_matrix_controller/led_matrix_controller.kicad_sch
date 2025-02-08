@@ -9748,6 +9748,16 @@
 		)
 		(uuid "460fc69e-0367-4095-89ea-ff9b1e7f594d")
 	)
+	(polyline
+		(pts
+			(xy 492.76 102.87) (xy 494.03 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4657610c-b9d4-4221-9e1c-23918e076011")
+	)
 	(wire
 		(pts
 			(xy 397.51 203.2) (xy 397.51 114.3)
@@ -15768,6 +15778,16 @@
 		)
 		(uuid "ec690e06-e4b2-4828-8745-6e45b37e5392")
 	)
+	(polyline
+		(pts
+			(xy 494.03 92.71) (xy 494.03 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ec75cec4-bacc-486c-9768-79569f0936a9")
+	)
 	(wire
 		(pts
 			(xy 261.62 347.98) (xy 261.62 353.06)
@@ -16584,7 +16604,7 @@
 	)
 	(text "Control latch CLK"
 		(exclude_from_sim no)
-		(at 522.986 103.124 0)
+		(at 522.732 102.87 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -16701,6 +16721,16 @@
 			)
 		)
 		(uuid "b25666b5-d4af-46ad-b9c0-43edb3625e9c")
+	)
+	(text "It works when test LED is connected here"
+		(exclude_from_sim no)
+		(at 514.604 92.71 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "c656a2fd-5b0f-4a6a-8e54-8af365a33206")
 	)
 	(text "Data odd columns"
 		(exclude_from_sim no)

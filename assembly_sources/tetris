@@ -1,5 +1,5 @@
 # Tetris implementation
-# Works best at ~600,000 instructions/sec
+# Works best at ~7 MHz
 # Blocks at: https://docs.google.com/spreadsheets/d/1tb9R2Y6Wr4T2g81XD9d3jRF-j7dfjZBMvmKckkSev1U/edit?usp=sharing
 # Key bindings: bit indices of `gpio-read-a`
 #   0. Restart game
@@ -20,7 +20,7 @@
 #     To increae performance, each pixel in the arena will be represented as an entire byte with only the LSB used.
 #     The arena data will be stored in GPRAM as a 10 columns x 20 rows = 200 byte chunk. Each column will start at the bottom and go up, with the columns going from left to right.
 #   List of shapes: 0x0200
-#     Each of the 7 shapes will be represented by 2 bytes (4 rows left to right, top to bottom)
+#     Each shape will be represented by 2 bytes (4 rows left to right, top to bottom)
 #   Current shape: 0x0300
 #     The current shape will be represented by 18 bytes, the first 16 bytes represent the shape itself in the same format as the arena.
 #     The last two bytes are the horizontal and vertical displacement of the bottom-left corner of the shape WRT the bottom-left of the arena.
@@ -118,7 +118,7 @@ write 0x10 stack-push;
 @call(clear-arena);
 @call(draw-arena);
 # Render everything so far
-@call(update-display);
+@call(update-display-limited);
 # --------------------------------- </Init> ---------------------------------
 
 # --------------------------------- <Loop> ---------------------------------
@@ -158,7 +158,7 @@ move stack-pop alu-a;
 write 0x01 alu-b;
 move add alu stack-push;
 move add alu alu-a;
-write 0x0A alu-b;
+write 0x08 alu-b;# Frames per shift down
 move eq alu alu-a;
 move not alu goto-decider;
 @goto_if(game-loop-skip-new-shape);
@@ -196,7 +196,7 @@ write 0x10 stack-push;
 # Draw current shape
 @call(draw-current-shape);
 # Update display
-@call(update-display);
+@call(update-display-limited);
 # Goto beginning of game loop
 @goto(game-loop-start);
 @anchor(game-loop-end);
@@ -270,6 +270,7 @@ write 0x00 gpram;
 return;
 
 @anchor(pseudo-random-get);
+# TODO: Actually make random
 # Pushes 1 byte: New "random" value
 @call(set-pointer-rand-gen);
 move gpram stack-push;
@@ -363,7 +364,32 @@ move not alu goto-decider;
 move stack-pop none;
 return;
 
-# TODO: Test
+# Starts lower down for optimization
+@anchor(update-display-limited);
+@call(set-pointer-display-buffer);
+# Init counter
+write 0x28 stack-push;
+write 0x28 gpram-addr-a;
+write 0x00 set-stack-offset;
+# Loop
+@anchor(update-display-limited-loop-start);
+# Write an entire row
+move offset-read gpio-write-a;
+move gpram-inc-addr gpio-write-b;
+# Increment counter
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu offset-write;
+# Check if it is 128
+move offset-read alu-a;
+write 0x80 alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(update-display-limited-loop-start);
+# Done
+move stack-pop none;
+return;
+
 @anchor(clear-arena);
 @call(set-pointer-arena);
 @anchor(clear-arena-loop-start);

@@ -1,0 +1,65 @@
+# Motor demo
+# Inputs
+#  0. Sensor 0
+#  1.
+#  2. Sensor 1
+#  3.
+# Outputs (gpio-write-a)
+#  0. Direction 0
+#  1. Enable 0
+#  2. Direction 1
+#  3. Enable 1
+# The sensors are in corresponding bit positions with the directions, so that they can be computed more efficiently
+
+@anchor(main-loop-start);
+write 0x02 stack-push;
+@call(update-motor);
+@goto(main-loop-start);
+
+# Works
+@anchor(update-motor);
+# This function could be optimized but I chose to not use any branching so as to keep the time cost consistent
+# Pops 1 byte: Control phase:
+#  0. Power (inverted)
+#  1. Off
+#  2. Power (direction not inverted)
+#  3. Off
+# Stack: Control phase
+write 0x00 set-stack-offset;
+# Get invert bitwise operator
+move offset-read alu-a;
+write 0x07 alu-b;
+move shift alu alu-a;
+write 0x01 alu-b;# AND value with 0x01 so no other bits are set
+move and alu stack-push;# Put the invert (bit 0) value on the stack to be OR'd w/ invert (bit 2) later
+move and alu alu-a;
+write 0x02 alu-b;
+move shift alu alu-a;
+move stack-pop alu-b;
+move or alu stack-push;
+# Stack: Control phase, Invert (bits 0, 2)
+# Get input and XNOR with invert
+move gpio-read-a alu-a;
+move offset-read alu-b;
+move xnor alu alu-a;
+write 0x05 alu-b;# AND with bits at 2 and 0 because of XNOR
+move and alu stack-push;
+# Stack: Control phase, Invert (bits 0, 2), Output W/O power
+# Copy control phase LSB to bits 1 and 3 and OR with `Output W/O power` to get complete output
+write 0x02 set-stack-offset;
+move offset-read alu-a;
+move not alu alu-a;# Invert because if the LSB=1 (odd number) for control phase it means power off
+write 0x01 alu-b;
+move and alu alu-a;# Make sure only LSB can be set
+move shift alu stack-push;# alu-b is already 1 for first shift
+write 0x03 alu-b;
+move shift alu alu-a;
+move stack-pop alu-b;
+move or alu alu-a;# Power bit is now at 1,3 in alu-a
+move stack-pop alu-b;
+move or alu gpio-write-a;# OR direction and power
+# Stack: Control phase, Invert (bits 0, 2)
+# Delete stack variables
+move stack-pop none;
+move stack-pop none;
+return;

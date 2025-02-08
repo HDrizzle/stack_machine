@@ -184,7 +184,8 @@ pub struct Machine {
 	goto_latch_b: u8,
 	goto_decider_latch: bool,
 	program_size: u16,
-	clock_counter: u16
+	clock_counter: u16,
+	pub clock_counter_perf_tracking: u128
 }
 
 impl Machine {
@@ -209,7 +210,8 @@ impl Machine {
 			goto_latch_b: 0,
 			goto_decider_latch: false,
 			program_size: prog.len() as u16,
-			clock_counter: 0
+			clock_counter: 0,
+			clock_counter_perf_tracking: 0
 		}
 	}
 	/// Executes 1 instruction
@@ -231,7 +233,8 @@ impl Machine {
 		// Debug print
 		debug_print(&format!("Instruction={:#X}(#{:#X}), opcode={:#X}", instruction, self.execution_pointer, opcode));
 		// Match opcode
-		match opcode {
+		let mut halt: bool = false;
+		let instruction_clock_counts: u16 = match opcode {
 			0 => {// MOVE
 				// Get next value
 				// Get bus value
@@ -241,6 +244,8 @@ impl Machine {
 				// Send bus value
 				let res = self.send_bus_value(bus_read_addr, bus_value, gpio_interface);
 				self.err_enum_result_to_err_result(res)?;
+				// A/B clock cycles
+				5
 			},
 			1 => {// WRITE
 				let read_addr = (second_byte >> 4) & 0x0F;
@@ -248,36 +253,52 @@ impl Machine {
 				debug_print(&format!("  WRITE read_addr={:#X}, bus_value={:#X}", read_addr, bus_value));
 				let res = self.send_bus_value(read_addr, bus_value, gpio_interface);
 				self.err_enum_result_to_err_result(res)?;
+				// A/B clock cycles
+				5
 			},
 			2 => {// GOTO
-				self.goto()
+				self.goto();
+				// A/B clock cycles
+				1
 			},
 			3 => {// GOTO-IF
 				debug_print(&format!("  GOTO-IF"));
 				if self.goto_decider_latch {
-					self.goto()
+					self.goto();
 				}
+				// A/B clock cycles
+				1
 			},
 			4 => {// HALT
-				return Ok(true);
+				halt = true;
+				// A/B clock cycles
+				1
 			},
 			5 => {// CALL
 				// Push return address
 				self.call_stack_top = self.call_stack_top.wrapping_add(1);
 				self.call_stack[self.call_stack_top as usize] = self.execution_pointer;
-				self.goto()
+				self.goto();
+				// A/B clock cycles
+				2
 			},
 			6 => {// RETURN
 				self.execution_pointer = self.call_stack[self.call_stack_top as usize];
 				self.call_stack_top = self.call_stack_top.wrapping_sub(1);
+				// A/B clock cycles
+				1
 			},
 			n => return Err(EmulationError::new(EmulationErrorEnum::InvalidOpcode(n), self.execution_pointer))
 		};
+		// Increment clock, counting cycles of the bas clock, ignoring the phases
+		let total_clock_cycles: u16 = (instruction_clock_counts+1)*4;
+		self.clock_counter = self.clock_counter.wrapping_add(total_clock_cycles);
+		self.clock_counter_perf_tracking += total_clock_cycles as u128;
 		// Increment execution pointer
 		self.execution_pointer = self.execution_pointer.wrapping_add(1);
 		debug_print("");
 		// Done
-		Ok(false)
+		Ok(halt)
 	}
 	fn send_bus_value<T: GpioInterface>(&mut self, read_addr: u8, bus_value: u8, gpio_interface: &mut T) -> Result<(), EmulationErrorEnum> {
 		match read_addr {

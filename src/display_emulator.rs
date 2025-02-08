@@ -1,5 +1,7 @@
 //! Creates a UI that simulates the 32 x 32 display as well as key bindings
 
+use std::time::{Instant, Duration};
+
 use crate::emulator::EmulationError;
 use crate::prelude::*;
 use eframe::egui;
@@ -9,12 +11,12 @@ use eframe::egui::Key;
 const DISPLAY_WIDTH: usize = 32;
 const DISPLAY_HEIGHT: usize = 32;
 const PIXEL_SIZE: usize = 15;
-const INSTRUCTIONS_PER_FRAME: usize = 10000;
+const MACHINE_CLOCK: usize = 7000000;
 
 struct GpioInterfaceDisplay {
 	pub display_state: [u8; 128],
-	current_address: u8,
-	current_data: u8,
+	pub current_address: u8,
+	pub current_data: u8,
 	pub input: u16
 }
 
@@ -55,7 +57,8 @@ struct EguiApp {
 	interface: GpioInterfaceDisplay,
 	running: bool,
 	is_done: bool,
-	err_opt: Option<EmulationError>
+	err_opt: Option<EmulationError>,
+	t_reset_clock_counter: Instant
 }
 
 impl EguiApp {
@@ -66,7 +69,8 @@ impl EguiApp {
 			interface: GpioInterfaceDisplay::new(),
 			running: true,
 			is_done: false,
-			err_opt: None
+			err_opt: None,
+			t_reset_clock_counter: Instant::now()
 		}
 	}
 }
@@ -83,7 +87,7 @@ impl eframe::App for EguiApp {
 		self.interface.input = gpio_in;
 		// Step machine
 		if self.running {
-			for _ in 0..INSTRUCTIONS_PER_FRAME {
+			loop {
 				match self.machine.execute_instruction(&mut self.interface) {
 					Ok(done) => {
 						if done {
@@ -95,11 +99,16 @@ impl eframe::App for EguiApp {
 						self.err_opt = Some(e);
 					}
 				}
+				// Limit performance
+				let dt: Duration = self.t_reset_clock_counter.elapsed();
+				if (self.machine.clock_counter_perf_tracking as f32) / dt.as_secs_f32() >= (MACHINE_CLOCK as f32) {
+					break;
+				}
 			}
 		}
 		// GUI time
 		egui::CentralPanel::default().show(ctx, |ui| {
-			// This function ny default is only run upon user interaction, so copied this from https://users.rust-lang.org/t/issues-while-writing-a-clock-with-egui/102752
+			// This function by default is only run upon user interaction, so copied this from https://users.rust-lang.org/t/issues-while-writing-a-clock-with-egui/102752
 			ui.ctx().request_repaint();
 			if self.is_done {
 				match &self.err_opt {
@@ -112,6 +121,8 @@ impl eframe::App for EguiApp {
 				ui.horizontal(|ui| {
 					ui.label("Input");
 					ui.code(format!("{:#018b}", self.interface.input));
+					ui.label("Output");
+					ui.code(format!("{:#018b}", self.interface.current_address as u16 + ((self.interface.current_data as u16) << 8)));
 				});
 				// Display matrix
 				let stroke = egui::Stroke{width: 1.0, color: egui::Color32::from_rgb(255, 0, 0)};
