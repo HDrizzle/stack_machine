@@ -11,9 +11,32 @@
 #  3. Enable 1
 # The sensors are in corresponding bit positions with the directions, so that they can be computed more efficiently
 
+write 0x00 gpio-write-a;
+write 0x00 alu-c-in;
+
+write 0x00 stack-push;
+write 0x00 stack-push;
+# Stack: Control phase, iteration count
 @anchor(main-loop-start);
-write 0x02 stack-push;
+write 0x01 set-stack-offset;
+move offset-read stack-push;
 @call(update-motor);
+# Increment iter count
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if it is 255
+write 0xFF alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(main-loop-start);
+# Reset iteration count and increment control phase
+move stack-pop none;
+move stack-pop alu-a;
+write 0x01 alu-b;# Only first 2 bits of control phase are used so don't worry about resetting or overflow
+move add alu stack-push;
+write 0x00 stack-push;
 @goto(main-loop-start);
 
 # Works

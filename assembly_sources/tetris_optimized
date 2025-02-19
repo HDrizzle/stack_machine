@@ -178,6 +178,7 @@ move stack-pop goto-decider;
 # Clear completed rows
 @call(clear-completed-rows);
 @call(update-score);
+@call(draw-arena);
 # New current shape, read arena collision result
 @call(init-current-shape-and-collision-check);
 move stack-pop goto-decider;
@@ -194,7 +195,7 @@ write 0x10 stack-push;
 @anchor(game-loop-skip-new-shape);
 # Update graphics
 # Arena must be drawn BEFORE current shape so that it will overwrite the previous rendering of the shape
-@call(draw-arena);
+#@call(draw-arena-limited);
 # Draw current shape
 @call(draw-current-shape);
 # Update display
@@ -1583,6 +1584,91 @@ move eq alu alu-a;
 move not alu goto-decider;
 @goto_if(draw-arena-loop-start);
 # Delete stack variables
+move stack-pop none;
+move stack-pop none;
+return;
+
+@anchor(draw-arena-limited);
+# Draws a 4x5 chunk of the arena, centered on the location of the current shape
+# Get current shape position and calculate limits
+@call(set-pointer-current-shape);
+write 0x10 gpram-addr-a;
+move gpram-inc-addr stack-push;
+move gpram-inc-addr stack-push;
+# Stack: X min, Y min
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x04 alu-b;
+move add alu stack-push;
+# Stack: X min, Y min, X max
+move offset-read alu-a;
+write 0x05 alu-b;
+move add alu stack-push;
+# Stack: X min, Y min, X max, Y max
+# Initialize Column/X count, Row/Y count
+write 0x03 set-stack-offset;
+move offset-read stack-push;
+move offset-read stack-push;
+# Loop over columns & rows
+@anchor(draw-arena-limited-loop-start);
+# Stack: X min, Y min, X max, Y max, Column/X count, Row/Y count
+# Calculate arena index using (X,Y), start by multiplying X by 20 (*16 + *4)
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x04 alu-b;
+move shift alu stack-push;
+write 0x02 alu-b;
+move shift alu alu-a;
+move stack-pop alu-b;
+move add alu alu-a;
+# Now add Y
+write 0x00 set-stack-offset;
+move offset-read alu-b;
+@call(set-pointer-arena);
+move add alu gpram-addr-a;
+# Load from GPRAM and copy stack data for the pixel draw function
+move gpram stack-push;
+# Stack: X min, Y min, X max, Y max, Column/X count, Row/Y count, Px value
+write 0x02 set-stack-offset;
+move offset-read stack-push;
+move offset-read stack-push;
+# Stack: X min, Y min, X max, Y max, Column/X count, Row/Y count, Px value, Column/X count, Row/Y count
+# Draw pixel
+@call(draw-pixel-in-arena);
+# Stack: X min, Y min, X max, Y max, Column/X count, Row/Y count
+# Increment Y
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if Y=Y max
+write 0x02 set-stack-offset;
+move offset-read alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(draw-arena-limited-loop-start);
+# Reset Y to Y min
+move stack-pop none;
+write 0x04 set-stack-offset;
+move offset-read stack-push;
+# Increment X
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu offset-write;
+move add alu alu-a;
+# Check if X=X max
+write 0x03 set-stack-offset;
+move offset-read alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(draw-arena-limited-loop-start);
+# Stack: X min, Y min, X max, Y max, Column/X count, Row/Y count
+# Delete stack variables
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
 move stack-pop none;
 move stack-pop none;
 return;

@@ -16602,13 +16602,14 @@
 		)
 		(uuid "e91dde9c-e36f-4b28-97f0-37fb076dad52")
 	)
-	(text "Control latch CLK"
+	(text "Control latch CLK (DELAY W/ CAP)"
 		(exclude_from_sim no)
-		(at 522.732 102.87 0)
+		(at 514.35 102.87 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
+			(justify left)
 		)
 		(uuid "1460a817-3a0e-4be7-865d-dd936464f174")
 	)
@@ -16762,13 +16763,14 @@
 		)
 		(uuid "d67e0a54-3d31-480b-b430-f8f17b233f81")
 	)
-	(text "LE control latch CLK"
+	(text "LE control latch CLK (DELAY W/ CAP)"
 		(exclude_from_sim no)
-		(at 524.51 105.664 0)
+		(at 514.604 105.664 0)
 		(effects
 			(font
 				(size 1.27 1.27)
 			)
+			(justify left)
 		)
 		(uuid "e2df4959-58c2-4105-9f92-b3cd3a00092e")
 	)

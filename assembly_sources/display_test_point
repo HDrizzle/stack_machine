@@ -1,0 +1,180 @@
+# Controls, Level-triggered (simpler)
+#  0. Left
+#  1. Right
+#  2. Up
+#  3. Down
+# Screen coordinates are from top-left
+
+write 0x00 gpio-write-a;
+write 0x00 alu-c-in;
+
+write 0x00 stack-push;write 0x00 stack-push;
+# Stack: X, Y
+@anchor(main-loop-start);
+# Wait for any key to be pressed
+@call(any-keys-pressed);
+move stack-pop alu-a;
+move not alu goto-decider;
+@goto_if(main-loop-start);
+# Clear current byte
+# Copy X and Y for the byte address function
+write 0x01 set-stack-offset;
+move offset-read stack-push;move offset-read stack-push;
+# Stack: X, Y, X, Y
+@call(clear-byte);
+# Stack: X, Y
+# Read input and update coords
+@call(read-input-to-shift);
+# Copy X and Y for the byte address function
+write 0x01 set-stack-offset;
+move offset-read stack-push;move offset-read stack-push;
+# Stack: X, Y, X, Y
+@call(display-byte);
+# Stack: X, Y
+@goto(main-loop-start);
+
+@anchor(read-input-to-shift);
+# Modifies X and Y in-place on the stack
+# Stack: X, Y
+# Read X input
+move gpio-read-a stack-push;
+move gpio-read-a alu-a;
+write 0x07 alu-b;
+move shift alu alu-a;
+# Check if they are different
+move stack-pop alu-b;
+move xnor alu goto-decider;
+@goto_if(read-input-to-shift-skip-x);
+# Read alu-b (1 = move left)
+move a alu goto-decider;
+write 0x01 set-stack-offset;
+@goto_if(read-input-to-shift-left);
+# Shift right
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu alu-a;
+write 0x20 alu-b;
+move eq alu goto-decider;
+@goto_if(read-input-to-shift-right-limit);# Skip if x=0x20 (32)
+move a alu offset-write;
+@anchor(read-input-to-shift-right-limit);
+@goto(read-input-to-shift-skip-x);
+@anchor(read-input-to-shift-left);
+# Shift left
+move offset-read alu-a;
+write 0xFF alu-b;
+move add alu alu-a;
+write 0xFF alu-b;
+move eq alu goto-decider;
+@goto_if(read-input-to-shift-left-limit);# Skip if x=0xFF (255)
+move a alu offset-write;
+@anchor(read-input-to-shift-left-limit);
+@anchor(read-input-to-shift-skip-x);
+# Read Y input
+move gpio-read-a alu-a;
+write 0x06 alu-b;
+move shift alu stack-push;
+move gpio-read-a alu-a;
+write 0x05 alu-b;
+move shift alu alu-a;
+# Check if they are different
+move stack-pop alu-b;
+move xnor alu goto-decider;
+@goto_if(read-input-to-shift-skip-y);
+# Read alu-b (1 = move left)
+move a alu goto-decider;
+write 0x00 set-stack-offset;
+@goto_if(read-input-to-shift-up);
+# Shift down
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu alu-a;
+write 0x20 alu-b;
+move eq alu goto-decider;
+@goto_if(read-input-to-shift-down-limit);# Skip if y=0x20 (32)
+move a alu offset-write;
+@anchor(read-input-to-shift-down-limit);
+@goto(read-input-to-shift-skip-y);
+@anchor(read-input-to-shift-up);
+# Shift up
+move offset-read alu-a;
+write 0xFF alu-b;
+move add alu alu-a;
+write 0xFF alu-b;
+move eq alu goto-decider;
+@goto_if(read-input-to-shift-up-limit);# Skip if y=0xFF (255)
+move a alu offset-write;
+@anchor(read-input-to-shift-up-limit);
+@anchor(read-input-to-shift-skip-y);
+return;
+
+@anchor(any-keys-pressed);
+move gpio-read-a stack-push;# 0
+move gpio-read-a alu-a;# 1
+write 0x07 alu-b;
+move shift alu stack-push;
+move gpio-read-a alu-a;# 2
+write 0x06 alu-b;
+move shift alu stack-push;
+move gpio-read-a alu-a;# 3
+write 0x05 alu-b;
+move shift alu stack-push;
+# OR then together
+move stack-pop alu-a;
+move stack-pop alu-b;
+move or alu alu-a;
+move stack-pop alu-b;
+move or alu alu-a;
+move stack-pop alu-b;
+move or alu stack-push;
+return;
+
+@anchor(clear-byte);
+# Pops 2 bytes:
+#  0. X
+#  1. Y
+@call(byte-address);
+move stack-pop gpio-write-a;# Address
+write 0x00 gpio-write-b;# Data
+return;
+
+@anchor(display-byte);
+# Pops 2 bytes:
+#  0. X
+#  1. Y
+# Copy X and Y for the byte address function
+write 0x01 set-stack-offset;
+move offset-read stack-push;move offset-read stack-push;
+# Stack: X, Y, X, Y
+@call(byte-address);
+move stack-pop gpio-write-a;# Address
+# Stack: X, Y
+move stack-pop none;
+# Stack: X
+move stack-pop alu-b;
+write 0x01 alu-a;
+move shift alu gpio-write-b;
+return;
+
+@anchor(byte-address);
+# Pops 2 bytes:
+#  0. X
+#  1. Y
+# Stack: X, Y
+# Return 1 byte: Index of byte for diplay
+# Multiply Y by 4, add (X/8)
+move stack-pop alu-a;
+write 0x02 alu-b;
+move shift alu stack-push;
+# Stack: X, Y*4
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x05 alu-b;# left by 5 = right by 3 = /8
+move shift alu alu-a;
+write 0x03 alu-b;# AND by 0x0000 0011
+move and alu alu-a;
+move stack-pop alu-b;
+move stack-pop none;
+move add alu stack-push;
+# Stack: Result
+return;

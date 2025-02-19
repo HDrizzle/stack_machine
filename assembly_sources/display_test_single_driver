@@ -1,0 +1,47 @@
+write 0x00 gpio-write-a;
+# Write to GPRAM starting at 0x0000 then uses `update-display` (copied from tetris) to write to display
+@call(rickroll);
+@call(update-display);
+@anchor(infinite-loop);
+@goto(infinite-loop);
+
+@anchor(rickroll);
+write 0x00 gpram-addr-a;
+write 0x00 gpram-addr-b;
+# Single driver
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x24 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x81 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x7E gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+return;
+
+@anchor(update-display);
+write 0x00 gpram-addr-a;
+write 0x00 gpram-addr-b;
+# Init counter
+write 0x00 stack-push;
+write 0x00 set-stack-offset;
+# Loop
+@anchor(update-display-loop-start);
+# Write to display
+move offset-read gpio-write-a;
+#move offset-read gpio-write-b;
+move gpram-inc-addr gpio-write-b;
+#write 0xFF gpio-write-b;
+# Increment counter
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu offset-write;
+# Check if it is 128
+move offset-read alu-a;
+write 0x80 alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(update-display-loop-start);
+# Done
+move stack-pop none;
+return;
