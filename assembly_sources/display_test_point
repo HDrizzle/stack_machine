@@ -7,6 +7,7 @@
 
 write 0x00 gpio-write-a;
 write 0x00 alu-c-in;
+@call(clear-display);
 
 write 0x00 stack-push;write 0x00 stack-push;
 # Stack: X, Y
@@ -177,4 +178,18 @@ move stack-pop alu-b;
 move stack-pop none;
 move add alu stack-push;
 # Stack: Result
+return;
+
+@anchor(clear-display);
+write 0x00 alu-a;
+@anchor(clear-display-loop-start);
+move a alu gpio-write-a;
+write 0x00 gpio-write-b;
+write 0x01 alu-b;
+move add alu alu-a;
+write 0x80 alu-b;
+move eq alu goto-decider;
+@goto_if(clear-display-loop-end);
+@goto(clear-display-loop-start);
+@anchor(clear-display-loop-end); 
 return;

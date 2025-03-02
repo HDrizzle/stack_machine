@@ -1,17 +1,287 @@
 # Pong game
 # Can be configured as either 1- or 2-player based on the 5th bit of GPIO-A
+# Coordinates are from top-left of screen, the position of a paddle is the leftmost pixel, paddles are 8 pixels wide
+# Each iteration of the game loop will: Calculate new positions of all objects
 # GPIO-A usage:
 #   0. Player 0 move left
 #   1. Player 0 move right
 #   2. Player 1 move left
 #   3. Player 1 move right
 #   4. Player 1 enable
-#   4. Start/Reset
+#   5. Start/Reset
+# Display layout:
+#   Each paddle will be 8 px across and 1 in from the side
+#   Paddle 0 at the bottom, paddle 1 at the top
+# Momory layout:
+#   0x0000: Player 0 position
+#   0x0001: Player 1 position
+#   0x0002: Player 0 velocity
+#   0x0003: Player 1 velocity
+#   0x0004: Ball X position
+#   0x0005: Ball Y position
+#   0x0006: Ball X velocity
+#   0x0007: Ball Y velocity
+#   0x0100 - 0x0107: Lookup table for the beginning of a paddle, based on bit index
+#   0x0200 - 0x0207: Lookup table for the end of a paddle, (same bit index as beginning, next byte over)
 
+write 0x00 gpio-write-a;
+
+@call(clear-display);
+@call(init-paddle-lookup-table);
+
+# --------------------------------- <Testing> ---------------------------------
+@call(init-game-state);
+@call(draw-objects);
+#@call(clear-objects);
+@anchor(testing-loop-start);
+@goto(testing-loop-start);
+# --------------------------------- </Testing> --------------------------------
+
+# --------------------------------- <Loop> ---------------------------------
+@anchor(outer-loop-start);
+@call(init-game-state);
+@anchor(main-loop-start);
+# Calculate position changes to all objects
+# Clear current objects from display
+@call(clear-objects);
+# Update positions
+# Write new objects to display
+write 0x0D stack-push;
+write 0x1E stack-push;
+@call(draw-paddle);
+# Check if game is over
+@goto(main-loop-start);
+@anchor(main-loop-end);
+# Wait until restart
+move gpio-read-a alu-a;
+write 0x03 alu-b;
+move shift alu alu-a;
+move not alu goto-decider;
+@goto_if(main-loop-end);
+@goto(outer-loop-start);
+# --------------------------------- </Loop> --------------------------------
 
 # --------------------------------- <Functions> ---------------------------------
+@anchor(calculate-new-ball-position);
+# TODO: Check if it hits anything
+# Returns: (1st is deepest on stack), the reason for this order is so that the position and velocity can be popped from the stack into the GPRAM in the correct order
+#   0. Whether the ball hit out-of-bounds
+#   1. New Y vel
+#   2. New X vel
+#   3. New Y pos
+#   4. New X pos
+write 0x00 gpram-addr-b;
+# Get old X
+write 0x04 gpram-addr-a;
+move gpram-inc-addr stack-push;
+move gpram-inc-addr stack-push;
+# Stack: X, Y
+# Add X` to X in-place
+move gpram-inc-addr alu-a;
+write 0x03 set-stack-offset;
+move offset-read alu-b;
+move add alu offset-write;
+# Add Y` to Y in-place
+move gpram-inc-addr alu-a;
+write 0x02 set-stack-offset;
+move offset-read alu-b;
+move add alu offset-write;
+# Done
+return;
+
+@anchor(calculate-new-paddle-positions);
+# Returns:
+#  0. Paddle 0 position
+#  1. Paddle 1 position
+
+@anchor(display-point);
+# Pops 2 bytes:
+#  0. X
+#  1. Y
+# Copy X and Y for the byte address function
+write 0x01 set-stack-offset;
+move offset-read stack-push;move offset-read stack-push;
+# Stack: X, Y, X, Y
+@call(byte-address);
+move stack-pop gpio-write-a;# Address
+# Stack: X, Y
+move stack-pop none;
+# Stack: X
+move stack-pop alu-b;
+write 0x01 alu-a;
+move shift alu gpio-write-b;
+return;
+
+# Works
+@anchor(clear-objects);
+# Upper and Lower paddles
+write 0x04 gpio-write-a;write 0x00 gpio-write-b;
+write 0x05 gpio-write-a;write 0x00 gpio-write-b;
+write 0x06 gpio-write-a;write 0x00 gpio-write-b;
+write 0x07 gpio-write-a;write 0x00 gpio-write-b;
+write 0x78 gpio-write-a;write 0x00 gpio-write-b;
+write 0x79 gpio-write-a;write 0x00 gpio-write-b;
+write 0x7A gpio-write-a;write 0x00 gpio-write-b;
+write 0x7B gpio-write-a;write 0x00 gpio-write-b;
+# Ball
+write 0x00 gpram-addr-b;
+write 0x04 gpram-addr-a;# Ball X position
+move gpram-inc-addr stack-push;
+move gpram stack-push;
+@call(byte-address);
+move stack-pop gpio-write-a;
+write 0x00 gpio-write-b;
+return;
+
+@anchor(draw-objects);
+# Paddle for player 0 (bottom)
+write 0x00 gpram-addr-a;
+write 0x00 gpram-addr-b;
+move gpram stack-push;
+write 0x1E stack-push;
+@call(draw-paddle);
+# Paddle for player 1 (top)
+write 0x01 gpram-addr-a;
+write 0x00 gpram-addr-b;
+move gpram stack-push;
+write 0x01 stack-push;
+@call(draw-paddle);
+# Ball
+#   0x0004: Ball X position
+#   0x0005: Ball Y position
+write 0x04 gpram-addr-a;
+write 0x00 gpram-addr-b;
+move gpram stack-push;
+move gpram-inc-addr stack-push;
+move gpram-inc-addr stack-push;
+# Stack: X, X, Y
+@call(byte-address);
+# Stack: X, Byte address
+move stack-pop gpio-write-a;
+# Stack: X
+move stack-pop alu-a;
+write 0x07 alu-b;
+move and alu alu-b;
+write 0x01 alu-a;
+move shift alu gpio-write-b;
+# Stack:
+return;
+
+# Works
 @anchor(draw-paddle);
-# Pops 2 bytes
-# Stack: Paddle position, player number
+# Pops 2 bytes:
+#  0. X
+#  1. Y
+# Copy X and Y, then call byte-address
+write 0x01 set-stack-offset;
+move offset-read stack-push;move offset-read stack-push;
+@call(byte-address);
+# Stack: X, Y, Byte address
+# Get bit index
+write 0x02 set-stack-offset;
+move offset-read alu-a;
+write 0x07 alu-b;
+move and alu stack-push;
+# Stack: X, Y, Byte address, Bit index
+# Write address
+write 0x01 set-stack-offset;
+move offset-read gpio-write-a;
+# Get first byte of paddle from lookup table (0x0100)
+write 0x01 gpram-addr-b;
+write 0x00 set-stack-offset;# Write bit index to GPRAM lower address byte to use lookup table
+move offset-read gpram-addr-a;
+move gpram gpio-write-b;
+#move offset-read gpio-write-b;
+# Add 1 to byte address and write to display address
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu gpio-write-a;
+# Look up second byte
+write 0x02 gpram-addr-b;
+move stack-pop gpram-addr-a;# Write bit index to GPRAM lower address byte to use lookup table
+move gpram gpio-write-b;
+# Stack: X, Y, Byte address
+# Delete stack variables
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+return;
+
+@anchor(byte-address);
+# Pops 2 bytes:
+#  0. X
+#  1. Y
+# Stack: X, Y
+# Return 1 byte: Index of byte for diplay
+# Multiply Y by 4, add (X/8)
+move stack-pop alu-a;
+write 0x02 alu-b;
+move shift alu stack-push;
+# Stack: X, Y*4
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x05 alu-b;# left by 5 = right by 3 = /8
+move shift alu alu-a;
+write 0x03 alu-b;# AND by 0x0000 0011
+move and alu alu-a;
+move stack-pop alu-b;
+move stack-pop none;
+move add alu stack-push;
+# Stack: Result
+return;
+
+@anchor(init-paddle-lookup-table);
+# Beginning
+write 0x00 gpram-addr-a;
+write 0x01 gpram-addr-b;
+write 0xFF gpram-inc-addr;
+write 0xFE gpram-inc-addr;
+write 0xFC gpram-inc-addr;
+write 0xF8 gpram-inc-addr;
+write 0xF0 gpram-inc-addr;
+write 0xE0 gpram-inc-addr;
+write 0xC0 gpram-inc-addr;
+write 0x80 gpram-inc-addr;
+# End
+write 0x00 gpram-addr-a;
+write 0x02 gpram-addr-b;
+write 0x00 gpram-inc-addr;
+write 0x01 gpram-inc-addr;
+write 0x03 gpram-inc-addr;
+write 0x07 gpram-inc-addr;
+write 0x0F gpram-inc-addr;
+write 0x1F gpram-inc-addr;
+write 0x3F gpram-inc-addr;
+write 0x7F gpram-inc-addr;
+return;
+
+@anchor(init-game-state);
+# Set player and ball positions
+write 0x00 gpram-addr-a;
+write 0x00 gpram-addr-b;
+write 0x0C gpram-inc-addr;# Player 0 pos
+write 0x0C gpram-inc-addr;# Player 1 pos
+write 0x00 gpram-inc-addr;# Player 0 vel
+write 0x00 gpram-inc-addr;# Player 1 vel
+write 0x0F gpram-inc-addr;# Ball X pos
+write 0x10 gpram-inc-addr;# Ball Y pos
+write 0x00 gpram-inc-addr;# Ball X vel
+write 0x01 gpram-inc-addr;# Ball Y vel
+return;
+
+@anchor(clear-display);
+write 0x00 alu-a;
+@anchor(clear-display-loop-start);
+move a alu gpio-write-a;
+write 0x00 gpio-write-b;
+write 0x01 alu-b;
+move add alu alu-a;
+write 0x80 alu-b;
+move eq alu goto-decider;
+@goto_if(clear-display-loop-end);
+@goto(clear-display-loop-start);
+@anchor(clear-display-loop-end); 
+return;
 
 # --------------------------------- </Functions> ---------------------------------

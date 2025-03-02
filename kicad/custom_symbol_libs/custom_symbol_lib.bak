@@ -9695,8 +9695,8 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Horizontal"
-			(at 0 -5.842 0)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Horizontal"
+			(at 0.508 -20.828 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9725,7 +9725,7 @@
 		(symbol "cubesat_geiger_counter_interface_0_1"
 			(rectangle
 				(start -10.16 3.81)
-				(end 8.89 -3.81)
+				(end 8.89 -13.97)
 				(stroke
 					(width 0)
 					(type default)
@@ -9783,7 +9783,7 @@
 			(pin input line
 				(at -12.7 -2.54 0)
 				(length 2.54)
-				(name "Radiation_count"
+				(name "Rad_count_control"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -9791,6 +9791,78 @@
 					)
 				)
 				(number "3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -12.7 -5.08 0)
+				(length 2.54)
+				(name "Rad_count_mat_1"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "4"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -12.7 -7.62 0)
+				(length 2.54)
+				(name "Rad_count_mat_2"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "5"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -12.7 -10.16 0)
+				(length 2.54)
+				(name "Rad_count_mat_3"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "6"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+			)
+			(pin input line
+				(at -12.7 -12.7 0)
+				(length 2.54)
+				(name "Rad_count_mat_4"
+					(effects
+						(font
+							(size 1.27 1.27)
+						)
+					)
+				)
+				(number "7"
 					(effects
 						(font
 							(size 1.27 1.27)
@@ -9821,7 +9893,7 @@
 			)
 		)
 		(property "Footprint" "custom_footprint_library:gm_tube_connection"
-			(at 0 0 0)
+			(at 0.254 -4.826 0)
 			(effects
 				(font
 					(size 1.27 1.27)
