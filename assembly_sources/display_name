@@ -11,18 +11,18 @@ write 0x00 gpram-addr-a;
 write 0x00 gpram-addr-b;
 # Image
 write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
 write 0xD4 gpram-inc-addr;write 0xCD gpram-inc-addr;write 0xDD gpram-inc-addr;write 0x1D gpram-inc-addr;
 write 0x5C gpram-inc-addr;write 0xD5 gpram-inc-addr;write 0x49 gpram-inc-addr;write 0x15 gpram-inc-addr;
 write 0xD4 gpram-inc-addr;write 0xD5 gpram-inc-addr;write 0xC8 gpram-inc-addr;write 0x15 gpram-inc-addr;
 write 0x54 gpram-inc-addr;write 0x4D gpram-inc-addr;write 0x5D gpram-inc-addr;write 0x15 gpram-inc-addr;
 write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
-write 0xD4 gpram-inc-addr;write 0xDD gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
 
+write 0xD4 gpram-inc-addr;write 0xDD gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
 write 0x5C gpram-inc-addr;write 0x5D gpram-inc-addr;write 0x01 gpram-inc-addr;write 0x00 gpram-inc-addr;
 write 0xDC gpram-inc-addr;write 0x4D gpram-inc-addr;write 0x01 gpram-inc-addr;write 0x00 gpram-inc-addr;
 write 0x5C gpram-inc-addr;write 0xD5 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
 write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
 write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
 write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;

@@ -1,7 +1,11 @@
 # Pong game
 # Can be configured as either 1- or 2-player based on the 5th bit of GPIO-A
+#   Player 0 is always enabled and is on the bottom of the screen
+#   Player 1 can be controlled externally or will be a perfect NPC if disabled, top of the screen
 # Coordinates are from top-left of screen, the position of a paddle is the leftmost pixel, paddles are 8 pixels wide
-# Each iteration of the game loop will: Calculate new positions of all objects
+# Each iteration of the game loop will calculate new positions/velocities of all objects and store them temporarily on the stack, then update to the GPRAM,
+#   which is to ensure that the least amount of time possible passes between when the old objects are cleared from the screen and the new ones rendered.
+# For simplicity, the ball's X velocity will be limited to -1, 0, 1, there must not be a way for its X velocity to be 0 other than at the start.
 # GPIO-A usage:
 #   0. Player 0 move left
 #   1. Player 0 move right
@@ -10,17 +14,17 @@
 #   4. Player 1 enable
 #   5. Start/Reset
 # Display layout:
-#   Each paddle will be 8 px across and 1 in from the side
+#   Each paddle will be 8 px across and 1 in from the edge
 #   Paddle 0 at the bottom, paddle 1 at the top
 # Momory layout:
 #   0x0000: Player 0 position
-#   0x0001: Player 1 position
-#   0x0002: Player 0 velocity
+#   0x0001: Player 0 velocity
+#   0x0002: Player 1 position
 #   0x0003: Player 1 velocity
-#   0x0004: Ball X position
+#   0x0004: Ball Y velocity
 #   0x0005: Ball Y position
 #   0x0006: Ball X velocity
-#   0x0007: Ball Y velocity
+#   0x0007: Ball X position
 #   0x0100 - 0x0107: Lookup table for the beginning of a paddle, based on bit index
 #   0x0200 - 0x0207: Lookup table for the end of a paddle, (same bit index as beginning, next byte over)
 
@@ -28,6 +32,8 @@ write 0x00 gpio-write-a;
 
 @call(clear-display);
 @call(init-paddle-lookup-table);
+
+@goto(outer-loop-start);
 
 # --------------------------------- <Testing> ---------------------------------
 @call(init-game-state);
@@ -42,13 +48,20 @@ write 0x00 gpio-write-a;
 @call(init-game-state);
 @anchor(main-loop-start);
 # Calculate position changes to all objects
+@call(calculate-new-ball-position);
+# Stack: Ball AOB, New X pos, New X vel, New Y pos, New Y vel
 # Clear current objects from display
 @call(clear-objects);
 # Update positions
+write 0x00 gpram-addr-b;
+write 0x04 gpram-addr-a;
+move stack-pop gpram-inc-addr;
+move stack-pop gpram-inc-addr;
+move stack-pop gpram-inc-addr;
+move stack-pop gpram-inc-addr;
+move stack-pop none;# TODO
 # Write new objects to display
-write 0x0D stack-push;
-write 0x1E stack-push;
-@call(draw-paddle);
+@call(draw-objects);
 # Check if game is over
 @goto(main-loop-start);
 @anchor(main-loop-end);
@@ -63,29 +76,126 @@ move not alu goto-decider;
 
 # --------------------------------- <Functions> ---------------------------------
 @anchor(calculate-new-ball-position);
-# TODO: Check if it hits anything
 # Returns: (1st is deepest on stack), the reason for this order is so that the position and velocity can be popped from the stack into the GPRAM in the correct order
 #   0. Whether the ball hit out-of-bounds
-#   1. New Y vel
+#   1. New X pos
 #   2. New X vel
 #   3. New Y pos
-#   4. New X pos
+#   4. New Y vel
 write 0x00 gpram-addr-b;
-# Get old X
+write 0x00 stack-push;
+# Stack: Ball AOB
+# Move X
+write 0x06 gpram-addr-a;
+move gpram-inc-addr alu-a;
+move gpram-inc-addr alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Stack: Ball AOB, New X pos
+# Check if hit either side, negate X vel if so but leave pos the same
+write 0x00 alu-b;
+move eq alu stack-push;
+write 0x1F alu-b;
+move eq alu alu-a;
+move stack-pop alu-b;
+move or alu alu-a;
+move not alu goto-decider;
+write 0x06 gpram-addr-a;
+@goto_if(calculate-new-ball-position-x-no-bounce);
+# Negate X vel (bitwise NOT, +1)
+move gpram alu-a;
+move not alu alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+@goto(calculate-new-ball-position-x-bounce-done);
+@anchor(calculate-new-ball-position-x-no-bounce);
+# Save old X velocity
+move gpram stack-push;
+@anchor(calculate-new-ball-position-x-bounce-done);
+# Stack: Ball AOB, New X pos, New X vel
+# Move Y
 write 0x04 gpram-addr-a;
-move gpram-inc-addr stack-push;
-move gpram-inc-addr stack-push;
-# Stack: X, Y
-# Add X` to X in-place
 move gpram-inc-addr alu-a;
-write 0x03 set-stack-offset;
-move offset-read alu-b;
-move add alu offset-write;
-# Add Y` to Y in-place
+move gpram-inc-addr alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Stack: Ball AOB, New X pos, New X vel, New Y pos
+# Check if hit either paddle, negate Y vel if so but leave pos the same
+# First, check if the Y pos is right infront of the line of either paddle
+write 0x02 alu-b;
+move eq alu stack-push;
+write 0x1D alu-b;
+move eq alu alu-a;
+move stack-pop alu-b;
+move or alu alu-a;
+move not alu goto-decider;
+@goto_if(calculate-new-ball-position-y-no-bounce);
+# Decide whether to check paddle 0 (bottom) or 1 (top)
+move b alu goto-decider;# Paddle 1
+@goto_if(calculate-new-ball-position-y-bounce-paddle-check-use-paddle-1);
+# Read paddle 0 location
+write 0x00 gpram-addr-a;
+@goto(calculate-new-ball-position-y-bounce-paddle-check-end);
+@anchor(calculate-new-ball-position-y-bounce-paddle-check-use-paddle-1);
+# Read paddle 1 location
+write 0x02 gpram-addr-a;
+@anchor(calculate-new-ball-position-y-bounce-paddle-check-end);
+# Check if infront of chosen paddle
+# Subtract paddle X from ball X and if its < 8 then it bounces off
 move gpram-inc-addr alu-a;
+move not alu alu-a;# Bitwise NOT paddle X
 write 0x02 set-stack-offset;
 move offset-read alu-b;
-move add alu offset-write;
+move add alu alu-a;# Add them
+write 0x01 alu-b;
+move add alu alu-a;# Add 1
+# Check if alu-a is < 8 by shifting all the higher bits (3 - 7) and ORing all of them then checking the LSB
+write 0x03 alu-b;
+move shift alu stack-push;
+write 0x04 alu-b;
+move shift alu stack-push;
+write 0x05 alu-b;
+move shift alu stack-push;
+write 0x06 alu-b;
+move shift alu stack-push;
+write 0x07 alu-b;
+move shift alu alu-b;
+# Pop and OR
+move stack-pop alu-a;
+move or alu alu-b;
+move stack-pop alu-a;
+move or alu alu-b;
+move stack-pop alu-a;
+move or alu alu-b;
+move stack-pop alu-a;
+move or alu goto-decider;# If any bits above the first 3 are 1s then (ball X - paddle X) >= 8 and the ball does not bounce, missing the paddle
+@goto_if(calculate-new-ball-position-y-no-bounce);
+# Negate Y velocity
+move gpram-addr-a stack-push;
+write 0x04 gpram-addr-a;
+move gpram alu-a;
+move stack-pop gpram-addr-a;
+move not alu alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+# Stack: Ball AOB, New X pos, New X vel, New Y pos, New Y vel
+# Change X velocity to match paddle X velocity
+# The GPRAM address is saved, it will be at the same paddle's velocity because `gpram-inc-addr` was used to get the paddle position
+move gpram alu-a;
+write 0x00 alu-b;
+move eq alu goto-decider;# Skip copying paddle X vel of its 0
+@goto_if(calculate-new-ball-position-y-skip-copy-paddle-x-vel);
+write 0x02 set-stack-offset;
+move a alu offset-write;
+@anchor(calculate-new-ball-position-y-skip-copy-paddle-x-vel);
+# End of paddle bounce
+@goto(calculate-new-ball-position-y-bounce-end);
+@anchor(calculate-new-ball-position-y-no-bounce);
+# Copy old Y velocity as-is
+write 0x04 gpram-addr-a;
+move gpram stack-push;
+@anchor(calculate-new-ball-position-y-bounce-end);
+# Stack: Ball AOB, New X pos, New X vel, New Y pos, New Y vel
 # Done
 return;
 
@@ -93,6 +203,8 @@ return;
 # Returns:
 #  0. Paddle 0 position
 #  1. Paddle 1 position
+# TODO
+return;
 
 @anchor(display-point);
 # Pops 2 bytes:
@@ -112,7 +224,6 @@ write 0x01 alu-a;
 move shift alu gpio-write-b;
 return;
 
-# Works
 @anchor(clear-objects);
 # Upper and Lower paddles
 write 0x04 gpio-write-a;write 0x00 gpio-write-b;
@@ -125,8 +236,9 @@ write 0x7A gpio-write-a;write 0x00 gpio-write-b;
 write 0x7B gpio-write-a;write 0x00 gpio-write-b;
 # Ball
 write 0x00 gpram-addr-b;
-write 0x04 gpram-addr-a;# Ball X position
-move gpram-inc-addr stack-push;
+write 0x07 gpram-addr-a;# Ball X position
+move gpram stack-push;
+write 0x05 gpram-addr-a;# Ball Y position
 move gpram stack-push;
 @call(byte-address);
 move stack-pop gpio-write-a;
@@ -135,25 +247,28 @@ return;
 
 @anchor(draw-objects);
 # Paddle for player 0 (bottom)
-write 0x00 gpram-addr-a;
 write 0x00 gpram-addr-b;
+write 0x00 gpram-addr-a;
 move gpram stack-push;
 write 0x1E stack-push;
 @call(draw-paddle);
 # Paddle for player 1 (top)
-write 0x01 gpram-addr-a;
 write 0x00 gpram-addr-b;
+write 0x02 gpram-addr-a;
 move gpram stack-push;
 write 0x01 stack-push;
 @call(draw-paddle);
 # Ball
-#   0x0004: Ball X position
+#   0x0004: Ball Y velocity
 #   0x0005: Ball Y position
-write 0x04 gpram-addr-a;
+#   0x0006: Ball X velocity
+#   0x0007: Ball X position
 write 0x00 gpram-addr-b;
+write 0x07 gpram-addr-a;
 move gpram stack-push;
-move gpram-inc-addr stack-push;
-move gpram-inc-addr stack-push;
+move gpram stack-push;
+write 0x05 gpram-addr-a;
+move gpram stack-push;
 # Stack: X, X, Y
 @call(byte-address);
 # Stack: X, Byte address
@@ -261,13 +376,13 @@ return;
 write 0x00 gpram-addr-a;
 write 0x00 gpram-addr-b;
 write 0x0C gpram-inc-addr;# Player 0 pos
-write 0x0C gpram-inc-addr;# Player 1 pos
 write 0x00 gpram-inc-addr;# Player 0 vel
+write 0x0C gpram-inc-addr;# Player 1 pos
 write 0x00 gpram-inc-addr;# Player 1 vel
+write 0x00 gpram-inc-addr;# Ball Y vel, TODO: Set to 1 when done testing
+write 0x0F gpram-inc-addr;# Ball Y pos
+write 0x01 gpram-inc-addr;# Ball X vel
 write 0x0F gpram-inc-addr;# Ball X pos
-write 0x10 gpram-inc-addr;# Ball Y pos
-write 0x00 gpram-inc-addr;# Ball X vel
-write 0x01 gpram-inc-addr;# Ball Y vel
 return;
 
 @anchor(clear-display);
