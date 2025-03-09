@@ -166,13 +166,12 @@ impl eframe::App for EguiApp {
 
 pub fn start_gui(machine: Machine) {
 	let keys: Vec<Key> = vec![
-		Key::Space,
 		Key::ArrowLeft,
 		Key::ArrowRight,
 		Key::A,
 		Key::D,
-		Key::ArrowDown,
-		Key::ArrowUp
+		Key::S,
+		Key::Space
 	];
 	let native_options = eframe::NativeOptions::default();
 	eframe::run_native("Stack machine emulator", native_options, Box::new(|cc| Ok(Box::new(EguiApp::new(cc, machine, keys))))).unwrap();

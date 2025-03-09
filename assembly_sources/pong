@@ -238,7 +238,7 @@ move add alu alu-a;
 # Check if it is 1 past ether limit
 write 0xFF alu-b;
 move eq alu stack-push;
-write 0x18 alu-b;
+write 0x19 alu-b;
 move eq alu alu-a;
 move stack-pop alu-b;
 move or alu goto-decider;
@@ -357,18 +357,18 @@ write 0x01 set-stack-offset;
 move add alu offset-write;
 move add alu alu-a;
 # Add velocity to X
-move stack-pop alu-b;
-move stack-pop alu-a;
-move b alu stack-push;
+move stack-pop alu-b;# Pos
+move stack-pop alu-a;# Vel
+move a alu stack-push;
 move add alu stack-push;
 # Save old pos in case this addition of the volocity brings the paddle out-of-bounds
-move a alu stack-push;
+move b alu stack-push;
 # Stack: Vel, Pos, Old pos
 # In case paddle position is out-of-bounds by 1, set paddle velocity to 0 and restore old pos
 move add alu alu-a;
 write 0xFF alu-b;
 move eq alu stack-push;
-write 0x18 alu-b;
+write 0x19 alu-b;
 move eq alu alu-a;
 move stack-pop alu-b;
 move or alu alu-a;
@@ -586,7 +586,7 @@ write 0x0C gpram-inc-addr;# Player 1 pos
 write 0x00 gpram-inc-addr;# Player 1 vel
 write 0x01 gpram-inc-addr;# Ball Y vel, TODO: Set to 1 when done testing
 write 0x0F gpram-inc-addr;# Ball Y pos
-write 0x01 gpram-inc-addr;# Ball X vel
+write 0x00 gpram-inc-addr;# Ball X vel
 write 0x0F gpram-inc-addr;# Ball X pos
 write 0x0C gpram-inc-addr;# NPC Position
 return;
