@@ -25,6 +25,7 @@
 #   0x0005: Ball Y position
 #   0x0006: Ball X velocity
 #   0x0007: Ball X position
+#   0x0008: NPC (player 1) position
 #   0x0100 - 0x0107: Lookup table for the beginning of a paddle, based on bit index
 #   0x0200 - 0x0207: Lookup table for the end of a paddle, (same bit index as beginning, next byte over)
 
@@ -45,24 +46,32 @@ write 0x00 gpio-write-a;
 
 # --------------------------------- <Loop> ---------------------------------
 @anchor(outer-loop-start);
+@call(clear-objects);
 @call(init-game-state);
 @anchor(main-loop-start);
 # Calculate position changes to all objects
 @call(calculate-new-ball-position);
-# Stack: Ball AOB, New X pos, New X vel, New Y pos, New Y vel
+@call(calculate-new-paddle-positions);
+# Stack: Ball AOB, New X pos, New X vel, New Y pos, New Y vel, Player 1 vel, Player 1 pos, Player 0 vel, Player 0 pos
 # Clear current objects from display
 @call(clear-objects);
 # Update positions
 write 0x00 gpram-addr-b;
-write 0x04 gpram-addr-a;
+write 0x00 gpram-addr-a;
 move stack-pop gpram-inc-addr;
 move stack-pop gpram-inc-addr;
 move stack-pop gpram-inc-addr;
 move stack-pop gpram-inc-addr;
-move stack-pop none;# TODO
+move stack-pop gpram-inc-addr;
+move stack-pop gpram-inc-addr;
+move stack-pop gpram-inc-addr;
+move stack-pop gpram-inc-addr;
+# Stack: Ball AOB
 # Write new objects to display
 @call(draw-objects);
 # Check if game is over
+move stack-pop goto-decider;
+@goto_if(main-loop-end);
 @goto(main-loop-start);
 @anchor(main-loop-end);
 # Wait until restart
@@ -90,9 +99,13 @@ write 0x06 gpram-addr-a;
 move gpram-inc-addr alu-a;
 move gpram-inc-addr alu-b;
 move add alu stack-push;
-move add alu alu-a;
+# NPC Position update
+move a alu stack-push;
+@call(update-npc-position);
 # Stack: Ball AOB, New X pos
 # Check if hit either side, negate X vel if so but leave pos the same
+write 0x00 set-stack-offset;
+move offset-read alu-a;
 write 0x00 alu-b;
 move eq alu stack-push;
 write 0x1F alu-b;
@@ -133,11 +146,11 @@ move not alu goto-decider;
 # Decide whether to check paddle 0 (bottom) or 1 (top)
 move b alu goto-decider;# Paddle 1
 @goto_if(calculate-new-ball-position-y-bounce-paddle-check-use-paddle-1);
-# Read paddle 0 location
+# Read paddle 0 X
 write 0x00 gpram-addr-a;
 @goto(calculate-new-ball-position-y-bounce-paddle-check-end);
 @anchor(calculate-new-ball-position-y-bounce-paddle-check-use-paddle-1);
-# Read paddle 1 location
+# Read paddle 1 X
 write 0x02 gpram-addr-a;
 @anchor(calculate-new-ball-position-y-bounce-paddle-check-end);
 # Check if infront of chosen paddle
@@ -150,15 +163,15 @@ move add alu alu-a;# Add them
 write 0x01 alu-b;
 move add alu alu-a;# Add 1
 # Check if alu-a is < 8 by shifting all the higher bits (3 - 7) and ORing all of them then checking the LSB
+write 0x01 alu-b;
+move shift alu stack-push;
+write 0x02 alu-b;
+move shift alu stack-push;
 write 0x03 alu-b;
 move shift alu stack-push;
 write 0x04 alu-b;
 move shift alu stack-push;
 write 0x05 alu-b;
-move shift alu stack-push;
-write 0x06 alu-b;
-move shift alu stack-push;
-write 0x07 alu-b;
 move shift alu alu-b;
 # Pop and OR
 move stack-pop alu-a;
@@ -196,14 +209,206 @@ write 0x04 gpram-addr-a;
 move gpram stack-push;
 @anchor(calculate-new-ball-position-y-bounce-end);
 # Stack: Ball AOB, New X pos, New X vel, New Y pos, New Y vel
+# Check if it is AOB
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x00 alu-b;
+move eq alu stack-push;
+write 0x1F alu-b;
+move eq alu alu-a;
+move stack-pop alu-b;
+move or alu alu-a;
+move not alu goto-decider;
+@goto_if(calculate-new-ball-position-aob-check-end);
+write 0x04 set-stack-offset;
+write 0x01 offset-write;
+@anchor(calculate-new-ball-position-aob-check-end);
 # Done
 return;
 
+@anchor(update-npc-position);
+# Pops 1 byte: Ball X shift (also velocity)
+write 0x00 gpram-addr-b;
+write 0x08 gpram-addr-a;
+move gpram alu-a;
+move stack-pop alu-b;
+move add alu stack-push;# Add shift to previous NPC position
+move add alu alu-a;
+# Stack: New pos
+# Check if it is 1 past ether limit
+write 0xFF alu-b;
+move eq alu stack-push;
+write 0x18 alu-b;
+move eq alu alu-a;
+move stack-pop alu-b;
+move or alu goto-decider;
+move stack-pop alu-a;# Store new position in alu-a before branching so there isn't another branch just to make sure it gets popped from the stack
+@goto_if(update-npc-position-limits-fail);
+# New position is within limits, write it back to memory
+move a alu gpram;
+@anchor(update-npc-position-limits-fail);
+return;
+
 @anchor(calculate-new-paddle-positions);
-# Returns:
-#  0. Paddle 0 position
-#  1. Paddle 1 position
-# TODO
+# Returns: (1st is deepest on stack), the reason for this order is so that the position and velocity can be popped from the stack into the GPRAM in the correct order
+#   0. Player 1 vel
+#   1. Player 1 pos
+#   2. Player 0 vel
+#   3. Player 0 pos
+# GPIO-A usage:
+#   0. Player 0 move left
+#   1. Player 0 move right
+#   2. Player 1 move left
+#   3. Player 1 move right
+#   4. Player 1 enable
+write 0x00 gpram-addr-b;
+# Read gpio-read-a once so this function can't be messed up by the input changing
+move gpio-read-a stack-push;
+# Stack: Input
+# Switch based on if player 1 is enabled (disabled means NPC)
+write 0x00 set-stack-offset;
+move offset-read alu-a;
+write 0x04 alu-b;
+move shift alu goto-decider;
+@goto_if(calculate-new-paddle-positions-1-manual);
+# Player 1 NPC
+write 0x00 stack-push;# Velocity
+write 0x08 gpram-addr-a;
+move gpram stack-push;# Position
+@goto(calculate-new-paddle-positions-1-end);
+@anchor(calculate-new-paddle-positions-1-manual);
+# Prepare to call `paddle-update-manual-generic` for player 1
+write 0x00 stack-push;
+write 0x02 gpram-addr-a;
+move gpram stack-push;
+# Stack: Input, Placeholder, Player 1 pos
+# Shift input for player 1 bits
+write 0x02 set-stack-offset;
+move offset-read alu-a;
+write 0x06 alu-b;
+move shift alu stack-push;
+write 0x05 alu-b;
+move shift alu stack-push;
+# Stack: Input, Placeholder, Player 1 pos, Move left, Move right
+@call(paddle-update-manual-generic);
+@anchor(calculate-new-paddle-positions-1-end);
+# Stack: Input, Player 1 vel, Player 1 pos
+# Player 0, simpler because no NPC
+# Prepare to call `paddle-update-manual-generic` for player 0
+write 0x00 stack-push;
+write 0x00 gpram-addr-a;
+move gpram stack-push;
+# Stack: Input, Player 1 vel, Player 1 pos, Placeholder, Player 0 pos
+# Shift input for player 1 bits
+write 0x04 set-stack-offset;
+move offset-read alu-a;
+move offset-read stack-push;
+write 0x07 alu-b;
+move shift alu stack-push;
+# Stack: Input, Player 1 vel, Player 1 pos, Placeholder, Player 0 pos, Move left, Move right
+@call(paddle-update-manual-generic);
+# Stack: Input, Player 1 vel, Player 1 pos, Player 0 vel, Player 0 pos
+# Get rid of "input" on the stack
+
+write 0x03 set-stack-offset;
+move offset-read alu-a;
+write 0x04 set-stack-offset;
+move a alu offset-write;
+
+write 0x02 set-stack-offset;
+move offset-read alu-a;
+write 0x03 set-stack-offset;
+move a alu offset-write;
+
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x02 set-stack-offset;
+move a alu offset-write;
+
+move stack-pop alu-a;
+write 0x00 set-stack-offset;
+move a alu offset-write;
+# Stack: Player 1 vel, Player 1 pos, Player 0 vel, Player 0 pos
+return;
+
+# For controlling either paddle 0 or 1
+@anchor(paddle-update-manual-generic);
+# Pops 4 bytes:
+#  0. (placeholder)
+#  1. X Position
+#  2. Move-left input
+#  3. Move-right input
+# Pushes 2 bytes:
+#  0. Velocity
+#  1. Positin
+# Calculate velocity
+move stack-pop alu-b;# right
+move stack-pop alu-a;# left
+move xnor alu goto-decider;# Skip moving if the left-right inputs are equal
+# Stack: Vel, Pos
+@goto_if(paddle-update-manual-generic-not-moving);
+# Get X velocity, AND alu-b with 1 so only LSB (move right) can be set, multiply by 2, subtract 1
+write 0x01 alu-a;
+move and alu alu-a;
+write 0x01 alu-b;
+move shift alu alu-a;
+write 0xFF alu-b;
+write 0x01 set-stack-offset;
+move add alu offset-write;
+move add alu alu-a;
+# Add velocity to X
+move stack-pop alu-b;
+move stack-pop alu-a;
+move b alu stack-push;
+move add alu stack-push;
+# Save old pos in case this addition of the volocity brings the paddle out-of-bounds
+move a alu stack-push;
+# Stack: Vel, Pos, Old pos
+# In case paddle position is out-of-bounds by 1, set paddle velocity to 0 and restore old pos
+move add alu alu-a;
+write 0xFF alu-b;
+move eq alu stack-push;
+write 0x18 alu-b;
+move eq alu alu-a;
+move stack-pop alu-b;
+move or alu alu-a;
+move not alu goto-decider;
+@goto_if(paddle-update-manual-generic-check-paddle-0-ok);
+# Restore old pos and set vel to 0
+move stack-pop alu-a;
+move stack-pop none;
+move stack-pop none;
+write 0x00 stack-push;
+move a alu stack-push;
+@goto(paddle-update-manual-generic-check-paddle-0-end);
+@anchor(paddle-update-manual-generic-check-paddle-0-ok);
+# Paddle's position is within limits, delete old pos
+move stack-pop none;
+@anchor(paddle-update-manual-generic-check-paddle-0-end);
+# Stack: Vel, Pos
+# If paddle is at either limit, always set the velocity to 0 to prevent double-negating the ball's x velocity on a corner bounce
+write 0x00 set-stack-offset;
+move offset-read alu-a;
+write 0x00 alu-b;
+move eq alu stack-push;
+write 0x17 alu-b;
+move eq alu alu-a;
+move stack-pop alu-b;
+move or alu alu-a;
+move not alu goto-decider;
+@goto_if(paddle-update-manual-generic-check-paddle-1-ok);
+# Set velocity to 0
+write 0x01 set-stack-offset;
+write 0x00 offset-write;
+@anchor(paddle-update-manual-generic-check-paddle-1-ok);
+@goto(paddle-update-manual-generic-end);
+@anchor(paddle-update-manual-generic-not-moving);
+# Not moving, set vel to 0 and leave position as-is
+write 0x01 set-stack-offset;
+write 0x00 offset-write;
+@anchor(paddle-update-manual-generic-end);
+# Done
+# Stack: Vel, Pos
 return;
 
 @anchor(display-point);
@@ -379,10 +584,11 @@ write 0x0C gpram-inc-addr;# Player 0 pos
 write 0x00 gpram-inc-addr;# Player 0 vel
 write 0x0C gpram-inc-addr;# Player 1 pos
 write 0x00 gpram-inc-addr;# Player 1 vel
-write 0x00 gpram-inc-addr;# Ball Y vel, TODO: Set to 1 when done testing
+write 0x01 gpram-inc-addr;# Ball Y vel, TODO: Set to 1 when done testing
 write 0x0F gpram-inc-addr;# Ball Y pos
 write 0x01 gpram-inc-addr;# Ball X vel
 write 0x0F gpram-inc-addr;# Ball X pos
+write 0x0C gpram-inc-addr;# NPC Position
 return;
 
 @anchor(clear-display);
