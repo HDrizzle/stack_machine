@@ -15,8 +15,9 @@ name = "stack_machine"
 path = "src/bin.rs"
 
 [features]
-default = []#"emulator_debug"]
+default = ["replicate_stack_issue"]#"emulator_debug"]
 emulator_debug = []
+replicate_stack_issue = []
 
 [dependencies]
 serde = {version = "1.0.197", features = ["derive", "rc"]}

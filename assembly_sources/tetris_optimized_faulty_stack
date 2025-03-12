@@ -1,0 +1,2070 @@
+# Tetris implementation (optimized), modified to work when the offset-write stack operation also writes to the ToS
+# Works best at ~1 MHz
+# Blocks at: https://docs.google.com/spreadsheets/d/1tb9R2Y6Wr4T2g81XD9d3jRF-j7dfjZBMvmKckkSev1U/edit?usp=sharing
+# Key bindings: bit indices of `gpio-read-a`
+#   0. Restart game
+#   1. Shift left
+#   2. Shift right
+#   3. Rotate CCW
+#   4. Rotate CW
+#   5. Shift Down (temporary)
+#   6. Shift Up (temporary)
+# Display layout: Tetris arena size is 10 x 20, since the display is 32 by 32 pixels, each grid square will be one pixel
+#   There will be a 12 x 22 chunk for the arena with a white border with the top-left starting at (0, 9) and ending at (11, 31)
+#   Each shape is a 4x4 grid of pixels which can be rotated
+#   Next shape: (16, 10)
+# Memory layout:
+#   Display buffer: 0x0000
+#     Same format that the display uses, 128 bytes.
+#   Arena: 0x0100
+#     To increae performance, each pixel in the arena will be represented as an entire byte with only the LSB used.
+#     The arena data will be stored in GPRAM as a 10 columns x 20 rows = 200 byte chunk. Each column will start at the bottom and go up, with the columns going from left to right.
+#   List of shapes: 0x0200
+#     Each shape will be represented by 2 bytes (4 rows left to right, top to bottom)
+#   Current shape: 0x0300
+#     The current shape will be represented by 18 bytes, the first 16 bytes represent the shape itself in the same format as the arena.
+#     The last two bytes are the horizontal and vertical displacement of the bottom-left corner of the shape WRT the bottom-left of the arena.
+#   Most recent input state: 0x0400
+#     Every time `read-input` is called with a key index, it uses the byte at 0x0400 to compare it to the previous state to detect rising edges.
+#     All "unread" rising edges are stored in the byte at 0x0401
+#   Pseudo-random number generator: 0x0500
+#     TODO
+#   Next shape: 0x0600
+#     16 bytes, same format as current shape but without the arena location
+#   Score: 0x0700
+#   Current shape background save: 0x0800
+#     A copy of the display buffer, this data structure will be used to save the state of the screen in a 16 px wide by 4 px high area where the current shape is rendered.
+
+write 0x00 gpio-write-a;
+
+# Comment out for testing
+@goto(init);
+
+# --------------------------------- <Testing> ---------------------------------
+
+@call(init-shapes);
+@call(init-arena-outline);
+
+#write 0x00 stack-push;
+#write 0x09 stack-push;
+#write 0x01 stack-push;
+#@call(draw-pixel-in-arena);
+
+@call(draw-arena);
+
+# Print out gpram pointers
+#move gpram-addr-b stack-push;
+#move gpram-addr-a stack-push;
+#write 0x00 gpram-addr-a;
+#write 0x00 gpram-addr-b;
+#move stack-pop gpram-inc-addr;
+#move stack-pop gpram-inc-addr;
+
+@call(update-display);
+@call(pseudo-random-init);
+
+
+
+@anchor(test-loop-start);
+# Collision test
+@call(set-pointer-current-shape);
+@call(collision-check);
+write 0x00 gpram-addr-b;
+write 0x02 gpram-addr-a;
+move stack-pop gpram-inc-addr;
+move stack-pop gpram;
+# Arena must be drawn BEFORE current shape so that it will overwrite the previous rendering of the shape
+@call(draw-arena);
+# Draw current shape
+@call(draw-current-shape);
+# Update display
+@call(update-display);
+# Read input
+@call(read-input-to-rotate-current-shape);
+@call(read-input-to-shift-current-shape);
+# Check to run shape update
+write 0x00 stack-push;# Key index
+@call(read-input);
+move stack-pop alu-a; move not alu goto-decider;
+@goto_if(test-loop-start);
+
+@call(put-current-shape-onto-arena);
+
+# Clear completed rows
+@call(clear-completed-rows);
+move stack-pop none;
+
+# Update current shape before next shape
+@call(init-current-shape-and-collision-check);
+write 0x00 gpram-addr-b;
+write 0x04 gpram-addr-a;
+move stack-pop gpram;
+
+# New thing, works
+@call(pseudo-random-get);
+@call(init-next-shape-from-storage);
+
+# Draw next shape at (15,16)
+write 0x00 stack-push;
+write 0x0F stack-push;
+write 0x10 stack-push;
+@call(set-pointer-next-shape);
+@call(draw-shape);
+
+@goto(test-loop-start);
+
+# --------------------------------- </Testing> ---------------------------------
+
+# --------------------------------- <Init> ---------------------------------
+@anchor(init);
+@call(init-shapes);
+@call(init-arena-outline);
+@call(pseudo-random-init);
+@call(clear-arena);
+@call(draw-arena);
+# Render everything so far
+@call(update-display);
+# --------------------------------- </Init> ---------------------------------
+
+# --------------------------------- <Loop> ---------------------------------
+@anchor(outer-loop-start);
+# New game, wait for button 0 to be pressed
+write 0x00 stack-push;
+@call(read-input);
+move stack-pop alu-a;
+move not alu goto-decider;
+@goto_if(outer-loop-start);
+@call(clear-score);
+# Clear arena
+@call(clear-arena);
+@call(draw-arena);
+# Initial shapes
+# Current shape
+@call(pseudo-random-get);
+@call(init-next-shape-from-storage);
+@call(init-current-shape-and-collision-check);
+# Next shape
+@call(pseudo-random-get);
+@call(init-next-shape-from-storage);
+# Draw next shape at (15,16)
+write 0x00 stack-push;
+write 0x0F stack-push;
+write 0x10 stack-push;
+@call(set-pointer-next-shape);
+@call(draw-shape);
+# Frames since last shift down
+write 0x00 stack-push;
+# Game loop start
+@anchor(game-loop-start);
+# Read input
+@call(read-input-to-rotate-current-shape);
+# Update input events
+write 0x07 stack-push;
+@call(read-input);
+move stack-pop none;
+@call(read-input-to-shift-current-shape);
+# Determine if shift down
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+write 0x08 alu-b;# Frames per shift down
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(game-loop-skip-new-shape);
+# Reset frame count to shift shape down
+move stack-pop none;
+write 0x00 stack-push;
+# Shift down, collision check
+@call(try-shift-current-shape-down);
+move stack-pop goto-decider;
+@goto_if(game-loop-new-shape);
+@goto(game-loop-skip-new-shape);
+@anchor(game-loop-new-shape);
+# Save previous shape to arena
+@call(put-current-shape-onto-arena);
+# Clear completed rows
+@call(clear-completed-rows);
+@call(update-score);
+@call(draw-arena);
+# New current shape, read arena collision result
+@call(init-current-shape-and-collision-check);
+move stack-pop goto-decider;
+@goto_if(game-loop-end);
+# Update input events
+write 0x07 stack-push;
+@call(read-input);
+move stack-pop none;
+# Update next shape
+@call(pseudo-random-get);
+@call(init-next-shape-from-storage);
+# Draw next shape at (15,16)
+write 0x00 stack-push;
+write 0x0F stack-push;
+write 0x10 stack-push;
+@call(set-pointer-next-shape);
+@call(draw-shape);
+@anchor(game-loop-skip-new-shape);
+# Update graphics
+# Update input events
+write 0x07 stack-push;
+@call(read-input);
+move stack-pop none;
+# Save current shape background
+@call(save-current-shape-background);
+# Draw current shape
+@call(draw-current-shape);
+# Update input events
+write 0x07 stack-push;
+@call(read-input);
+move stack-pop none;
+# Update display
+@call(update-display-limited);
+# Restore current shape background
+@call(restore-current-shape-background);
+# Goto beginning of game loop
+@goto(game-loop-start);
+@anchor(game-loop-end);
+move stack-pop none;
+# Clear key press events
+@call(set-pointer-input-state);
+write 0x01 gpram-addr-a;
+write 0x00 gpram;
+# Draw current shape
+@call(draw-current-shape);
+# Update display
+@call(update-display);
+@goto(outer-loop-start);
+# --------------------------------- </Loop> ---------------------------------
+
+# --------------------------------- <Functions> ---------------------------------
+
+@anchor(set-pointer-arena);
+write 0x00 gpram-addr-a;
+write 0x01 gpram-addr-b;
+return;
+
+@anchor(set-pointer-shapes);
+write 0x00 gpram-addr-a;
+write 0x02 gpram-addr-b;
+return;
+
+@anchor(set-pointer-current-shape);
+write 0x00 gpram-addr-a;
+write 0x03 gpram-addr-b;
+return;
+
+@anchor(set-pointer-input-state);
+write 0x00 gpram-addr-a;
+write 0x04 gpram-addr-b;
+return;
+
+@anchor(set-pointer-rand-gen);
+write 0x00 gpram-addr-a;
+write 0x05 gpram-addr-b;
+return;
+
+@anchor(set-pointer-next-shape);
+write 0x00 gpram-addr-a;
+write 0x06 gpram-addr-b;
+return;
+
+@anchor(pseudo-random-init);
+@call(set-pointer-rand-gen);
+write 0x00 gpram;
+return;
+
+@anchor(update-score);
+# Pops 1 byte: amount to add to score
+write 0x00 gpram-addr-a;
+write 0x07 gpram-addr-b;
+move stack-pop alu-a;
+move gpram alu-b;
+move add alu gpram;
+return;
+
+@anchor(clear-score);
+write 0x00 gpram-addr-a;
+write 0x07 gpram-addr-b;
+write 0x00 gpram;
+return;
+
+@anchor(pseudo-random-get);
+# TODO: Actually make random
+# Pushes 1 byte: New "random" value
+@call(set-pointer-rand-gen);
+move gpram stack-push;
+# Increment value
+move gpram alu-a;
+write 0x01 alu-b;
+move add alu alu-a;
+# Check if it is 8
+write 0x08 alu-b;
+move eq alu goto-decider;
+@goto_if(pseudo-random-get-reset);
+@goto(pseudo-random-get-skip-reset);
+@anchor(pseudo-random-get-reset);
+# Reset
+write 0x00 alu-a;
+@anchor(pseudo-random-get-skip-reset);
+move a alu gpram;
+return;
+
+# Works
+@anchor(read-input);
+# Pops 1 byte: bit index for the key
+# Pushes 1 byte with the LSB indicating whether the given key was changed from 0 to 1
+@call(set-pointer-input-state);
+# Read GPIO A only once
+move gpio-read-a stack-push;
+# Stack: Bit index, Input
+# Get the difference between this state and the previous state
+write 0x00 set-stack-offset;
+move offset-read alu-a;
+move gpram alu-b;
+move xnor alu alu-a;
+move not alu alu-a;
+# Save current state
+move offset-read gpram;
+# "and" the difference with the current state, so as to only detect rising edges
+move stack-pop alu-b;
+move and alu alu-a;
+# Stack: Bit index
+# "or" with other events at 0x0401
+write 0x01 gpram-addr-a;
+move gpram alu-b;
+move or alu stack-push;
+# Stack: Bit index, All events
+# Subtract shift value from 8: 9+(~shift)
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+move not alu alu-a;
+write 0x09 alu-b;
+move add alu alu-b;
+write 0x00 set-stack-offset;
+move offset-read alu-a;
+move shift alu stack-push;
+# Stack: Bit index, All events, Return
+# Clear event, by shifting bit mask FE by bit index
+write 0x02 set-stack-offset;
+move offset-read alu-b;
+write 0xFE alu-a;
+move shift alu alu-b;
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+move and alu gpram;# Store in GPRAM
+# Stack: Bit index, All events, Return
+write 0x00 set-stack-offset;
+move stack-pop offset-write;# Good for stack fault
+move stack-pop offset-write;
+# Stack: Return
+return;
+
+@anchor(update-display);
+write 0x00 gpram-addr-a;
+write 0x00 gpram-addr-b;
+# Init counter
+write 0x00 stack-push;
+write 0x00 set-stack-offset;
+# Loop
+@anchor(update-display-loop-start);
+# Write to display
+move offset-read gpio-write-a;
+move gpram-inc-addr gpio-write-b;
+# Increment counter
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if it is 128
+write 0x80 alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(update-display-loop-start);
+# Done
+move stack-pop none;
+return;
+
+# Starts lower down for optimization
+@anchor(update-display-limited);
+write 0x00 gpram-addr-b;
+# Init counter
+write 0x28 stack-push;
+write 0x28 gpram-addr-a;
+write 0x00 set-stack-offset;
+# Loop
+@anchor(update-display-limited-loop-start);
+# Copied 4 times
+# Write
+move offset-read gpio-write-a;
+move gpram-inc-addr gpio-write-b;
+# Increment counter
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+# Write
+move offset-read gpio-write-a;
+move gpram-inc-addr gpio-write-b;
+# Increment counter
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+# Write
+move offset-read gpio-write-a;
+move gpram-inc-addr gpio-write-b;
+# Increment counter
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+# Write
+move offset-read gpio-write-a;
+move gpram-inc-addr gpio-write-b;
+# Increment counter
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+# Check if it is 128
+move offset-read alu-a;
+write 0x80 alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(update-display-limited-loop-start);
+# Done
+move stack-pop none;
+return;
+
+@anchor(clear-arena);
+@call(set-pointer-arena);
+@anchor(clear-arena-loop-start);
+write 0x00 gpram-inc-addr;
+move gpram-addr-a alu-a;
+write 0xC8 alu-b;# 200
+move eq alu goto-decider;
+@goto_if(clear-arena-loop-end);
+@goto(clear-arena-loop-start);
+@anchor(clear-arena-loop-end);
+return;
+
+@anchor(init-arena-outline);
+write 0x00 gpram-addr-b;
+# Bottom horizontal
+write 0x7C gpram-addr-a;
+write 0xFF gpram-inc-addr;
+write 0x0F gpram-inc-addr;
+# Top horizontal
+write 0x28 gpram-addr-a;
+write 0xFF gpram-inc-addr;
+write 0x0F gpram-inc-addr;
+# Verticals
+write 0x2C stack-push;
+write 0x00 set-stack-offset;
+# Loop
+@anchor(init-arena-outline-loop-start);
+# Write two bytes on a row to make a part of both verticals
+move offset-read gpram-addr-a;
+write 0x01 gpram-inc-addr;
+write 0x08 gpram;
+# Increment counter
+move stack-pop alu-a;
+write 0x04 alu-b;
+move add alu stack-push;
+# Check if its 124 (0x7C)
+move offset-read alu-a;
+write 0x7C alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(init-arena-outline-loop-start);
+return;
+
+@anchor(display-shape-storage-format);
+# Pops 1 byte from stack which is used as the shape index
+# Clear 4x4 chunk of display
+@call(set-pointer-arena);
+write 0x2A gpram-addr-a;
+write 0x00 gpram;
+write 0x2E gpram-addr-a;
+write 0x00 gpram;
+write 0x32 gpram-addr-a;
+write 0x00 gpram;
+write 0x36 gpram-addr-a;
+write 0x00 gpram;
+# Write new shape to display
+@call(set-pointer-shapes);
+# Multiply index by 2 and set addr.A
+move stack-pop alu-a;
+write 0x01 alu-b;
+move shift alu gpram-addr-a;
+# Create display bytes and push onto stack
+# Byte 0, first half
+move gpram-inc-addr alu-a;
+write 0x0F alu-b;
+move and alu stack-push;
+# Second half
+write 0xF0 alu-b;
+move and alu alu-a;
+write 0x04 alu-b;
+move shift alu stack-push;
+# Byte 1, first half
+move gpram-inc-addr alu-a;
+write 0x0F alu-b;
+move and alu stack-push;
+# Second half
+write 0xF0 alu-b;
+move and alu alu-a;
+write 0x04 alu-b;
+move shift alu stack-push;
+# Pop display bytes off stack and place them in display buffer, reverse order
+write 0x00 gpram-addr-b;
+write 0x36 gpram-addr-a;
+move stack-pop gpram;
+write 0x32 gpram-addr-a;
+move stack-pop gpram;
+write 0x2E gpram-addr-a;
+move stack-pop gpram;
+write 0x2A gpram-addr-a;
+move stack-pop gpram;
+return;
+
+# There is a minor bug where edge collisions and arena collisions are mutually exclusive, but this shouldn't affect the game logic
+@anchor(collision-check);
+# Pops 0 bytes
+# Assumes the GPRAM address has already been set, probably to either the current shape or the collision test alternate memory location
+# Checks for collision between the given shape and both the arena and the boundary
+# Returns 2 values:
+#   0. Whether the given shape is overlapping anything in the arena
+#   1. Whether it is overlapping the edge, the first 4 bits correspond to (LSB first) left, right, bottom, top
+# Return values, initially false
+write 0x00 stack-push;
+write 0x00 stack-push;
+# Get offset of shape
+write 0x10 gpram-addr-a;
+move gpram-inc-addr stack-push;
+move gpram stack-push;
+# Loop 0..16, calculate local (X,Y) each iteration
+write 0x00 stack-push;
+# Stack: Return (arena), Return (edge), X offset, Y offset, i
+@anchor(collision-check-shape-loop-start);
+# Calculate X and Y from i
+# X, divide by 4
+write 0x00 set-stack-offset;
+move offset-read alu-a;
+write 0x06 alu-b;
+move shift alu alu-a;
+write 0x3F alu-b;# Chop off any 1s that wraped around
+move and alu stack-push;
+# Stack: Return (arena), Return (edge), X offset, Y offset, i, Local X
+# Y, lower 2 bits
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x03 alu-b;
+move and alu stack-push;
+# Stack: Return (arena), Return (edge), X offset, Y offset, i, Local X, Local Y
+# Add offsets to X and Y, in-place
+# X
+write 0x04 set-stack-offset;
+move offset-read alu-a;
+write 0x01 set-stack-offset;
+move offset-read alu-b;
+move add alu alu-a;
+write 0x00 set-stack-offset;# Stack fault work-around
+move offset-read alu-b;
+write 0x01 set-stack-offset;
+move a alu offset-write;
+write 0x00 set-stack-offset;
+move b alu offset-write;
+# Y
+write 0x03 set-stack-offset;
+move offset-read alu-a;
+move stack-pop alu-b;
+move add alu stack-push;
+# Stack: Return (arena), Return (edge), X offset, Y offset, i, X arena, Y arena
+# Get shape value at location
+write 0x02 set-stack-offset;
+move offset-read gpram-addr-a;
+move gpram alu-a;
+move not alu goto-decider;
+@goto_if(collision-check-skip-arena-and-edge-check);
+# Collision check, only if shape value at this location is filled in
+# Before checking arena collision, check for edge collision
+write 0x05 set-stack-offset;
+move offset-read stack-push;
+# Stack: Return (arena), Return (edge), X offset, Y offset, i, X arena, Y arena, Return (edge) (recent)
+# X=255 (left edge)
+write 0x02 set-stack-offset;
+move offset-read alu-a;
+write 0xFF alu-b;
+move eq alu alu-a;
+move stack-pop alu-b;
+move or alu stack-push;
+# X=10 (right edge)
+move offset-read alu-a;
+write 0x0A alu-b;
+move eq alu alu-a;
+write 0x01 alu-b;
+move shift alu alu-a;
+move stack-pop alu-b;
+move or alu stack-push;
+# Y=255 (bottom edge)
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0xFF alu-b;
+move eq alu alu-a;
+write 0x02 alu-b;
+move shift alu alu-a;
+move stack-pop alu-b;
+move or alu stack-push;
+# X=20 (top edge)
+move offset-read alu-a;
+write 0x14 alu-b;
+move eq alu alu-a;
+write 0x03 alu-b;
+move shift alu alu-a;
+move stack-pop alu-b;
+move or alu stack-push;
+# Done with edge checking, update OG return variable
+move stack-pop alu-a;
+write 0x05 set-stack-offset;
+move offset-read alu-b;
+move or alu alu-a;
+write 0x00 set-stack-offset;# Stack fault work-around
+move offset-read alu-b;
+write 0x05 set-stack-offset;
+move a alu offset-write;
+write 0x00 set-stack-offset;
+move b alu offset-write;
+# Stack: Return (arena), Return (edge), X offset, Y offset, i, X arena, Y arena
+# If there is an edge collision, don't check for arena collision because there could be weird (literal) edge cases
+write 0x05 set-stack-offset;
+move offset-read alu-a;
+move a alu goto-decider;
+@goto_if(collision-check-skip-arena-and-edge-check);
+# Save GPRAM B address
+move gpram-addr-b stack-push;
+# Stack: Return (arena), Return (edge), X offset, Y offset, i, X arena, Y arena, GPRAM B (shape)
+# Calculate arena index using (X,Y), start by multiplying X by 20 (*16 + *4)
+write 0x02 set-stack-offset;
+move offset-read alu-a;
+write 0x04 alu-b;
+move shift alu stack-push;
+write 0x02 alu-b;
+move shift alu alu-a;
+move stack-pop alu-b;
+move add alu alu-a;
+# Now add Y
+write 0x01 set-stack-offset;
+move offset-read alu-b;
+# Set GPRAM address to arena
+@call(set-pointer-arena);
+move add alu gpram-addr-a;
+# OR arena value with current return value
+write 0x07 set-stack-offset;
+move offset-read alu-a;
+move gpram alu-b;
+move or alu alu-a;
+write 0x00 set-stack-offset;# Stack fault work-around
+move offset-read alu-b;
+write 0x07 set-stack-offset;
+move a alu offset-write;
+write 0x00 set-stack-offset;
+move b alu offset-write;
+# Restore GPRAM address B for shape
+move stack-pop gpram-addr-b;
+@anchor(collision-check-skip-arena-and-edge-check);
+# Clear X arena and Y arena
+move stack-pop none;
+move stack-pop none;
+# Stack: Return (arena), Return (edge), X offset, Y offset, i
+# Increment i
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if i=16
+write 0x10 alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(collision-check-shape-loop-start);
+# Clear stack variables
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+# Stack: Return (arena), Return (edge)
+return;
+
+# Works
+@anchor(put-current-shape-onto-arena);
+# DOES NOT check if shape is overlapping edge
+# Mostly copied from `collision-check`
+# Get offset of shape
+@call(set-pointer-current-shape);
+write 0x10 gpram-addr-a;
+move gpram-inc-addr stack-push;
+move gpram stack-push;
+# Loop 0..16, calculate local (X,Y) each iteration
+write 0x00 stack-push;
+# Stack: X offset, Y offset, i
+@anchor(put-current-shape-onto-arena-loop-start);
+# Calculate X and Y from i
+# X, divide by 4
+write 0x00 set-stack-offset;
+move offset-read alu-a;
+write 0x06 alu-b;
+move shift alu alu-a;
+write 0x3F alu-b;# Chop off any 1s that wraped around
+move and alu stack-push;
+# Stack: X offset, Y offset, i, Local X
+# Y, lower 2 bits
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x03 alu-b;
+move and alu stack-push;
+# Stack: X offset, Y offset, i, Local X, Local Y
+# Add offsets to X and Y, in-place
+# X
+write 0x04 set-stack-offset;
+move offset-read alu-a;
+write 0x01 set-stack-offset;
+move offset-read alu-b;
+move add alu alu-a;
+write 0x00 set-stack-offset;# Stack fault work-around
+move offset-read alu-b;
+write 0x01 set-stack-offset;
+move a alu offset-write;
+write 0x00 set-stack-offset;
+move b alu offset-write;
+# Y
+write 0x03 set-stack-offset;
+move offset-read alu-a;
+move stack-pop alu-b;
+move add alu stack-push;
+# Stack: X offset, Y offset, i, X arena, Y arena
+# Get shape value at location
+@call(set-pointer-current-shape);
+write 0x02 set-stack-offset;
+move offset-read gpram-addr-a;
+move gpram alu-a;
+move not alu goto-decider;
+@goto_if(put-current-shape-onto-arena-skip-or);
+# Calculate arena index using (X,Y), start by multiplying X by 20 (*16 + *4)
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x04 alu-b;
+move shift alu stack-push;
+write 0x02 alu-b;
+move shift alu alu-a;
+move stack-pop alu-b;
+move add alu alu-a;
+# Now add Y
+write 0x00 set-stack-offset;
+move offset-read alu-b;
+# Set GPRAM address to arena
+@call(set-pointer-arena);
+move add alu gpram-addr-a;
+# Set arena value to 1
+write 0x01 gpram;
+@anchor(put-current-shape-onto-arena-skip-or);
+# Clear X arena and Y arena
+move stack-pop none;
+move stack-pop none;
+# Stack: X offset, Y offset, i
+# Increment i
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if i=16
+write 0x10 alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(put-current-shape-onto-arena-loop-start);
+# Clear stack variables
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+return;
+
+# Works
+@anchor(check-row-is-complete);
+# Pops 1 byte: Row Y value
+# Pushes 1 byte: Result
+write 0x01 stack-push;
+write 0x00 stack-push;
+# Stack: Y, Result, X
+@call(set-pointer-arena);
+# Loop that `AND`s each arena value with 0x01, only if they are all filled in will the result stil be 0x01
+@anchor(check-row-is-complete-loop-start);
+# Calculate arena index using (X,Y), start by multiplying X by 20 (*16 + *4)
+write 0x00 set-stack-offset;
+move offset-read alu-a;
+write 0x04 alu-b;
+move shift alu stack-push;
+write 0x02 alu-b;
+move shift alu alu-a;
+move stack-pop alu-b;
+move add alu alu-a;
+# Now add Y
+write 0x02 set-stack-offset;
+move offset-read alu-b;
+# Set GPRAM address
+move add alu gpram-addr-a;
+# AND with result
+move gpram alu-a;
+write 0x01 set-stack-offset;
+move offset-read alu-b;
+move and alu alu-a;
+write 0x00 set-stack-offset;# Stack fault work-around
+move offset-read alu-b;
+write 0x01 set-stack-offset;
+move a alu offset-write;
+write 0x00 set-stack-offset;
+move b alu offset-write;
+# Increment X
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if x=10
+write 0x0A alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(check-row-is-complete-loop-start);
+# Done
+move stack-pop none;
+write 0x00 set-stack-offset;
+move stack-pop offset-write;
+return;
+
+# NO WAY IT WORKS FIRST TRY!!!!!!! (besides compiler errors but whatever)
+@anchor(clear-completed-rows);
+# Pushes 1 byte: Number of rows cleared (to add to score)
+write 0x00 stack-push;
+write 0x13 stack-push;
+# Stack: Clear count, Y
+# For-loop to iterate y down to 0 and check each row
+@anchor(clear-completed-rows-main-loop);
+# Check if row is complete
+write 0x00 set-stack-offset;
+move offset-read stack-push;
+@call(check-row-is-complete);
+move stack-pop alu-a;
+move not alu goto-decider;
+@goto_if(clear-completed-rows-skip-clear);
+# Iterate from X=0 to X=10, then from Y=(outer loop Y) to Y=20, shift data down by 1
+write 0x00 stack-push;
+# Stack: Clear count, Y, Clear X
+@call(set-pointer-arena);
+@anchor(clear-completed-rows-clear-outer-loop-x);
+# Multiply Clear X by 20
+write 0x00 set-stack-offset;
+move offset-read alu-a;
+write 0x04 alu-b;
+move shift alu stack-push;
+write 0x02 alu-b;
+move shift alu alu-a;
+move stack-pop alu-b;
+move add alu stack-push;
+# Stack: Clear count, Y, Clear X, Arena index (by clear X)
+write 0x02 set-stack-offset;
+move offset-read stack-push;
+# Stack: Clear count, Y, Clear X, Arena index (by clear X), Clear Y
+@anchor(clear-completed-rows-clear-inner-loop-y);
+# Get arena index
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x00 set-stack-offset;
+move offset-read alu-b;
+move add alu stack-push;
+# Stack: Clear count, Y, Clear X, Arena index (by clear X), Clear Y, Arena index (absolute)
+# Check if `Clear Y`=19, meaning DON'T increment the GPRAM address to get the replacement value, instead just write 0x00
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x13 alu-b;
+move eq alu goto-decider;
+@goto_if(clear-completed-rows-clear-inner-loop-y-use-constant-replacement);
+# Use next arena value
+write 0x00 set-stack-offset;
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu gpram-addr-a;
+move gpram stack-push;
+@goto(clear-completed-rows-clear-inner-loop-y-end-replacement-find-if-else);
+@anchor(clear-completed-rows-clear-inner-loop-y-use-constant-replacement);
+# Top of arena, use 0x00
+write 0x00 stack-push;
+@anchor(clear-completed-rows-clear-inner-loop-y-end-replacement-find-if-else);
+# Stack: Clear count, Y, Clear X, Arena index (by clear X), Clear Y, Arena index (absolute), Replacement
+# Put replacement value into arena, using alu-a to temporarily store it
+move stack-pop alu-a;
+move stack-pop gpram-addr-a;
+move a alu gpram;
+# Stack: Clear count, Y, Clear X, Arena index (by clear X), Clear Y
+# Increment Clear Y
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if `Clear Y`=20
+write 0x14 alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(clear-completed-rows-clear-inner-loop-y);
+# Clear `Clear Y` and `Arena index (by X)`
+move stack-pop none;
+move stack-pop none;
+# Stack: Clear count, Y, Clear X
+# Increment Clear X
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if `Clear X`=10
+write 0x0A alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(clear-completed-rows-clear-outer-loop-x);
+# Delete `Clear X`
+move stack-pop none;
+# Stack: Clear count, Y
+# Increment clear count
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu alu-a;
+write 0x00 set-stack-offset;# Stack fault work-around
+move offset-read alu-b;
+write 0x01 set-stack-offset;
+move a alu offset-write;
+write 0x00 set-stack-offset;
+move b alu offset-write;
+@anchor(clear-completed-rows-skip-clear);
+# Decrement Y
+move stack-pop alu-a;
+write 0xFF alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if Y=255 (it wrapped around)
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(clear-completed-rows-main-loop);
+# Delete Y
+move stack-pop none;
+return;
+
+# Works
+@anchor(init-current-shape);
+# Copies the shape at the "next shape" location into the "current shape" location, the initial (X,Y) is hardcoded as (3,16)
+# First, copy next shape onto the stack;
+@call(set-pointer-next-shape);
+@call(push-16-values-onto-stack);
+# Copy it from stack while iterating backward over GPRAM
+@call(set-pointer-current-shape);
+write 0x0F alu-a;
+@anchor(init-current-shape-loop-start);
+move a alu gpram-addr-a;
+move stack-pop gpram;
+# Decrement alu-a and check if it has underflowed
+write 0xFF alu-b;
+move add alu alu-a;
+move eq alu goto-decider;# 0xFF is already in alu-b so it can be used to check if count has underflowed
+@goto_if(init-current-shape-loop-end);
+@goto(init-current-shape-loop-start);
+@anchor(init-current-shape-loop-end);
+# Set shape starting position
+write 0x10 gpram-addr-a;
+write 0x03 gpram-inc-addr;
+write 0x10 gpram;
+return;
+
+# Works
+@anchor(init-current-shape-and-collision-check);
+# Calls `init-current-shape`, then moves shape up as fas as possible without hitting the top edge, if at this point it is overlapping with the arena, an LSB of 1 will be returned
+# Returns 1 byte: Whether the game is over
+@call(init-current-shape);
+# While-loop to move shape up until it hits the top edge
+write 0x00 stack-push;# Safety counter
+@anchor(init-current-shape-and-collision-check-while-loop-start);
+@call(set-pointer-current-shape);
+@call(collision-check);
+# Stack: Safety counter, Arena collision, Edge collision
+move stack-pop alu-a;
+write 0x05 alu-b;
+move shift alu goto-decider;
+move stack-pop none;
+@goto_if(init-current-shape-and-collision-check-while-loop-end);
+# Move up by 1
+@call(set-pointer-current-shape);
+write 0x11 gpram-addr-a;
+move gpram alu-a;
+write 0x01 alu-b;
+move add alu gpram;
+# Increment safety counter
+move stack-pop alu-a;
+move add alu stack-push;
+move add alu alu-a;
+# Check if safety counter is 4
+write 0x04 alu-b;
+move eq alu goto-decider;
+@goto_if(init-current-shape-and-collision-check-while-loop-end);
+@goto(init-current-shape-and-collision-check-while-loop-start);
+@anchor(init-current-shape-and-collision-check-while-loop-end);
+# Delete safety counter
+move stack-pop none;
+# Move down by 1
+@call(set-pointer-current-shape);
+write 0x11 gpram-addr-a;
+move gpram alu-a;
+write 0xFF alu-b;
+move add alu gpram;
+# Check for arena collision
+@call(collision-check);
+# Stack: Arena collision, Edge collision
+move stack-pop none;
+# Stack: Arena collision
+return;
+
+@anchor(draw-current-shape);
+# Wrapper for `draw-shape` that uses the current shapes location from GPRAM
+@call(set-pointer-current-shape);
+write 0x10 gpram-addr-a;
+write 0x01 stack-push;
+move gpram-inc-addr stack-push;
+move gpram-inc-addr stack-push;
+@call(draw-shape);# No need to reset addr.A
+return;
+
+@anchor(push-16-values-onto-stack);
+# Loop to push 16 values from GPRAM onto stack
+write 0x00 alu-a;
+@anchor(push-16-values-onto-stack-push-loop-start);
+move gpram-inc-addr stack-push;
+# Increment count and check if done, the stack is not used at all during this
+write 0x01 alu-b;
+move add alu alu-a;
+write 0x10 alu-b;
+move eq alu goto-decider;
+@goto_if(push-16-values-onto-stack-push-loop-end);
+@goto(push-16-values-onto-stack-push-loop-start);
+@anchor(push-16-values-onto-stack-push-loop-end);
+return;
+
+@anchor(try-shift-current-shape-down);
+# Returns 1 byte: Whether there is an edge or arena collision
+# Shift current shape down
+@call(set-pointer-current-shape);
+write 0x11 gpram-addr-a;
+move gpram alu-a;
+write 0xFF alu-b;
+move add alu gpram;
+# Collision check
+@call(collision-check);
+# Stack: Arena collision, Edge collision
+move stack-pop alu-a;
+write 0x00 alu-b;
+move eq alu alu-a;
+move not alu alu-a;
+move stack-pop alu-b;
+move or alu stack-push;
+move or alu goto-decider;
+# Stack: Collision
+@goto_if(try-shift-current-shape-down-undo);
+@goto(try-shift-current-shape-down-skip-undo);
+@anchor(try-shift-current-shape-down-undo);
+# Move back up by 1
+@call(set-pointer-current-shape);
+write 0x11 gpram-addr-a;
+move gpram alu-a;
+write 0x01 alu-b;
+move add alu gpram;
+@anchor(try-shift-current-shape-down-skip-undo);
+return;
+
+# Currently used for collision testing, TODO: use `try-shift-current-shape`
+@anchor(read-input-to-shift-current-shape);
+#   1. Shift left
+#   2. Shift right
+#   5. Shift Down (temporary)
+#   6. Shift Up (temporary)
+# Horizontal shift
+write 0x01 stack-push;
+@call(read-input);
+write 0x02 stack-push;
+@call(read-input);
+# Stack: Shift left, Shift right
+# Now only do anything if they are different
+move stack-pop alu-a;
+move stack-pop alu-b;
+move xnor alu goto-decider;
+@goto_if(read-input-to-shift-current-shape-skip-horizontal);
+
+# Use shift attempt function
+move a alu stack-push;
+@call(try-shift-current-shape);
+
+# Multiply alu-a by 2 and subtract 1, then add to horizontal position of current shape
+#write 0x01 alu-b;
+#move and alu alu-a;
+#move shift alu alu-a;
+#write 0xFF alu-b;
+#move add alu alu-a;
+#@call(set-pointer-current-shape);
+#write 0x10 gpram-addr-a;
+#move gpram alu-b;
+#move add alu gpram;
+
+@anchor(read-input-to-shift-current-shape-skip-horizontal);
+# Comment out for testing
+@goto(read-input-to-shift-current-shape-skip-vertical);
+# Vertical shift, TODO
+write 0x05 stack-push;
+@call(read-input);
+write 0x06 stack-push;
+@call(read-input);
+# Stack: Shift down, Shift up
+# Now only do anything if they are different
+move stack-pop alu-a;
+move stack-pop alu-b;
+move xnor alu goto-decider;
+@goto_if(read-input-to-shift-current-shape-skip-vertical);
+# Multiply alu-a by 2 and subtract 1, then add to vertical position of current shape
+write 0x01 alu-b;
+move and alu alu-a;
+move shift alu alu-a;
+write 0xFF alu-b;
+move add alu alu-a;
+@call(set-pointer-current-shape);
+write 0x11 gpram-addr-a;
+move gpram alu-b;
+move add alu gpram;
+@anchor(read-input-to-shift-current-shape-skip-vertical);
+return;
+
+# Works
+@anchor(try-shift-current-shape);
+# Pops 1 byte: LSB shifts right if 1, left if 0
+# Make sure only the LSB can be set
+move stack-pop alu-a;
+write 0x01 alu-b;
+move and alu alu-a;
+# Multiply by 2 and subtract 1
+write 0x01 alu-b;
+move shift alu alu-a;
+write 0xFF alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Stack: Shift
+# Apply shift
+@call(set-pointer-current-shape);
+write 0x10 gpram-addr-a;
+move gpram alu-b;
+move add alu gpram;
+# Collision check
+@call(collision-check);
+# Stack: Shift, Arena collision, Edge collision
+# AND edge collision with 0x00, if there is any collision then it will return false
+move stack-pop alu-a;
+write 0x00 alu-b;
+move eq alu alu-a;
+move not alu alu-a;
+# OR with arena collision
+move stack-pop alu-b;
+move or alu alu-a;
+move not alu goto-decider;
+# Stack: Shift
+move stack-pop alu-a;# Do this before decision so the shift byte will be popped either way
+# Stack:
+@goto_if(try-shift-current-shape-skip-undo);
+# There is a collision: shift the other way
+# Negate shift
+move not alu alu-a;
+write 0x01 alu-b;
+move add alu alu-a;
+# Apply opposite shift
+@call(set-pointer-current-shape);
+write 0x10 gpram-addr-a;
+move gpram alu-b;
+move add alu gpram;
+@anchor(try-shift-current-shape-skip-undo);
+return;
+
+# Currently used for collision testing, TODO: use `try-rotate-current-shape`
+@anchor(read-input-to-rotate-current-shape);
+# Key bindings:
+#   3. Rotate CCW
+#   4. Rotate CW
+write 0x03 stack-push;
+@call(read-input);
+write 0x04 stack-push;
+@call(read-input);
+# Stack: Rotate CCW, Rotate CW
+# Now only do anything if they are different
+move stack-pop alu-a;
+move stack-pop alu-b;
+move xnor alu goto-decider;
+@goto_if(read-input-to-rotate-current-shape-end);
+# Rotate
+@call(set-pointer-current-shape);
+move b alu stack-push;
+@call(try-rotate-current-shape);#@call(rotate-shape);
+@anchor(read-input-to-rotate-current-shape-end);
+return;
+
+# Works
+@anchor(try-rotate-current-shape);
+# Pops 1 byte: LSB rotates CCW if 1, CW if 0
+@call(set-pointer-current-shape);
+write 0x10 gpram-addr-a;
+move gpram-inc-addr stack-push;
+move gpram stack-push;
+# Stack: Rotate, X original, Y original
+# Apply rotation
+write 0x02 set-stack-offset;
+move offset-read stack-push;
+@call(rotate-shape);
+# Horizontal collision resolve
+@anchor(try-rotate-current-shape-horizontal-loop-start);
+@call(collision-check);
+# Stack: Rotate, X original, Y original, Arena collision, Edge collision
+move stack-pop alu-a;
+move stack-pop none;
+write 0x03 alu-b;# Only allow first two bits (left and right collision) to be set
+move and alu alu-a;
+write 0x00 alu-b;
+move eq alu goto-decider;
+# Stack: Rotate, X original, Y original
+@goto_if(try-rotate-current-shape-horizontal-loop-end);
+# There is either a left or right edge collision
+# The bit pattern in `alu-a` is now either 01 (left) or 10 (right), so -(((`alu-a` - 1) * 2) - 1) = -(2 * `alu-a` - 3) = ~(2 * `alu-a` - 3) + 1 = ~(2 * `alu-a` - 4) would give the X shift to help undo the collision
+write 0x01 alu-b;
+move shift alu alu-a;
+write 0xFC alu-b;
+move add alu alu-a;
+move not alu alu-a;
+# Now add `alu-a` to the current shape X value
+@call(set-pointer-current-shape);
+write 0x10 gpram-addr-a;
+move gpram alu-b;
+move add alu gpram;
+@goto(try-rotate-current-shape-horizontal-loop-start);
+@anchor(try-rotate-current-shape-horizontal-loop-end);
+# Vertical collision resolve
+@anchor(try-rotate-current-shape-vertical-loop-start);
+@call(collision-check);
+# Stack: Rotate, X original, Y original, Arena collision, Edge collision
+move stack-pop alu-a;
+move stack-pop none;
+write 0x0C alu-b;# Only allow 3rd & 4th bits (bottom and top collision) to be set
+move and alu alu-a;
+write 0x06 alu-b;
+move shift alu alu-a;
+write 0x00 alu-b;
+move eq alu goto-decider;
+# Stack: Rotate, X original, Y original
+@goto_if(try-rotate-current-shape-vertical-loop-end);
+# There is either a bottom or top edge collision
+# The bit pattern in `alu-a` is now either 01 (bottom) or 10 (top), so -(((`alu-a` - 1) * 2) - 1) = -(2 * `alu-a` - 3) = ~(2 * `alu-a` - 3) + 1 = ~(2 * `alu-a` - 4) would give the Y shift to help undo the collision
+write 0x01 alu-b;
+move shift alu alu-a;
+write 0xFC alu-b;
+move add alu alu-a;
+move not alu alu-a;
+# Now add `alu-a` to the current shape Y value
+@call(set-pointer-current-shape);
+write 0x11 gpram-addr-a;
+move gpram alu-b;
+move add alu gpram;
+@goto(try-rotate-current-shape-vertical-loop-start);
+@anchor(try-rotate-current-shape-vertical-loop-end);
+# Check arena collision
+@call(set-pointer-current-shape);
+@call(collision-check);
+# Stack: Rotate, X original, Y original, Arena collision, Edge collision
+move stack-pop none;
+move stack-pop goto-decider;
+# Stack: Rotate, X original, Y original
+@goto_if(try-rotate-current-shape-undo-transformation);
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+@goto(try-rotate-current-shape-end);
+@anchor(try-rotate-current-shape-undo-transformation);
+# There is an arena collision after rotating and avoiding the edge: undo everything
+# Stack: Rotate, X original, Y original
+@call(set-pointer-current-shape);
+# Reset X and Y
+write 0x11 gpram-addr-a;
+move stack-pop gpram;
+write 0x10 gpram-addr-a;
+move stack-pop gpram;
+# Stack: Rotate
+# Reset rotate
+move stack-pop alu-a;
+move not alu stack-push;
+@call(rotate-shape);
+@anchor(try-rotate-current-shape-end);
+return;
+
+# Works for regular shapes
+@anchor(rotate-shape);
+# Pops 1 byte: LSB rotates CCW if 1, CW if 0
+# Assumes the GPRAM address for the shape data has already been set and that it is at the beginning of a 256 byte block
+# Stack: Direction
+write 0x00 gpram-addr-a;
+@call(push-16-values-onto-stack);
+# Stack: Direction, <16 values>
+# Decision
+write 0x10 set-stack-offset;
+move offset-read goto-decider;
+@goto_if(rotate-shape-ccw);
+# Rotate: CW
+# 15 -> 12
+write 0x0C gpram-addr-a;
+move stack-pop gpram;
+# 14 -> 8
+write 0x08 gpram-addr-a;
+move stack-pop gpram;
+# 13 -> 4
+write 0x04 gpram-addr-a;
+move stack-pop gpram;
+# 12 -> 0
+write 0x00 gpram-addr-a;
+move stack-pop gpram;
+# 11 -> 13
+write 0x0D gpram-addr-a;
+move stack-pop gpram;
+# 10 -> 9
+write 0x09 gpram-addr-a;
+move stack-pop gpram;
+# 9 -> 5
+write 0x05 gpram-addr-a;
+move stack-pop gpram;
+# 8 -> 1
+write 0x01 gpram-addr-a;
+move stack-pop gpram;
+# 7 -> 14
+write 0x0E gpram-addr-a;
+move stack-pop gpram;
+# 6 -> 10
+write 0x0A gpram-addr-a;
+move stack-pop gpram;
+# 5 -> 6
+write 0x06 gpram-addr-a;
+move stack-pop gpram;
+# 4 -> 2
+write 0x02 gpram-addr-a;
+move stack-pop gpram;
+# 3 -> 15
+write 0x0F gpram-addr-a;
+move stack-pop gpram;
+# 2 -> 11
+write 0x0B gpram-addr-a;
+move stack-pop gpram;
+# 1 -> 7
+write 0x07 gpram-addr-a;
+move stack-pop gpram;
+# 0 -> 3
+write 0x03 gpram-addr-a;
+move stack-pop gpram;
+@goto(rotate-shape-skip-ccw);
+# Rotate: CCW
+@anchor(rotate-shape-ccw);
+# 15 -> 3
+write 0x03 gpram-addr-a;
+move stack-pop gpram;
+# 14 -> 7
+write 0x07 gpram-addr-a;
+move stack-pop gpram;
+# 13 -> 11
+write 0x0B gpram-addr-a;
+move stack-pop gpram;
+# 12 -> 15
+write 0x0F gpram-addr-a;
+move stack-pop gpram;
+# 11 -> 2
+write 0x02 gpram-addr-a;
+move stack-pop gpram;
+# 10 -> 6
+write 0x06 gpram-addr-a;
+move stack-pop gpram;
+# 9 -> 10
+write 0x0A gpram-addr-a;
+move stack-pop gpram;
+# 8 -> 14
+write 0x0E gpram-addr-a;
+move stack-pop gpram;
+# 7 -> 1
+write 0x01 gpram-addr-a;
+move stack-pop gpram;
+# 6 -> 5
+write 0x05 gpram-addr-a;
+move stack-pop gpram;
+# 5 -> 9
+write 0x09 gpram-addr-a;
+move stack-pop gpram;
+# 4 -> 13
+write 0x0D gpram-addr-a;
+move stack-pop gpram;
+# 3 -> 0
+write 0x00 gpram-addr-a;
+move stack-pop gpram;
+# 2 -> 4
+write 0x04 gpram-addr-a;
+move stack-pop gpram;
+# 1 -> 8
+write 0x08 gpram-addr-a;
+move stack-pop gpram;
+# 0 -> 12
+write 0x0C gpram-addr-a;
+move stack-pop gpram;
+@anchor(rotate-shape-skip-ccw);
+# Delete stack variables
+move stack-pop none;
+return;
+
+# Works
+@anchor(init-next-shape-from-storage);
+# Pops 1 byte: shape index
+# Writes the new shape in memory at the "next shape" location
+# Multiply index by 2 and set GPRAM address
+@call(set-pointer-shapes);
+move stack-pop alu-a;
+write 0x01 alu-b;
+move shift alu gpram-addr-a;
+# Load 2 bytes onto stack
+move gpram-inc-addr stack-push;
+move gpram-inc-addr stack-push;
+# Stack: Shape A, Shape B
+@call(set-pointer-next-shape);
+# Byte B
+move stack-pop alu-a;
+# Bit 0
+write 0x01 gpram-addr-a;
+move a alu gpram;
+# Bit 1
+write 0x07 alu-b;
+write 0x05 gpram-addr-a;
+move shift alu gpram;
+# Bit 2
+write 0x06 alu-b;
+write 0x09 gpram-addr-a;
+move shift alu gpram;
+# Bit 3
+write 0x05 alu-b;
+write 0x0D gpram-addr-a;
+move shift alu gpram;
+# Bit 4
+write 0x04 alu-b;
+write 0x00 gpram-addr-a;
+move shift alu gpram;
+# Bit 5
+write 0x03 alu-b;
+write 0x04 gpram-addr-a;
+move shift alu gpram;
+# Bit 6
+write 0x02 alu-b;
+write 0x08 gpram-addr-a;
+move shift alu gpram;
+# Bit 7
+write 0x01 alu-b;
+write 0x0C gpram-addr-a;
+move shift alu gpram;
+# Byte A
+# Bit 0
+move stack-pop alu-a;
+write 0x03 gpram-addr-a;
+move a alu gpram;
+# Bit 1
+write 0x07 alu-b;
+write 0x07 gpram-addr-a;
+move shift alu gpram;
+# Bit 2
+write 0x06 alu-b;
+write 0x0B gpram-addr-a;
+move shift alu gpram;
+# Bit 3
+write 0x05 alu-b;
+write 0x0F gpram-addr-a;
+move shift alu gpram;
+# Bit 4
+write 0x04 alu-b;
+write 0x02 gpram-addr-a;
+move shift alu gpram;
+# Bit 5
+write 0x03 alu-b;
+write 0x06 gpram-addr-a;
+move shift alu gpram;
+# Bit 6
+write 0x02 alu-b;
+write 0x0A gpram-addr-a;
+move shift alu gpram;
+# Bit 7
+write 0x01 alu-b;
+write 0x0E gpram-addr-a;
+move shift alu gpram;
+return;
+
+@anchor(init-shapes);
+# Write shapes
+@call(set-pointer-shapes);
+# "O"
+write 0x60 gpram-inc-addr;write 0x06 gpram-inc-addr;
+# "I"
+write 0x22 gpram-inc-addr;write 0x22 gpram-inc-addr;
+# "S"
+write 0xC0 gpram-inc-addr;write 0x06 gpram-inc-addr;
+# "Z"
+write 0x30 gpram-inc-addr;write 0x06 gpram-inc-addr;
+# "L"
+write 0x22 gpram-inc-addr;write 0x06 gpram-inc-addr;
+# "J"
+write 0x44 gpram-inc-addr;write 0x06 gpram-inc-addr;
+# "T"
+write 0x70 gpram-inc-addr;write 0x02 gpram-inc-addr;
+# "W"
+write 0x64 gpram-inc-addr;write 0x03 gpram-inc-addr;
+return;
+
+# Works
+@anchor(draw-shape);
+# Mostly copied from `draw-arena`, except that it uses a single counter (0 to 16) and calculates X and Y each iteration
+# Assumes the GPRAM address for the shape data has already been set and that it is at the beginning of a 256 byte block
+# Pops 3 bytes: (1st is deepest on stack)
+#   0. Whether to do pixel "or"ing (uses `draw-pixel-in-arena-keep-white` instead of `draw-pixel-in-arena`)
+#   0. X (wrt arena)
+#   1. Y (wrt arena)
+write 0x00 stack-push;
+# Loop over columns & rows
+@anchor(draw-shape-loop-start);
+# Stack: Px or-ing, X offset, Y offset, i
+# Load from GPRAM and copy stack data for the pixel draw function
+write 0x00 set-stack-offset;
+move offset-read gpram-addr-a;
+move gpram-inc-addr stack-push;
+# Save GPRAM address B
+move gpram-addr-b stack-push;
+# Stack: Px or-ing, X offset, Y offset, i, Px value, GPRAM B
+write 0x01 set-stack-offset;
+move offset-read stack-push;
+# Stack: Px or-ing, X offset, Y offset, i, Px value, GPRAM B, Px value
+# Calculate X and Y from i
+# X, divide by 4
+write 0x03 set-stack-offset;
+move offset-read alu-a;
+write 0x06 alu-b;
+move shift alu alu-a;
+write 0x3F alu-b;# Chop off any 1s that wraped around
+move and alu stack-push;
+# Stack: Px or-ing, X offset, Y offset, i, Px value, GPRAM B, Px value, X
+# Y, lower 2 bits
+write 0x04 set-stack-offset;
+move offset-read alu-a;
+write 0x03 alu-b;
+move and alu stack-push;
+# Stack: Px or-ing, X offset, Y offset, i, Px value, GPRAM B, Px value, X, Y
+# Add offsets to X and Y
+# X
+write 0x07 set-stack-offset;
+move offset-read alu-a;
+write 0x01 set-stack-offset;
+move offset-read alu-b;
+move add alu alu-a;
+write 0x00 set-stack-offset;# Stack fault work-around
+move offset-read alu-b;
+write 0x01 set-stack-offset;
+move a alu offset-write;
+write 0x00 set-stack-offset;
+move b alu offset-write;
+# Y
+write 0x06 set-stack-offset;
+move offset-read alu-a;
+move stack-pop alu-b;
+move add alu stack-push;
+# Stack: Px or-ing, X offset, Y offset, i, Px value, GPRAM B, Px value, X final, Y final
+# Draw pixel
+write 0x08 set-stack-offset;
+move offset-read goto-decider;
+@goto_if(draw-shape-draw-keep-white);# This is an "if-else"
+@call(draw-pixel-in-arena);
+@goto(draw-shape-keep-white-decision-end);
+@anchor(draw-shape-draw-keep-white);
+@call(draw-pixel-in-arena-keep-white);
+@anchor(draw-shape-keep-white-decision-end);
+# Stack: Px or-ing, X offset, Y offset, i, Px value, GPRAM B
+# Restore GPRAM address
+move stack-pop gpram-addr-b;
+# Delete extra px value
+move stack-pop none;
+# Stack: Px or-ing, X offset, Y offset, i
+# Increment i
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if i=16
+write 0x10 alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(draw-shape-loop-start);
+# Delete stack variables
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+return;
+
+@anchor(draw-arena);
+@call(set-pointer-arena);
+write 0x00 stack-push;
+write 0x00 stack-push;
+# Loop over columns & rows
+@anchor(draw-arena-loop-start);
+# Stack: Column/X count, Row/Y count
+# Load from GPRAM and copy stack data for the pixel draw function
+move gpram-inc-addr stack-push;
+# Save GPRAM address
+move gpram-addr-a stack-push;
+move gpram-addr-b stack-push;
+# Stack: Column/X count, Row/Y count, Px value, GPRAM A, GPRAM B
+write 0x02 set-stack-offset;
+move offset-read stack-push;
+# Stack: Column/X count, Row/Y count, Px value, GPRAM A, GPRAM B, Px value
+write 0x05 set-stack-offset;
+move offset-read stack-push;
+move offset-read stack-push;
+# Stack: Column/X count, Row/Y count, Px value, GPRAM A, GPRAM B, Px value, Column/X count, Row/Y count
+# Draw pixel
+@call(draw-pixel-in-arena);
+# Stack: Column/X count, Row/Y count, Px value, GPRAM A, GPRAM B
+# Restore GPRAM address
+move stack-pop gpram-addr-b;
+move stack-pop gpram-addr-a;
+# Delete extra px value
+move stack-pop none;
+# Stack: Column/X count, Row/Y count
+# Increment Y
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if Y=20 (0x14)
+write 0x14 alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(draw-arena-loop-start);
+# Reset Y
+move stack-pop none;
+write 0x00 stack-push;
+# Increment X
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu alu-a;
+write 0x00 set-stack-offset;# Stack fault work-around
+move offset-read alu-b;
+write 0x01 set-stack-offset;
+move a alu offset-write;
+write 0x00 set-stack-offset;
+move b alu offset-write;
+# Check if X=10
+write 0x0A alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(draw-arena-loop-start);
+# Delete stack variables
+move stack-pop none;
+move stack-pop none;
+return;
+
+@anchor(draw-arena-limited);
+# Draws a 6x5 chunk of the arena, centered on the location of the current shape, it has to be 1 out from each side and the top
+# Get current shape position and calculate limits
+@call(set-pointer-current-shape);
+write 0x10 gpram-addr-a;
+# Get X value of current shape, check if its beyond the edge
+move gpram-inc-addr alu-a;
+# Subtract 1 because the shape could be moved sideways and the previous render needs to be covered
+write 0xFF alu-b;
+move add alu alu-a;
+# Check if MSB=1, meaning it would have rolled under
+write 0x01 alu-b;
+move shift alu goto-decider;# Shift left by one so MSB -> LSB
+write 0x00 stack-push;
+@goto_if(draw-arena-limited-use-zero-as-x-min);
+move stack-pop none;
+move a alu stack-push;
+@anchor(draw-arena-limited-use-zero-as-x-min);
+# Stack: X min
+# Get Y value of current shape, check if its beyond the edge
+move gpram-inc-addr alu-a;
+# Check if MSB=1, meaning it would have rolled under
+write 0x01 alu-b;
+move shift alu goto-decider;# Shift left by one so MSB -> LSB
+write 0x00 stack-push;
+@goto_if(draw-arena-limited-use-zero-as-y-min);
+move stack-pop none;
+move a alu stack-push;
+@anchor(draw-arena-limited-use-zero-as-y-min);
+# Stack: X min, Y min
+# Calculate X and Y max
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x06 alu-b;
+move add alu stack-push;
+# Stack: X min, Y min, X max
+move offset-read alu-a;
+write 0x05 alu-b;
+move add alu stack-push;
+# Stack: X min, Y min, X max, Y max
+# Initialize Column/X count, Row/Y count
+write 0x03 set-stack-offset;
+move offset-read stack-push;
+move offset-read stack-push;
+# Loop over columns & rows
+@anchor(draw-arena-limited-loop-start);
+# Stack: X min, Y min, X max, Y max, Column/X count, Row/Y count
+# Calculate arena index using (X,Y), start by multiplying X by 20 (*16 + *4)
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x04 alu-b;
+move shift alu stack-push;
+write 0x02 alu-b;
+move shift alu alu-a;
+move stack-pop alu-b;
+move add alu alu-a;
+# Now add Y
+write 0x00 set-stack-offset;
+move offset-read alu-b;
+@call(set-pointer-arena);
+move add alu gpram-addr-a;
+# Load from GPRAM and copy stack data for the pixel draw function
+move gpram stack-push;
+# Stack: X min, Y min, X max, Y max, Column/X count, Row/Y count, Px value
+write 0x02 set-stack-offset;
+move offset-read stack-push;
+move offset-read stack-push;
+# Stack: X min, Y min, X max, Y max, Column/X count, Row/Y count, Px value, Column/X count, Row/Y count
+# Draw pixel
+@call(draw-pixel-in-arena);
+# Stack: X min, Y min, X max, Y max, Column/X count, Row/Y count
+# Increment Y
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if Y=Y max
+write 0x02 set-stack-offset;
+move offset-read alu-b;
+move eq alu goto-decider;
+@goto_if(draw-arena-limited-y-loop-end);
+# Check if Y=20
+write 0x14 alu-b;
+move eq alu goto-decider;
+@goto_if(draw-arena-limited-y-loop-end);
+@goto(draw-arena-limited-loop-start);
+@anchor(draw-arena-limited-y-loop-end);
+# Reset Y to Y min
+move stack-pop none;
+write 0x04 set-stack-offset;
+move offset-read stack-push;
+# Increment X
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu alu-a;
+write 0x00 set-stack-offset;# Stack fault work-around
+move offset-read alu-b;
+write 0x01 set-stack-offset;
+move a alu offset-write;
+write 0x00 set-stack-offset;
+move b alu offset-write;
+# Check if X=X max
+write 0x03 set-stack-offset;
+move offset-read alu-b;
+move eq alu goto-decider;
+@goto_if(draw-arena-limited-x-loop-end);
+# Check if X=10
+write 0x0A alu-b;
+move eq alu goto-decider;
+@goto_if(draw-arena-limited-x-loop-end);
+@goto(draw-arena-limited-loop-start);
+@anchor(draw-arena-limited-x-loop-end);
+# Stack: X min, Y min, X max, Y max, Column/X count, Row/Y count
+# Delete stack variables
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+return;
+
+# Works
+@anchor(draw-pixel-in-arena);
+# Pops 3 bytes: (1st is deepest on stack)
+#   0. Byte with pixel value as LSB
+#   1. X coord (left from arena edge)
+#   2. Y coord (up from arena bottom)
+# Calculate which byte to manipulate
+# Find byte X coord by adding 1 then dividing by 8
+write 0x01 set-stack-offset;
+# Add
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu alu-a;
+# Shift and clear potential overflowed bits, shift left by 5 is the same as right shift by 3
+write 0x05 alu-b;
+move shift alu alu-a;
+write 0x1F alu-b;
+move and alu stack-push;
+# Stack: Px val, X, Y, Byte X
+# Calculate bit index
+write 0x02 set-stack-offset;
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu alu-a;
+write 0x07 alu-b;
+move and alu stack-push;
+# Stack: Px val, X, Y, Byte X, Bit index
+# Calculate byte Y (= 30 - Y), then multiply by 4 to get address of beginning of display row. X-Y = X+(~Y)+1
+# Load Y and invert it
+move offset-read alu-a;
+move not alu alu-a;
+# Add 31 (30 + 1)
+write 0x1F alu-b;
+move add alu alu-a;
+# Shift and clear two lower bits in case of wraparound
+write 0x02 alu-b;
+move shift alu alu-a;
+write 0xFC alu-b;
+move and alu stack-push;
+# Stack: Px val, X, Y, Byte X, Bit index, Byte row beginning address
+# Now, add "Byte row beginning address" + "Byte X" to get display byte address
+move offset-read alu-a;
+write 0x00 set-stack-offset;
+move offset-read alu-b;
+move add alu gpram-addr-a;
+write 0x00 gpram-addr-b;
+# ----------- TEST ----------- <- Everything until here works!
+#write 0x01 alu-a;
+#write 0x01 set-stack-offset;
+#move offset-read alu-b;
+#move shift alu gpram;
+#return;
+# Get byte and right shift it by bit index (left shift by 8 - bit_index)
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+move not alu alu-a;
+write 0x09 alu-b;
+move add alu alu-b;
+move gpram alu-a;
+move shift alu alu-a;
+# Now either `and` it with 0b1111 1110 if "Px val" is 0 or `or` it with 0b0000 0001 if it is 1
+write 0x05 set-stack-offset;
+move offset-read goto-decider;
+@goto_if(draw-pixel-in-arena-px-1);
+# Px = 0
+write 0xFE alu-b;
+move and alu stack-push;
+@goto(draw-pixel-in-arena-finish);
+@anchor(draw-pixel-in-arena-px-1);
+# Px = 1
+write 0x01 alu-b;
+move or alu stack-push;
+@anchor(draw-pixel-in-arena-finish);
+# Stack: Px val, X, Y, Byte X, Bit index, Byte row beginning address, New shifted byte
+# Shift it back the other way
+write 0x02 set-stack-offset;
+move offset-read alu-b;
+# Shift and finally put back into GPRAM
+move stack-pop alu-a;
+move shift alu gpram;
+# Stack: Px val, X, Y, Byte X, Bit index, Byte row beginning address
+# Correct the stack
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+return;
+
+# Mostly copied from `draw-pixel-in-arena`
+@anchor(draw-pixel-in-arena-keep-white);
+# Pops 3 bytes: (1st is deepest on stack)
+#   0. Byte with pixel value as LSB
+#   1. X coord (left from arena edge)
+#   2. Y coord (up from arena bottom)
+# Calculate which byte to manipulate
+# Find byte X coord by adding 1 then dividing by 8
+write 0x01 set-stack-offset;
+# Add
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu alu-a;
+# Shift and clear potential overflowed bits, shift left by 5 is the same as right shift by 3
+write 0x05 alu-b;
+move shift alu alu-a;
+write 0x1F alu-b;
+move and alu stack-push;
+# Stack: Px val, X, Y, Byte X
+# Calculate bit index
+write 0x02 set-stack-offset;
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu alu-a;
+write 0x07 alu-b;
+move and alu stack-push;
+# Stack: Px val, X, Y, Byte X, Bit index
+# Calculate byte Y (= 30 - Y), then multiply by 4 to get address of beginning of display row. X-Y = X+(~Y)+1
+# Load Y and invert it
+move offset-read alu-a;
+move not alu alu-a;
+# Add 31 (30 + 1)
+write 0x1F alu-b;
+move add alu alu-a;
+# Shift and clear two lower bits in case of wraparound
+write 0x02 alu-b;
+move shift alu alu-a;
+write 0xFC alu-b;
+move and alu stack-push;
+# Stack: Px val, X, Y, Byte X, Bit index, Byte row beginning address
+# Now, add "Byte row beginning address" + "Byte X" to get display byte address
+move offset-read alu-a;
+write 0x00 set-stack-offset;
+move offset-read alu-b;
+move add alu gpram-addr-a;
+write 0x00 gpram-addr-b;
+# ----------- TEST ----------- <- Everything until here works!
+#write 0x01 alu-a;
+#write 0x01 set-stack-offset;
+#move offset-read alu-b;
+#move shift alu gpram;
+#return;
+# Get byte and right shift it by bit index (left shift by 8 - bit_index)
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+move not alu alu-a;
+write 0x09 alu-b;
+move add alu alu-b;
+move gpram alu-a;
+move shift alu stack-push;
+# Stack: Px val, X, Y, Byte X, Bit index, Byte row beginning address, Old shifted byte
+# Now "or" it with the pixel value, make sure only the LSB can be set
+write 0x06 set-stack-offset;
+move offset-read alu-a;
+write 0x01 alu-b;
+move and alu alu-a;
+move stack-pop alu-b;
+move or alu stack-push;
+# Stack: Px val, X, Y, Byte X, Bit index, Byte row beginning address, New shifted byte
+# Shift it back the other way
+write 0x02 set-stack-offset;
+move offset-read alu-b;
+# Shift and finally put back into GPRAM
+move stack-pop alu-a;
+move shift alu gpram;
+# Stack: Px val, X, Y, Byte X, Bit index, Byte row beginning address
+# Correct the stack
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+return;
+
+@anchor(save-current-shape-background);
+# Get current shape Y and subtract it from 27
+@call(set-pointer-current-shape);
+write 0x11 gpram-addr-a;
+move gpram alu-a;
+move not alu alu-a;
+write 0x1C alu-b;
+move add alu alu-a;
+write 0x02 alu-b;# Multiply by 4
+move shift alu stack-push;
+move shift alu gpram-addr-a;
+move shift alu alu-a;
+# Stack: Start byte address
+write 0x10 alu-b;
+move add alu stack-push;
+# Stack: Start byte address, End byte address
+write 0x00 set-stack-offset;
+@anchor(save-current-shape-background-loop-start);
+# Get 1st byte of row
+write 0x00 gpram-addr-b;# Hardcoding GPRAM-B addresses for performance
+move gpram stack-push;
+write 0x08 gpram-addr-b;
+move stack-pop gpram-inc-addr;
+# Get 2nd byte of row
+write 0x00 gpram-addr-b;# Hardcoding GPRAM-B addresses for performance
+move gpram stack-push;
+write 0x08 gpram-addr-b;
+move stack-pop gpram-inc-addr;
+# Ignore bytes 2 and 3
+move gpram-inc-addr none;
+move gpram-inc-addr none;
+# Check if A address is the end address or 128
+move gpram-addr-a alu-a;
+move offset-read alu-b;
+move eq alu goto-decider;
+@goto_if(save-current-shape-background-loop-end);
+write 0x80 alu-b;
+move eq alu goto-decider;
+@goto_if(save-current-shape-background-loop-end);
+@goto(save-current-shape-background-loop-start);
+@anchor(save-current-shape-background-loop-end);
+# Stack: Start byte address, End byte address
+# Clear stack variables
+move stack-pop none;
+move stack-pop none;
+return;
+
+# Nearly identical to save-current-shape-background except it copies from the background location to the main display buffer
+@anchor(restore-current-shape-background);
+# Get current shape Y and subtract it from 27
+@call(set-pointer-current-shape);
+write 0x11 gpram-addr-a;
+move gpram alu-a;
+move not alu alu-a;
+write 0x1C alu-b;
+move add alu alu-a;
+write 0x02 alu-b;# Multiply by 4
+move shift alu stack-push;
+move shift alu gpram-addr-a;
+move shift alu alu-a;
+# Stack: Start byte address
+write 0x10 alu-b;
+move add alu stack-push;
+# Stack: Start byte address, End byte address
+write 0x00 set-stack-offset;
+@anchor(restore-current-shape-background-loop-start);
+# Get 1st byte of row
+write 0x08 gpram-addr-b;# Hardcoding GPRAM-B addresses for performance
+move gpram stack-push;
+write 0x00 gpram-addr-b;
+move stack-pop gpram-inc-addr;
+# Get 2nd byte of row
+write 0x08 gpram-addr-b;# Hardcoding GPRAM-B addresses for performance
+move gpram stack-push;
+write 0x00 gpram-addr-b;
+move stack-pop gpram-inc-addr;
+# Ignore bytes 2 and 3
+move gpram-inc-addr none;
+move gpram-inc-addr none;
+# Check if A address is the end address or 128
+move gpram-addr-a alu-a;
+move offset-read alu-b;
+move eq alu goto-decider;
+@goto_if(restore-current-shape-background-loop-end);
+write 0x80 alu-b;
+move eq alu goto-decider;
+@goto_if(restore-current-shape-background-loop-end);
+@goto(restore-current-shape-background-loop-start);
+@anchor(restore-current-shape-background-loop-end);
+# Stack: Start byte address, End byte address
+# Clear stack variables
+move stack-pop none;
+move stack-pop none;
+return;
+
+# --------------------------------- </Functions> ---------------------------------

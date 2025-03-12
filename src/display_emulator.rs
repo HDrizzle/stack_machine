@@ -1,6 +1,6 @@
 //! Creates a UI that simulates the 32 x 32 display as well as key bindings
 
-use std::time::{Instant, Duration};
+use std::{time::{Instant, Duration}, collections::HashMap};
 
 use crate::emulator::EmulationError;
 use crate::prelude::*;
@@ -11,7 +11,7 @@ use eframe::egui::Key;
 const DISPLAY_WIDTH: usize = 32;
 const DISPLAY_HEIGHT: usize = 32;
 const PIXEL_SIZE: usize = 15;
-const MACHINE_CLOCK: usize = 50000;
+const MACHINE_CLOCK: usize = 1000000;
 
 struct GpioInterfaceDisplay {
 	pub display_state: [u8; 128],
@@ -23,7 +23,7 @@ struct GpioInterfaceDisplay {
 impl GpioInterfaceDisplay {
 	pub fn new() -> Self {
 		Self {
-			display_state: [0b00000000; 128],
+			display_state: [0; 128],
 			current_address: 0,
 			current_data: 0,
 			input: 0
@@ -165,14 +165,30 @@ impl eframe::App for EguiApp {
 }
 
 pub fn start_gui(machine: Machine) {
-	let keys: Vec<Key> = vec![
-		Key::ArrowLeft,
-		Key::ArrowRight,
-		Key::A,
-		Key::D,
-		Key::S,
-		Key::Space
-	];
+	let mut key_bindings: HashMap<String, Vec<Key>> = HashMap::new();
+	key_bindings.insert(
+		String::from("pong"),
+		vec![
+			Key::ArrowLeft,
+			Key::ArrowRight,
+			Key::A,
+			Key::D,
+			Key::S,
+			Key::Space
+		]
+	);
+	key_bindings.insert(
+		String::from("tetris"),
+		vec![
+			Key::Space,
+			Key::ArrowLeft,
+			Key::ArrowRight,
+			Key::A,
+			Key::D,
+			Key::S,
+			Key::W
+		]
+	);
 	let native_options = eframe::NativeOptions::default();
-	eframe::run_native("Stack machine emulator", native_options, Box::new(|cc| Ok(Box::new(EguiApp::new(cc, machine, keys))))).unwrap();
+	eframe::run_native("Stack machine emulator", native_options, Box::new(|cc| Ok(Box::new(EguiApp::new(cc, machine, key_bindings.get("tetris").unwrap().clone()))))).unwrap();
 }

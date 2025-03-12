@@ -35,6 +35,10 @@ impl StackController {
 	}
 	pub fn offset_write(&self, value: u8, mem: &mut [u8; POWER_16]) {
 		mem[(self.top_pointer.wrapping_add(self.offset as u16 + 0xFF00).wrapping_add(1)) as usize] = value;
+		#[cfg(feature = "replicate_stack_issue")]
+		{
+			mem[self.top_pointer as usize] = value;
+		}
 	}
 	/// Does exactly what the hardware does
 	/// ```

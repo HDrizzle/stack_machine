@@ -173,6 +173,11 @@ fn assemble_to_arduino(program: &Vec<u16>) -> String {
 pub fn ui_main() {
 	// Used by almost every command
 	let assembler_config = resources::load_assembler_config().expect("Unable to load assembler config");
+	// Warning if ceratain features are enabled
+	#[cfg(feature = "replicate_stack_issue")]
+	{
+		println!("WARNING: Certain feature(s) are enabled which are meant to replicate faults in the computer");
+	}
 	// Parse arguments
 	let args: Vec<String> = env::args().collect();
 	if args.len() < 2 {// Just the program name, default to running the server GUI
