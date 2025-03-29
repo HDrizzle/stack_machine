@@ -294,7 +294,7 @@ impl Machine {
 			},
 			n => return Err(EmulationError::new(EmulationErrorEnum::InvalidOpcode(n), self.execution_pointer))
 		};
-		// Increment clock, counting cycles of the bas clock, ignoring the phases
+		// Increment clock, counting cycles of the base clock, ignoring the phases
 		let total_clock_cycles: u16 = (instruction_clock_counts+1)*4;
 		self.clock_counter = self.clock_counter.wrapping_add(total_clock_cycles);
 		self.clock_counter_perf_tracking += total_clock_cycles as u128;

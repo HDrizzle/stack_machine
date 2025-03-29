@@ -1,7 +1,7 @@
 # Tetris implementation (optimized), modified to work when the offset-write stack operation also writes to the ToS
 # Works best at ~1 MHz
 # Blocks at: https://docs.google.com/spreadsheets/d/1tb9R2Y6Wr4T2g81XD9d3jRF-j7dfjZBMvmKckkSev1U/edit?usp=sharing
-# Key bindings: bit indices of `gpio-read-a`
+# Key bindings: bit indices of `gpio-read-a` (in this variant of the tetris program, all of these are level-triggered instead of edge-triggered to improve performance)
 #   0. Restart game
 #   1. Shift left
 #   2. Shift right
@@ -118,6 +118,7 @@ write 0x10 stack-push;
 @anchor(init);
 @call(clear-display);
 @call(clear-display-buffer);
+@call(init-shapes);
 @call(init-arena-outline);
 @call(pseudo-random-init);
 @call(clear-arena);
@@ -138,7 +139,6 @@ write 0x00 stack-push;
 move stack-pop alu-a;
 move not alu goto-decider;
 @goto_if(outer-loop-start);
-@call(init-shapes);# Init shapes here so that easter egg can be switched between rounds
 @call(clear-score);
 # Clear arena
 @call(clear-arena);
@@ -163,17 +163,13 @@ write 0x00 stack-push;
 @anchor(game-loop-start);
 # Read input
 @call(read-input-to-rotate-current-shape);
-# Update input events
-write 0x07 stack-push;
-@call(read-input);
-move stack-pop none;
 @call(read-input-to-shift-current-shape);
 # Determine if shift down
 move stack-pop alu-a;
 write 0x01 alu-b;
 move add alu stack-push;
 move add alu alu-a;
-write 0x08 alu-b;# Frames per shift down
+write 0x02 alu-b;# Frames per shift down
 move eq alu stack-push;
 move gpio-read-a alu-a;# Check gpio-a bit 5 (drop)
 write 0x03 alu-b;
@@ -201,10 +197,6 @@ move stack-pop goto-decider;
 @call(init-current-shape-and-collision-check);
 move stack-pop goto-decider;
 @goto_if(game-loop-end);
-# Update input events
-write 0x07 stack-push;
-@call(read-input);
-move stack-pop none;
 # Update next shape
 @call(pseudo-random-get);
 @call(init-next-shape-from-storage);
@@ -220,10 +212,6 @@ write 0x10 stack-push;
 @call(save-current-shape-background);
 # Draw current shape
 @call(draw-current-shape);
-# Update input events
-write 0x07 stack-push;
-@call(read-input);
-move stack-pop none;
 # Update display
 @call(update-display-limited);
 # Restore current shape background
@@ -1084,17 +1072,17 @@ move add alu gpram;
 @anchor(try-shift-current-shape-down-skip-undo);
 return;
 
-# Currently used for collision testing, TODO: use `try-shift-current-shape`
 @anchor(read-input-to-shift-current-shape);
 #   1. Shift left
 #   2. Shift right
 #   5. Shift Down (temporary)
 #   6. Shift Up (temporary)
 # Horizontal shift
-write 0x01 stack-push;
-@call(read-input);
-write 0x02 stack-push;
-@call(read-input);
+move gpio-read-a alu-a;
+write 0x07 alu-b;
+move shift alu stack-push;
+write 0x06 alu-b;
+move shift alu stack-push;
 # Stack: Shift left, Shift right
 # Now only do anything if they are different
 move stack-pop alu-a;
@@ -1121,10 +1109,11 @@ move a alu stack-push;
 # Comment out for testing
 @goto(read-input-to-shift-current-shape-skip-vertical);
 # Vertical shift, TODO
-write 0x05 stack-push;
-@call(read-input);
-write 0x06 stack-push;
-@call(read-input);
+move gpio-read-a alu-a;
+write 0x03 alu-b;
+move shift alu stack-push;
+write 0x02 alu-b;
+move shift alu stack-push;
 # Stack: Shift down, Shift up
 # Now only do anything if they are different
 move stack-pop alu-a;
@@ -1197,10 +1186,11 @@ return;
 # Key bindings:
 #   3. Rotate CCW
 #   4. Rotate CW
-write 0x03 stack-push;
-@call(read-input);
-write 0x04 stack-push;
-@call(read-input);
+move gpio-read-a alu-a;
+write 0x05 alu-b;
+move shift alu stack-push;
+write 0x04 alu-b;
+move shift alu stack-push;
 # Stack: Rotate CCW, Rotate CW
 # Now only do anything if they are different
 move stack-pop alu-a;
@@ -1509,10 +1499,6 @@ move shift alu gpram;
 return;
 
 @anchor(init-shapes);
-move gpio-read-a alu-a;
-write 0x07 alu-b;
-move shift alu goto-decider;
-@goto_if(init-shapes-cursed);
 # Write shapes
 @call(set-pointer-shapes);
 # "O"
@@ -1531,19 +1517,6 @@ write 0x44 gpram-inc-addr;write 0x06 gpram-inc-addr;
 write 0x70 gpram-inc-addr;write 0x02 gpram-inc-addr;
 # "W"
 write 0x64 gpram-inc-addr;write 0x03 gpram-inc-addr;
-@goto(init-shapes-end);
-@anchor(init-shapes-cursed);
-# Write shapes (cursed)
-@call(set-pointer-shapes);
-write 0x63 gpram-inc-addr;write 0x02 gpram-inc-addr;
-write 0xD0 gpram-inc-addr;write 0x03 gpram-inc-addr;
-write 0x21 gpram-inc-addr;write 0x84 gpram-inc-addr;
-write 0x88 gpram-inc-addr;write 0xF8 gpram-inc-addr;
-write 0x9F gpram-inc-addr;write 0xF9 gpram-inc-addr;
-write 0x22 gpram-inc-addr;write 0x72 gpram-inc-addr;
-write 0xC8 gpram-inc-addr;write 0x7E gpram-inc-addr;
-write 0x20 gpram-inc-addr;write 0x00 gpram-inc-addr;
-@anchor(init-shapes-end);
 return;
 
 # Works

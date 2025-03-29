@@ -1,6 +1,6 @@
 //! Maine library file
 
-use std::{env, fs};
+use std::{collections::HashMap, env, fs};
 
 pub mod compiler;
 pub mod emulator;
@@ -162,12 +162,53 @@ pub mod prelude {
 	}
 }
 
-fn assemble_to_arduino(program: &Vec<u16>) -> String {
-	let mut out = format!("int prog_size = {};\nuint16_t program[PROG_ARRAY_SIZE];\n", program.len());
-	for (i, instruction) in program.iter().enumerate() {
-		out += format!("program[{}] = {:#b};\n", i, instruction).as_str();
+fn assemble_to_arduino(program: &Vec<u16>, offset_opt: Option<u16>, len_opt: Option<u16>, chip_erase: bool) -> String {
+	let mut out = format!("void test() {{\n  uint16_t program[PROG_ARRAY_SIZE];\n");
+	let offset: u16 = match offset_opt {
+		Some(n) => n,
+		None => 0
+	};
+	let len_: u16 = match len_opt {
+		Some(n) => n,
+		None => program.len() as u16 - offset
+	};
+	assert!((offset as u32) + (len_ as u32) <= 0xFFFF);
+	for i in 0..len_ {
+		out += format!("  program[{}] = {:#b};\n", i, program[(i + offset) as usize]).as_str();
 	}
-	return out;
+	out += &format!("  upload_program(program, {}, {}, {});\n}}\n", offset, len_, match chip_erase {true => "true", false => "false"});
+	// Done
+	out
+}
+
+fn parse_args(args: &Vec<String>) -> HashMap<String, String> {
+	let mut out = HashMap::<String, String>::new();
+	for arg in args {
+		if arg.len() >= 2 {
+			let arg_vec: Vec<char> = arg.chars().collect();
+			if arg_vec[0] == '-' {
+				// Parse until "="
+				let mut key = String::new();
+				let mut i = 1;// Exclude '='
+				while i < arg_vec.len() {
+					if arg_vec[i] == '=' {
+						break;
+					}
+					key.push(arg_vec[i]);
+					i += 1;
+				}
+				i += 1;// Now 1 past '='
+				let mut value = String::new();
+				while i < arg_vec.len() {
+					value.push(arg_vec[i]);
+					i += 1;
+				}
+				out.insert(key, value);
+			}
+		}
+	}
+	// Done
+	out
 }
 
 pub fn ui_main() {
@@ -230,22 +271,27 @@ pub fn ui_main() {
 				}
 			},
 			"-assemble-to-arduino-function" => {
-				if args.len() < 3 {
-					println!("Plz include name of file in `{}`", resources::ASSEMBLY_SOURCES_DIR);
-				}
-				else {
-					let name = &args[2];
-					let path: String = resources::ASSEMBLY_SOURCES_DIR.to_owned() + name;
-					let file_raw = match fs::read_to_string(&path) {
-						Ok(s) => s,
-						Err(e) => panic!("Could not load test file at \"{}\" because {}", &path, e)
-					};
-					match compiler::compiler_pipeline_formated_errors(&file_raw, &assembler_config) {
-						Ok(program) => {
-							println!("```\n{}```", assemble_to_arduino(&program));
-						},
-						Err(s) => println!("{}", s)
-					}
+				let parsed_args: HashMap<String, String> = parse_args(&args);
+				let name = parsed_args.get("name").expect("Missing argument `name`");
+				let offset: Option<u16> = match parsed_args.get("offset") {
+					Some(offset_raw) => Some(offset_raw.parse::<u16>().expect("Offset must be a u16")),
+					None => None
+				};
+				let len_: Option<u16> = match parsed_args.get("len") {
+					Some(len_raw) => Some(len_raw.parse::<u16>().expect("Length must be a u16")),
+					None => None
+				};
+				let chip_erase: bool = parsed_args.get("erase").is_some();
+				let path: String = resources::ASSEMBLY_SOURCES_DIR.to_owned() + name;
+				let file_raw = match fs::read_to_string(&path) {
+					Ok(s) => s,
+					Err(e) => panic!("Could not load test file at \"{}\" because {}", &path, e)
+				};
+				match compiler::compiler_pipeline_formated_errors(&file_raw, &assembler_config) {
+					Ok(program) => {
+						println!("```\n{}```", assemble_to_arduino(&program, offset, len_, chip_erase));
+					},
+					Err(s) => println!("{}", s)
 				}
 			},
 			"-compile" => {

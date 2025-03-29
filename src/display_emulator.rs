@@ -58,11 +58,12 @@ struct EguiApp {
 	running: bool,
 	is_done: bool,
 	err_opt: Option<EmulationError>,
-	t_reset_clock_counter: Instant
+	t_reset_clock_counter: Instant,
+	halt_enable: bool
 }
 
 impl EguiApp {
-	pub fn new(_cc: &eframe::CreationContext<'_>, machine: Machine, keys: Vec<Key>) -> Self {
+	pub fn new(_cc: &eframe::CreationContext<'_>, machine: Machine, keys: Vec<Key>, halt_enable: bool) -> Self {
 		Self {
 			machine,
 			keys,
@@ -70,7 +71,8 @@ impl EguiApp {
 			running: true,
 			is_done: false,
 			err_opt: None,
-			t_reset_clock_counter: Instant::now()
+			t_reset_clock_counter: Instant::now(),
+			halt_enable
 		}
 	}
 }
@@ -91,7 +93,7 @@ impl eframe::App for EguiApp {
 				match self.machine.execute_instruction(&mut self.interface) {
 					Ok(done) => {
 						if done {
-							self.is_done = true;
+							self.is_done = true && self.halt_enable;
 						}  
 					},
 					Err(e) => {
@@ -189,6 +191,7 @@ pub fn start_gui(machine: Machine) {
 			Key::W
 		]
 	);
+	let halt_enable = false;
 	let native_options = eframe::NativeOptions::default();
-	eframe::run_native("Stack machine emulator", native_options, Box::new(|cc| Ok(Box::new(EguiApp::new(cc, machine, key_bindings.get("tetris").unwrap().clone()))))).unwrap();
+	eframe::run_native("Stack machine emulator", native_options, Box::new(|cc| Ok(Box::new(EguiApp::new(cc, machine, key_bindings.get("tetris").unwrap().clone(), halt_enable))))).unwrap();
 }
