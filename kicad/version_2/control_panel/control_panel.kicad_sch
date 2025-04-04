@@ -7831,7 +7831,7 @@
 				)
 			)
 		)
-		(property "Footprint" "custom_footprint_library:manual_clock_switch"
+		(property "Footprint" "custom_footprint_library:manual_clock_switch_side"
 			(at 230.632 39.878 0)
 			(effects
 				(font

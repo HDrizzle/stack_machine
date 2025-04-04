@@ -1,4 +1,4 @@
-(footprint "manual_clock_switch"
+(footprint "manual_clock_switch_side"
 	(version 20240108)
 	(generator "pcbnew")
 	(generator_version "8.0")
@@ -15,7 +15,7 @@
 			)
 		)
 	)
-	(property "Value" "manual_clock_switch"
+	(property "Value" "manual_clock_switch_side"
 		(at 0 1 0)
 		(unlocked yes)
 		(layer "F.Fab")
@@ -27,7 +27,7 @@
 			)
 		)
 	)
-	(property "Footprint" "manual_clock_switch"
+	(property "Footprint" "manual_clock_switch_side"
 		(at 0 0 0)
 		(unlocked yes)
 		(layer "F.Fab")
@@ -68,7 +68,7 @@
 	)
 	(attr through_hole)
 	(fp_rect
-		(start -14 -8)
+		(start -14 2.5)
 		(end 14 8)
 		(stroke
 			(width 0.1)
@@ -89,19 +89,8 @@
 		(layer "Edge.Cuts")
 		(uuid "58d708d5-b5aa-43f5-9251-e09f50b8c8fb")
 	)
-	(fp_circle
-		(center 11.5 -5.5)
-		(end 11.5 -7)
-		(stroke
-			(width 0.05)
-			(type default)
-		)
-		(fill none)
-		(layer "Edge.Cuts")
-		(uuid "b4bdec8a-042a-4665-8dd1-5980306e9e98")
-	)
 	(fp_rect
-		(start -14 -8)
+		(start -14 2.5)
 		(end 22 13)
 		(stroke
 			(width 0.05)
@@ -132,7 +121,7 @@
 		(uuid "4c899e52-6fc9-4868-be6d-e997b39c6821")
 	)
 	(pad "2" thru_hole circle
-		(at 20 5)
+		(at 17 12)
 		(size 1.524 1.524)
 		(drill 0.762)
 		(layers "*.Cu" "*.Mask")
@@ -140,7 +129,7 @@
 		(uuid "c75182c0-c758-468f-843a-adb196a4e7ba")
 	)
 	(pad "3" thru_hole circle
-		(at 20 -5)
+		(at 20 12)
 		(size 1.524 1.524)
 		(drill 0.762)
 		(layers "*.Cu" "*.Mask")

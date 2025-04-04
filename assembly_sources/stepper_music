@@ -10,6 +10,8 @@
 #   0x0200 - 0x0203: Motor control lookup table
 
 # I want the beginning of the actual halt block to start when goto-a=0, so first 256 instructions are used up
+# TODO: Put move as first instruction instead of halt to see if that makes the problem go away
+write 0x00 gpio-write-a;# Throwaway move/write because weird problem I think
 halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;
 halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;
 halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;
@@ -25,7 +27,7 @@ halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;
 halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;
 halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;
 halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;
-halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;
+halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;halt;
 @goto(end-of-halt-block);# This expnads to 3 instructions
 
 # 256 `halt` instructions
@@ -59,42 +61,400 @@ write 0xFF gpio-write-b;
 # Write frequency delay lookup table
 write 0x00 gpram-addr-a;
 write 0x00 gpram-addr-b;
-# TODO: Need time for inner loop to run
-write 0x00 gpram-inc-addr;write 0xFF gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+# --------------------------------- <Lookup table> ---------------------------------
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;
+write 0x01 gpram-inc-addr;
+write 0x05 gpram-inc-addr;
+write 0x09 gpram-inc-addr;
+write 0x0D gpram-inc-addr;
+write 0x11 gpram-inc-addr;
+write 0x14 gpram-inc-addr;
+write 0x18 gpram-inc-addr;
+write 0x1B gpram-inc-addr;
+write 0x1F gpram-inc-addr;
+write 0x22 gpram-inc-addr;
+write 0x25 gpram-inc-addr;
+write 0x29 gpram-inc-addr;
+write 0x2C gpram-inc-addr;
+write 0x2F gpram-inc-addr;
+write 0x32 gpram-inc-addr;
+write 0x35 gpram-inc-addr;
+write 0x38 gpram-inc-addr;
+write 0x3A gpram-inc-addr;
+write 0x3D gpram-inc-addr;
+write 0x40 gpram-inc-addr;
+write 0x42 gpram-inc-addr;
+write 0x45 gpram-inc-addr;
+write 0x47 gpram-inc-addr;
+write 0x4A gpram-inc-addr;
+write 0x4C gpram-inc-addr;
+write 0x4F gpram-inc-addr;
+write 0x51 gpram-inc-addr;
+write 0x53 gpram-inc-addr;
+write 0x56 gpram-inc-addr;
+write 0x58 gpram-inc-addr;
+write 0x5A gpram-inc-addr;
+write 0x5C gpram-inc-addr;
+write 0x5E gpram-inc-addr;
+write 0x60 gpram-inc-addr;
+write 0x62 gpram-inc-addr;
+write 0x64 gpram-inc-addr;
+write 0x66 gpram-inc-addr;
+write 0x68 gpram-inc-addr;
+write 0x6A gpram-inc-addr;
+write 0x6C gpram-inc-addr;
+write 0x6E gpram-inc-addr;
+write 0x6F gpram-inc-addr;
+write 0x71 gpram-inc-addr;
+write 0x73 gpram-inc-addr;
+write 0x75 gpram-inc-addr;
+write 0x76 gpram-inc-addr;
+write 0x78 gpram-inc-addr;
+write 0x79 gpram-inc-addr;
+write 0x7B gpram-inc-addr;
+write 0x7D gpram-inc-addr;
+write 0x7E gpram-inc-addr;
+write 0x80 gpram-inc-addr;
+write 0x81 gpram-inc-addr;
+write 0x83 gpram-inc-addr;
+write 0x84 gpram-inc-addr;
+write 0x86 gpram-inc-addr;
+write 0x87 gpram-inc-addr;
+write 0x88 gpram-inc-addr;
+write 0x8A gpram-inc-addr;
+write 0x8B gpram-inc-addr;
+write 0x8C gpram-inc-addr;
+write 0x8E gpram-inc-addr;
+write 0x8F gpram-inc-addr;
+write 0x90 gpram-inc-addr;
+write 0x91 gpram-inc-addr;
+write 0x93 gpram-inc-addr;
+write 0x94 gpram-inc-addr;
+write 0x95 gpram-inc-addr;
+write 0x96 gpram-inc-addr;
+write 0x97 gpram-inc-addr;
+write 0x99 gpram-inc-addr;
+write 0x9A gpram-inc-addr;
+write 0x9B gpram-inc-addr;
+write 0x9C gpram-inc-addr;
+write 0x9D gpram-inc-addr;
+write 0x9E gpram-inc-addr;
+write 0x9F gpram-inc-addr;
+write 0xA0 gpram-inc-addr;
+write 0xA1 gpram-inc-addr;
+write 0xA2 gpram-inc-addr;
+write 0xA3 gpram-inc-addr;
+write 0xA4 gpram-inc-addr;
+write 0xA5 gpram-inc-addr;
+write 0xA6 gpram-inc-addr;
+write 0xA7 gpram-inc-addr;
+write 0xA8 gpram-inc-addr;
+write 0xA9 gpram-inc-addr;
+write 0xAA gpram-inc-addr;
+write 0xAB gpram-inc-addr;
+write 0xAC gpram-inc-addr;
+write 0xAD gpram-inc-addr;
+write 0xAE gpram-inc-addr;
+write 0xAE gpram-inc-addr;
+write 0xAF gpram-inc-addr;
+write 0xB0 gpram-inc-addr;
+write 0xB1 gpram-inc-addr;
+write 0xB2 gpram-inc-addr;
+write 0xB3 gpram-inc-addr;
+write 0xB3 gpram-inc-addr;
+write 0xB4 gpram-inc-addr;
+write 0xB5 gpram-inc-addr;
+write 0xB6 gpram-inc-addr;
+write 0xB7 gpram-inc-addr;
+write 0xB7 gpram-inc-addr;
+write 0xB8 gpram-inc-addr;
+write 0xB9 gpram-inc-addr;
+write 0xBA gpram-inc-addr;
+write 0xBA gpram-inc-addr;
+write 0xBB gpram-inc-addr;
+write 0xBC gpram-inc-addr;
+write 0xBD gpram-inc-addr;
+write 0xBD gpram-inc-addr;
+write 0xBE gpram-inc-addr;
+write 0xBF gpram-inc-addr;
+write 0xBF gpram-inc-addr;
+write 0xC0 gpram-inc-addr;
+write 0xC1 gpram-inc-addr;
+write 0xC1 gpram-inc-addr;
+write 0xC2 gpram-inc-addr;
+write 0xC3 gpram-inc-addr;
+write 0xC3 gpram-inc-addr;
+write 0xC4 gpram-inc-addr;
+write 0xC5 gpram-inc-addr;
+write 0xC5 gpram-inc-addr;
+write 0xC6 gpram-inc-addr;
+write 0xC6 gpram-inc-addr;
+write 0xC7 gpram-inc-addr;
+write 0xC8 gpram-inc-addr;
+write 0xC8 gpram-inc-addr;
+write 0xC9 gpram-inc-addr;
+write 0xC9 gpram-inc-addr;
+write 0xCA gpram-inc-addr;
+write 0xCA gpram-inc-addr;
+write 0xCB gpram-inc-addr;
+write 0xCC gpram-inc-addr;
+write 0xCC gpram-inc-addr;
+write 0xCD gpram-inc-addr;
+write 0xCD gpram-inc-addr;
+write 0xCE gpram-inc-addr;
+write 0xCE gpram-inc-addr;
+write 0xCF gpram-inc-addr;
+write 0xCF gpram-inc-addr;
+write 0xD0 gpram-inc-addr;
+write 0xD0 gpram-inc-addr;
+write 0xD1 gpram-inc-addr;
+write 0xD1 gpram-inc-addr;
+write 0xD2 gpram-inc-addr;
+write 0xD2 gpram-inc-addr;
+write 0xD3 gpram-inc-addr;
+write 0xD3 gpram-inc-addr;
+write 0xD4 gpram-inc-addr;
+write 0xD4 gpram-inc-addr;
+write 0xD5 gpram-inc-addr;
+write 0xD5 gpram-inc-addr;
+write 0xD6 gpram-inc-addr;
+write 0xD6 gpram-inc-addr;
+write 0xD7 gpram-inc-addr;
+write 0xD7 gpram-inc-addr;
+write 0xD8 gpram-inc-addr;
+write 0xD8 gpram-inc-addr;
+write 0xD8 gpram-inc-addr;
+write 0xD9 gpram-inc-addr;
+write 0xD9 gpram-inc-addr;
+write 0xDA gpram-inc-addr;
+write 0xDA gpram-inc-addr;
+write 0xDB gpram-inc-addr;
+write 0xDB gpram-inc-addr;
+write 0xDB gpram-inc-addr;
+write 0xDC gpram-inc-addr;
+write 0xDC gpram-inc-addr;
+write 0xDD gpram-inc-addr;
+write 0xDD gpram-inc-addr;
+write 0xDD gpram-inc-addr;
+write 0xDE gpram-inc-addr;
+write 0xDE gpram-inc-addr;
+write 0xDF gpram-inc-addr;
+write 0xDF gpram-inc-addr;
+write 0xDF gpram-inc-addr;
+# --------------------------------- </Lookup table> ---------------------------------
 
-# Write motor control lookup table
+# Write motor control lookup table, 5th bit is flipped each time, to connect speaker
 write 0x00 gpram-addr-a;
 write 0x02 gpram-addr-b;
 write 0x05 gpram-inc-addr;
-write 0x09 gpram-inc-addr;
+write 0x19 gpram-inc-addr;
 write 0x0A gpram-inc-addr;
-write 0x06 gpram-inc-addr;
+write 0x16 gpram-inc-addr;
 
 # Write song (duration, frequency) pairs
 write 0x00 gpram-addr-a;
 write 0x01 gpram-addr-b;
-write 0x00 stack-push;
-# TODO: Song
-write 0x30 gpram-inc-addr;write 0x01 gpram-inc-addr;
-write 0x0A gpram-inc-addr;write 0x02 gpram-inc-addr;
-write 0x30 gpram-inc-addr;write 0x01 gpram-inc-addr;
-write 0x0A gpram-inc-addr;write 0x02 gpram-inc-addr;
-write 0x08 stack-push;# TODO
+# --------------------------------- <Song> ---------------------------------
+write 0x12 gpram-inc-addr;write 0x61 gpram-inc-addr;# Duration=0.194, Freq=97
+write 0x15 gpram-inc-addr;write 0x6E gpram-inc-addr;# Duration=0.194, Freq=110
+write 0x09 gpram-inc-addr;write 0x61 gpram-inc-addr;# Duration=0.096, Freq=97
+write 0x08 gpram-inc-addr;write 0x57 gpram-inc-addr;# Duration=0.096, Freq=87
+write 0x0F gpram-inc-addr;write 0x52 gpram-inc-addr;# Duration=0.194, Freq=82
+write 0x12 gpram-inc-addr;write 0x61 gpram-inc-addr;# Duration=0.194, Freq=97
+write 0x15 gpram-inc-addr;write 0x6E gpram-inc-addr;# Duration=0.194, Freq=110
+write 0x09 gpram-inc-addr;write 0x61 gpram-inc-addr;# Duration=0.096, Freq=97
+write 0x08 gpram-inc-addr;write 0x57 gpram-inc-addr;# Duration=0.096, Freq=87
+write 0x0F gpram-inc-addr;write 0x52 gpram-inc-addr;# Duration=0.194, Freq=82
+write 0x12 gpram-inc-addr;write 0x61 gpram-inc-addr;# Duration=0.194, Freq=97
+write 0x15 gpram-inc-addr;write 0x6E gpram-inc-addr;# Duration=0.194, Freq=110
+write 0x09 gpram-inc-addr;write 0x61 gpram-inc-addr;# Duration=0.096, Freq=97
+write 0x08 gpram-inc-addr;write 0x57 gpram-inc-addr;# Duration=0.096, Freq=87
+write 0x0F gpram-inc-addr;write 0x52 gpram-inc-addr;# Duration=0.194, Freq=82
+write 0x12 gpram-inc-addr;write 0x61 gpram-inc-addr;# Duration=0.194, Freq=97
+write 0x15 gpram-inc-addr;write 0x6E gpram-inc-addr;# Duration=0.194, Freq=110
+write 0x09 gpram-inc-addr;write 0x61 gpram-inc-addr;# Duration=0.096, Freq=97
+write 0x08 gpram-inc-addr;write 0x57 gpram-inc-addr;# Duration=0.096, Freq=87
+write 0x0F gpram-inc-addr;write 0x52 gpram-inc-addr;# Duration=0.194, Freq=82
+write 0x12 gpram-inc-addr;write 0x61 gpram-inc-addr;# Duration=0.194, Freq=97
+write 0x15 gpram-inc-addr;write 0x6E gpram-inc-addr;# Duration=0.194, Freq=110
+write 0x1F gpram-inc-addr;write 0xA4 gpram-inc-addr;# Duration=0.194, Freq=164
+write 0x21 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.194, Freq=174
+write 0x4C gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.392, Freq=195
+write 0x56 gpram-inc-addr;write 0xDC gpram-inc-addr;# Duration=0.392, Freq=220
+write 0x2D gpram-inc-addr;write 0x74 gpram-inc-addr;# Duration=0.392, Freq=116
+write 0x56 gpram-inc-addr;write 0xDC gpram-inc-addr;# Duration=0.392, Freq=220
+write 0x25 gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.194, Freq=195
+write 0x21 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.194, Freq=174
+write 0x40 gpram-inc-addr;write 0xA4 gpram-inc-addr;# Duration=0.392, Freq=164
+write 0x1E gpram-inc-addr;write 0x00 gpram-inc-addr;# Duration=0.392, Freq=0
+write 0x1F gpram-inc-addr;write 0xA4 gpram-inc-addr;# Duration=0.194, Freq=164
+write 0x21 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.194, Freq=174
+write 0x4C gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.392, Freq=195
+write 0x56 gpram-inc-addr;write 0xDC gpram-inc-addr;# Duration=0.392, Freq=220
+write 0x2D gpram-inc-addr;write 0x74 gpram-inc-addr;# Duration=0.392, Freq=116
+write 0x56 gpram-inc-addr;write 0xDC gpram-inc-addr;# Duration=0.392, Freq=220
+write 0x25 gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.194, Freq=195
+write 0x21 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.194, Freq=174
+write 0x40 gpram-inc-addr;write 0xA4 gpram-inc-addr;# Duration=0.392, Freq=164
+write 0x1E gpram-inc-addr;write 0x00 gpram-inc-addr;# Duration=0.392, Freq=0
+write 0x17 gpram-inc-addr;write 0x77 gpram-inc-addr;# Duration=0.194, Freq=119
+write 0x1F gpram-inc-addr;write 0xA4 gpram-inc-addr;# Duration=0.194, Freq=164
+write 0x44 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.392, Freq=174
+write 0x4C gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.392, Freq=195
+write 0x2B gpram-inc-addr;write 0x6E gpram-inc-addr;# Duration=0.392, Freq=110
+write 0x5B gpram-inc-addr;write 0xE9 gpram-inc-addr;# Duration=0.392, Freq=233
+write 0x2A gpram-inc-addr;write 0xDC gpram-inc-addr;# Duration=0.194, Freq=220
+write 0x25 gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.194, Freq=195
+write 0x44 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.392, Freq=174
+write 0x1E gpram-inc-addr;write 0x00 gpram-inc-addr;# Duration=0.392, Freq=0
+write 0x17 gpram-inc-addr;write 0x77 gpram-inc-addr;# Duration=0.194, Freq=119
+write 0x1F gpram-inc-addr;write 0xA4 gpram-inc-addr;# Duration=0.194, Freq=164
+write 0x44 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.392, Freq=174
+write 0x4C gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.392, Freq=195
+write 0x2B gpram-inc-addr;write 0x6E gpram-inc-addr;# Duration=0.392, Freq=110
+write 0x4C gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.392, Freq=195
+write 0x21 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.194, Freq=174
+write 0x1F gpram-inc-addr;write 0xA4 gpram-inc-addr;# Duration=0.194, Freq=164
+write 0x2E gpram-inc-addr;write 0x77 gpram-inc-addr;# Duration=0.392, Freq=119
+write 0x12 gpram-inc-addr;write 0x61 gpram-inc-addr;# Duration=0.194, Freq=97
+write 0x15 gpram-inc-addr;write 0x6E gpram-inc-addr;# Duration=0.194, Freq=110
+write 0x09 gpram-inc-addr;write 0x61 gpram-inc-addr;# Duration=0.096, Freq=97
+write 0x08 gpram-inc-addr;write 0x57 gpram-inc-addr;# Duration=0.096, Freq=87
+write 0x0F gpram-inc-addr;write 0x52 gpram-inc-addr;# Duration=0.194, Freq=82
+write 0x12 gpram-inc-addr;write 0x61 gpram-inc-addr;# Duration=0.194, Freq=97
+write 0x15 gpram-inc-addr;write 0x6E gpram-inc-addr;# Duration=0.194, Freq=110
+write 0x09 gpram-inc-addr;write 0x61 gpram-inc-addr;# Duration=0.096, Freq=97
+write 0x08 gpram-inc-addr;write 0x57 gpram-inc-addr;# Duration=0.096, Freq=87
+write 0x0F gpram-inc-addr;write 0x52 gpram-inc-addr;# Duration=0.194, Freq=82
+write 0x12 gpram-inc-addr;write 0x61 gpram-inc-addr;# Duration=0.194, Freq=97
+write 0x15 gpram-inc-addr;write 0x6E gpram-inc-addr;# Duration=0.194, Freq=110
+write 0x09 gpram-inc-addr;write 0x61 gpram-inc-addr;# Duration=0.096, Freq=97
+write 0x08 gpram-inc-addr;write 0x57 gpram-inc-addr;# Duration=0.096, Freq=87
+write 0x0F gpram-inc-addr;write 0x52 gpram-inc-addr;# Duration=0.194, Freq=82
+write 0x12 gpram-inc-addr;write 0x61 gpram-inc-addr;# Duration=0.194, Freq=97
+write 0x15 gpram-inc-addr;write 0x6E gpram-inc-addr;# Duration=0.194, Freq=110
+write 0x09 gpram-inc-addr;write 0x61 gpram-inc-addr;# Duration=0.096, Freq=97
+write 0x08 gpram-inc-addr;write 0x57 gpram-inc-addr;# Duration=0.096, Freq=87
+write 0x0F gpram-inc-addr;write 0x52 gpram-inc-addr;# Duration=0.194, Freq=82
+write 0x25 gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.194, Freq=195
+write 0x2A gpram-inc-addr;write 0xDC gpram-inc-addr;# Duration=0.194, Freq=220
+write 0x12 gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.096, Freq=195
+write 0x10 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.096, Freq=174
+write 0x1F gpram-inc-addr;write 0xA4 gpram-inc-addr;# Duration=0.194, Freq=164
+write 0x25 gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.194, Freq=195
+write 0x2A gpram-inc-addr;write 0xDC gpram-inc-addr;# Duration=0.194, Freq=220
+write 0x12 gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.096, Freq=195
+write 0x10 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.096, Freq=174
+write 0x1F gpram-inc-addr;write 0xA4 gpram-inc-addr;# Duration=0.194, Freq=164
+write 0x25 gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.194, Freq=195
+write 0x2A gpram-inc-addr;write 0xDC gpram-inc-addr;# Duration=0.194, Freq=220
+write 0x12 gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.096, Freq=195
+write 0x10 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.096, Freq=174
+write 0x1F gpram-inc-addr;write 0xA4 gpram-inc-addr;# Duration=0.194, Freq=164
+write 0x25 gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.194, Freq=195
+write 0x2A gpram-inc-addr;write 0xDC gpram-inc-addr;# Duration=0.194, Freq=220
+write 0x12 gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.096, Freq=195
+write 0x10 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.096, Freq=174
+write 0x1F gpram-inc-addr;write 0xA4 gpram-inc-addr;# Duration=0.194, Freq=164
+write 0x25 gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.194, Freq=195
+write 0x2A gpram-inc-addr;write 0xDC gpram-inc-addr;# Duration=0.194, Freq=220
+write 0x12 gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.096, Freq=195
+write 0x10 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.096, Freq=174
+write 0x1F gpram-inc-addr;write 0xA4 gpram-inc-addr;# Duration=0.194, Freq=164
+write 0x25 gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.194, Freq=195
+write 0x2A gpram-inc-addr;write 0xDC gpram-inc-addr;# Duration=0.194, Freq=220
+write 0x12 gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.096, Freq=195
+write 0x10 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.096, Freq=174
+write 0x1F gpram-inc-addr;write 0xA4 gpram-inc-addr;# Duration=0.194, Freq=164
+write 0x25 gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.194, Freq=195
+write 0x2A gpram-inc-addr;write 0xDC gpram-inc-addr;# Duration=0.194, Freq=220
+write 0x12 gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.096, Freq=195
+write 0x10 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.096, Freq=174
+write 0x1F gpram-inc-addr;write 0xA4 gpram-inc-addr;# Duration=0.194, Freq=164
+write 0x25 gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.194, Freq=195
+write 0x2A gpram-inc-addr;write 0xDC gpram-inc-addr;# Duration=0.194, Freq=220
+write 0x12 gpram-inc-addr;write 0xC3 gpram-inc-addr;# Duration=0.096, Freq=195
+write 0x10 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.096, Freq=174
+write 0x1F gpram-inc-addr;write 0xA4 gpram-inc-addr;# Duration=0.194, Freq=164
+write 0xF2 stack-push;
+# --------------------------------- </Song> ---------------------------------
 # Stack: Note count * 2
 
 # Loop
@@ -110,6 +470,12 @@ move gpram-inc-addr stack-push;
 write 0x00 stack-push;
 write 0x00 gpio-write-a;# For display
 # Stack: Note count * 2, Note index * 2, Cycle count, Frequency, Cycle index
+# Check if the frequency is 0 and run different loop that just delays
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x00 alu-b;
+move eq alu goto-decider;
+@goto_if(inner-loop-start-silence);
 @anchor(inner-loop-start);
 # Step motor
 write 0x00 set-stack-offset;
@@ -138,6 +504,36 @@ move offset-read alu-b;
 move eq alu alu-a;
 move not alu goto-decider;
 @goto_if(inner-loop-start);
+@goto(end-of-note);
+@anchor(inner-loop-start-silence);
+# Step motor
+write 0x00 set-stack-offset;
+move offset-read alu-a;
+write 0x03 alu-b;# Only lower 2 bits set
+move and alu gpram-addr-a;
+write 0x02 gpram-addr-b;
+write 0x00 gpio-write-b;# Only instruction changed
+# Frequency delay lookup table
+write 0x01 set-stack-offset;
+move offset-read gpram-addr-a;
+write 0x00 gpram-addr-b;
+# Call delay
+move gpram goto-a;
+write 0x01 goto-b;
+call;
+#@call(start-of-halt-block);
+# Increment cycle count
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if done
+write 0x02 set-stack-offset;
+move offset-read alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(inner-loop-start-silence);
+@anchor(end-of-note);
 # Clear inner loop stack variables
 move stack-pop none;
 move stack-pop none;

@@ -7,6 +7,7 @@ pub mod emulator;
 pub mod resources;
 pub mod program_upload;
 pub mod display_emulator;
+pub mod music_assembly_generator;
 pub use crate::prelude::*;
 #[cfg(test)]
 mod tests;
@@ -337,6 +338,14 @@ pub fn ui_main() {
 					}
 				}
 			},
+			"-assemble-song" => {
+				let parsed_args: HashMap<String, String> = parse_args(&args);
+				let clock: u32 = match parsed_args.get("clock") {
+					Some(offset_raw) => Some(offset_raw.parse::<u32>().expect("Clock must be a u32")),
+					None => None
+				}.expect("Need `clock` argument");
+				music_assembly_generator::print_output(clock, parsed_args.contains_key("include-table"));
+			}
 			_ => panic!("Invalid arguments")
 		}
 	}
