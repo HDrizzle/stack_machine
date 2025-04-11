@@ -344,7 +344,7 @@ pub fn ui_main() {
 					Some(offset_raw) => Some(offset_raw.parse::<u32>().expect("Clock must be a u32")),
 					None => None
 				}.expect("Need `clock` argument");
-				music_assembly_generator::print_output(clock, parsed_args.contains_key("include-table"));
+				music_assembly_generator::print_output(clock, parsed_args.contains_key("include-table"), parsed_args.contains_key("direct-lookup"));
 			}
 			_ => panic!("Invalid arguments")
 		}
