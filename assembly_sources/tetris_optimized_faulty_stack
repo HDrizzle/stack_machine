@@ -1533,16 +1533,22 @@ write 0x70 gpram-inc-addr;write 0x02 gpram-inc-addr;
 write 0x64 gpram-inc-addr;write 0x03 gpram-inc-addr;
 @goto(init-shapes-end);
 @anchor(init-shapes-cursed);
-# Write shapes (cursed)
+# Write shapes (hard)
 @call(set-pointer-shapes);
 write 0x63 gpram-inc-addr;write 0x02 gpram-inc-addr;
+# "I"
+write 0x22 gpram-inc-addr;write 0x22 gpram-inc-addr;
+# "S"
+write 0xC0 gpram-inc-addr;write 0x06 gpram-inc-addr;
+# "Z"
+write 0x30 gpram-inc-addr;write 0x06 gpram-inc-addr;
+# "L"
+write 0x22 gpram-inc-addr;write 0x06 gpram-inc-addr;
 write 0xD0 gpram-inc-addr;write 0x03 gpram-inc-addr;
-write 0x21 gpram-inc-addr;write 0x84 gpram-inc-addr;
-write 0x88 gpram-inc-addr;write 0xF8 gpram-inc-addr;
-write 0x9F gpram-inc-addr;write 0xF9 gpram-inc-addr;
-write 0x22 gpram-inc-addr;write 0x72 gpram-inc-addr;
-write 0xC8 gpram-inc-addr;write 0x7E gpram-inc-addr;
-write 0x20 gpram-inc-addr;write 0x00 gpram-inc-addr;
+# Lomger "T"
+write 0x70 gpram-inc-addr;write 0x22 gpram-inc-addr;
+# "W"
+write 0x64 gpram-inc-addr;write 0x03 gpram-inc-addr;
 @anchor(init-shapes-end);
 return;
 
