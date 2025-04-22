@@ -1,0 +1,6 @@
+@font-face {
+    font-family: 'Vera Mono';
+    src:
+        local('Vera Mono'),
+        url(public/fonts/VeraMono.ttf) format('truetype');
+}
