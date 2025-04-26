@@ -4,3 +4,20 @@
         local('Vera Mono'),
         url(public/fonts/VeraMono.ttf) format('truetype');
 }
+
+.titel {
+    text-align: center;
+    font-size: 80;
+    fill: #FFF;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 40;
+    fill: #FFF;
+}
+
+.normal-text {
+    font-size: 30;
+    fill: #FFF;
+}
