@@ -3,8 +3,8 @@
   "shared": {
     "background": null,
     "range": [
-      0,
-      null
+      0.099999,
+      0.099999
     ],
     "size": {
       "x": 1920,
