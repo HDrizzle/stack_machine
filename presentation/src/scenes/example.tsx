@@ -263,11 +263,15 @@ class Emulator {
 				zIndex={1}
 			>
 				{/*this.call_stack.init_rect(view)*/}
-				{/*this.gpram.init_rect(view)*/}
+				{this.gpram.init_rect(view)}
 				{this.stack.init_rect(view)}
 				{this.alu.init_rect()}
 			</Rect>
 		);
+		// Secondary things that require the layout to be done first
+		//this.call_stack.memory_container.set_value_base_position();
+		this.gpram.memory_container.set_value_base_position();
+		this.stack.memory_container.set_value_base_position();
 	}
 	test_animation_1() {
 		return this.stack.memory_container.animate_write_value(42, 1);
@@ -275,7 +279,7 @@ class Emulator {
 		//return all(...this.stack.memory_container.animate_address_shift(1, 1));
 	}
 	test_animation_2(view: View2D) {
-		return all(...this.stack.memory_container.animate_address_shift(view, 65530, 5));
+		return all(...this.stack.memory_container.animate_address_shift(view, 50, 3));
 	}
 }
 
@@ -295,7 +299,7 @@ class ALU {
 	init_rect() {
 		return <Rect
 			layout
-			  grow={1}
+			grow={1}
 			fill={'#000'}
 			radius={2}
 			stroke={'#fff'}
@@ -313,19 +317,19 @@ class ALU {
 			/>
 			<Txt
 				text={() => `a = 0x${this.a().toString(16).padStart(2, '0')}`}
-		fill={'#FFFFFF'}
+				fill={'#FFFFFF'}
 				fontFamily={'Vera Mono'}
 				fontSize={this.value_font_size}
 			/>
 			<Txt
 				text={() => `b = 0x${this.b().toString(16).padStart(2, '0')}`}
-		fill={'#FFFFFF'}
+				fill={'#FFFFFF'}
 				fontFamily={'Vera Mono'}
 				fontSize={this.value_font_size}
 			/>
 			<Txt
 				text={() => `c = 0x${this.c().toString(16).padStart(2, '0')}`}
-		fill={'#FFFFFF'}
+				fill={'#FFFFFF'}
 				fontFamily={'Vera Mono'}
 				fontSize={this.value_font_size}
 			/>
@@ -344,8 +348,8 @@ class MemoryValue {
 	title_font_size: number;
 	y_offset: SimpleSignal<number>;// For animating scrolling memory
 	value_color: SimpleSignal<Color>;
-	opacity: SimpleSignal<number>;
-	constructor(n: number, index: number, n_size_hex_digits: number, index_size_hex_digits: number, value_font_size: number, title_font_size: number, top_y_pos: number, opacity: number) {
+	base_topleft_pos: () => Vector2;
+	constructor(n: number, index: number, n_size_hex_digits: number, index_size_hex_digits: number, value_font_size: number, title_font_size: number, top_y_pos: number) {
 		this.value_font_size = value_font_size;
 		this.title_font_size = title_font_size;
 		this.n_size_hex_digits = n_size_hex_digits;
@@ -356,20 +360,43 @@ class MemoryValue {
 		this.index = index;
 		this.y_offset = createSignal(top_y_pos);
 		this.value_color = createSignal(new Color('FFF'));
-		this.opacity = createSignal(opacity);
+		this.base_topleft_pos = () => {return new Vector2(0, 0);};
 	}
-	init_rect(base_pos_callback: SimpleVector2Signal<Rect>) {
+	init_rect(n_display_values: number) {
 		// base_pos_callback is the position of the top-left corner of the `MemoryContainer`s `items_rect` placeholder
 		return <Rect
 			layout
 			ref={this.rect_ref}
-			topLeft={() => {return base_pos_callback().add(new Vector2(0, this.y_offset()));}}
+			topLeft={() => {return this.base_topleft_pos().add(new Vector2(15, this.y_offset()+5));}}
 			fill={'#000'}
 			radius={2}
 			margin={2}
 			padding={5}
 			zIndex={2}// Bigger number in front
-			opacity={() => {return this.opacity();}}// TODO: Try just `this.opacity`
+			opacity={() => {// Calculate opacity from Y offset
+				let y_offset_scaled = this.y_offset() / MemoryValue.anticipate_height(this.value_font_size);
+				if(y_offset_scaled > -1) {
+					if(y_offset_scaled < 0) {
+						return easeInOutCubic(y_offset_scaled + 1);
+					}
+					else {
+						if(y_offset_scaled >= n_display_values - 1) {
+							if(y_offset_scaled < n_display_values) {
+								return easeInOutCubic(y_offset_scaled + 1 - n_display_values, 1, 0);
+							}
+							else {
+								return 0;
+							}
+						}
+						else {
+							return 1;
+						}
+					}
+				}
+				else {
+					return 0;
+				}
+			}}
 		>
 			<Txt
 				text={() => `0x${this.index.toString(16).padStart(this.index_size_hex_digits, '0')}:`}
@@ -459,7 +486,6 @@ class MemoryContainer {
 				ref={this.items_rect}
 				height={this.height_items_placeholder}
 				width={() => {return this.width();}}
-				direction={'column'}
 			/>
 			<Txt
 				text='⋮'
@@ -473,10 +499,10 @@ class MemoryContainer {
 		// Add initial values
 		for(let i = 0; i < this.n_display_values; i++) {
 			let address = (this.size-i) % this.size;
-			let new_stack_value = new MemoryValue(0, address, this.data_size_hex_digits, this.address_size_hex_digits, this.value_font_size, this.title_font_size, this.memory_address_to_display_rel_y(address, 0), 1);
+			let new_stack_value = new MemoryValue(0, address, this.data_size_hex_digits, this.address_size_hex_digits, this.value_font_size, this.title_font_size, this.memory_address_to_display_rel_y(address, 0));
 			this.data_display.push(new_stack_value);
 			//view.add(() => {return new Vector2(0, 0);});
-			view.add(new_stack_value.init_rect(this.items_rect().topLeft));
+			view.add(new_stack_value.init_rect(this.n_display_values));
 		}
 		this.width(this.data_display[0].rect_ref().width());
 		return return_rect;
@@ -485,22 +511,6 @@ class MemoryContainer {
 		// If `shift` != 0 then it is assumed that the shift takes place after this.address is updated
 		let address_diff_up = (((this.size*1.5) + (this.address() + shift - address)) % this.size) - (this.size/2);
 		return address_diff_up * this.item_height;// TODO
-	}
-	private mem_value_fade_in_out_timing_function(start_i: number, series_len: number, timing: (x: number) => number) {
-		return (x: number) => {
-			let x_scaled_up = x*series_len;
-			if(x_scaled_up > start_i && x_scaled_up < start_i + 1) {
-				return timing(x_scaled_up - start_i);
-			}
-			else {
-				if(x_scaled_up <= start_i) {
-					return 0;
-				}
-				else {
-					return 1;
-				}
-			}
-		};
 	}
 	animate_address_shift(view: View2D, new_address: number, t: number) {
 		let diff;// Direction the animation will show the memory "tape" "moving", for example if its going from 0x00 to 0xFF it shouldn't scroll across the whole thing but loop around and just go down 1 step
@@ -513,6 +523,7 @@ class MemoryContainer {
 			diff = diff_raw - this.size;// Don't touch, it works
 		}
 		let tweens = [];
+		// TODO: Delete hidden items from possible previous shifts
 		// Create new items
 		for(let i_raw = 0; i_raw < Math.abs(diff); i_raw++) {
 			let i;// Memory index
@@ -522,31 +533,14 @@ class MemoryContainer {
 			else {
 				i = ((this.address() - i_raw - this.n_display_values) + this.size) % this.size;// Scrolling up, new values on bottom
 			}
-			let new_stack_value = new MemoryValue(this.data[i], i, this.data_size_hex_digits, this.address_size_hex_digits, this.value_font_size, this.title_font_size, this.memory_address_to_display_rel_y(i, 0), 0);
+			let new_stack_value = new MemoryValue(this.data[i], i, this.data_size_hex_digits, this.address_size_hex_digits, this.value_font_size, this.title_font_size, this.memory_address_to_display_rel_y(i, 0));
+			new_stack_value.base_topleft_pos = () => {return this.items_rect().topLeft()};
 			this.data_display.push(new_stack_value);
-			view.add(new_stack_value.init_rect(this.items_rect().topLeft));
-			// Fade-in animation for when this value comes in to view
-			tweens.push(this.data_display[this.data_display.length - 1].opacity(1, t, this.mem_value_fade_in_out_timing_function(i_raw, Math.abs(diff), easeInOutCubic)));
-			//tweens.push(this.data_display[this.data_display.length - 1].opacity(1, t, easeInOutCubic));
+			view.add(new_stack_value.init_rect(this.n_display_values));
 		}
 		// Apply Y position animations to all of them
 		for(let i = 0; i < this.data_display.length; i++) {
-			tweens.push(this.data_display[i].y_offset(this.memory_address_to_display_rel_y(this.data_display[i].index, diff), t, (x) => {return x;}));// Using simple LERP so that value fade-in-out animation timings are simpler
-		}
-		// Apply individual fade-out animations to the ones that will go out of view
-		// TODO: fix
-		for(let i_display = 0; i_display < this.data_display.length; i_display++) {
-			let index = this.data_display[i_display].index;
-			let fade_order = 0;
-			if(diff > 0) {
-				fade_order = this.n_display_values + new_address - index;
-			}
-			else {
-				fade_order = new_address - index;
-			}
-			if(fade_order >= 0) {
-				//tweens.push(this.data_display[i_display].opacity(0, t, this.mem_value_fade_in_out_timing_function(fade_order, Math.abs(diff), easeInOutCubic)));
-			}
+			tweens.push(this.data_display[i].y_offset(this.memory_address_to_display_rel_y(this.data_display[i].index, diff), t));
 		}
 		// Update address
 		this.address(new_address);
@@ -558,6 +552,11 @@ class MemoryContainer {
 		this.data_display[0].n(value);
 		this.data_display[0].value_color(written_to_color);
 		return this.data_display[0].value_color(new Color('FFF'), t);
+	}
+	set_value_base_position() {
+		for(let i = 0; i < this.data_display.length; i++) {
+			this.data_display[i].base_topleft_pos = () => {return this.items_rect().topLeft()};
+		}
 	}
 }
 
@@ -578,10 +577,9 @@ class Stack {
 		this.memory_container = new MemoryContainer(value_font_size, title_font_size, 2, 4);
 	}
 	init_rect(view: View2D) {
-		console.log(`Stack init_rect view type = ${typeof(view)}`);
 		let return_rect = <Rect
 			layout
-			  grow={1}
+			grow={1}
 			fill={'#000'}
 			radius={2}
 			stroke={'#fff'}
