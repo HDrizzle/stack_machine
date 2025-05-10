@@ -1,4 +1,6 @@
 write 0x00 gpio-write-a;
+@goto(init);# Hardware testing
+@anchor(init);
 # Write to GPRAM starting at 0x0000 then uses `update-display` (copied from tetris) to write to display
 @call(clear-display);
 @call(write-image);
@@ -19,7 +21,7 @@ write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;wr
 write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
 write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
 
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0xFF gpram-inc-addr;write 0xFF gpram-inc-addr;write 0xFF gpram-inc-addr;write 0xFF gpram-inc-addr;
 write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
 write 0x0F gpram-inc-addr;write 0xE1 gpram-inc-addr;write 0xFF gpram-inc-addr;write 0xF0 gpram-inc-addr;
 write 0x06 gpram-inc-addr;write 0x41 gpram-inc-addr;write 0x8C gpram-inc-addr;write 0x61 gpram-inc-addr;
@@ -35,7 +37,7 @@ write 0x78 gpram-inc-addr;write 0x1E gpram-inc-addr;write 0x0C gpram-inc-addr;wr
 write 0x30 gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x60 gpram-inc-addr;
 write 0x30 gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x1E gpram-inc-addr;write 0xF0 gpram-inc-addr;
 write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0xFF gpram-inc-addr;write 0xFF gpram-inc-addr;write 0xFF gpram-inc-addr;write 0xFF gpram-inc-addr;
 
 write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
 write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;

@@ -1,13 +1,16 @@
-import {Circle, Layout, makeScene2D, Rect, View2D, Txt, Img, Code, vector2Signal} from '@motion-canvas/2d';
-import {all, beginSlide, waitFor, createRef, Reference, Signal, SimpleSignal, createSignal, DEFAULT, Color, Vector2Signal, Vector2, SignalTween, SimpleVector2Signal, useLogger, easeInOutCubic} from '@motion-canvas/core';
+import {Circle, Layout, makeScene2D, Rect, View2D, Txt, Img, Code, vector2Signal, Line} from '@motion-canvas/2d';
+import {all, beginSlide, waitFor, createRef, Reference, Signal, SimpleSignal, createSignal, DEFAULT, Color, Vector2Signal, Vector2, SignalTween, SimpleVector2Signal, useLogger, easeInOutCubic, SignalGenerator} from '@motion-canvas/core';
 import title_slide_background from '../../images/title_slide_background.png';
 import bool_value_scrot from '../../images/bool_value_scrot.png';
 import binary_decimal from '../../images/binary-decimal.png';
 import bin_to_dec from '../../images/bin_to_dec_gsheets.png';
 import bin_to_hex from '../../images/bin_to_hex_gsheets.png';
+import led_off from '../../images/led_off.jpeg';
+import led_on from '../../images/led_on.jpeg';
 
 /* Slides
 Title
+Binary intro
 Binary numbers, 0xNumbers
 Logic gates
 Adder
@@ -15,21 +18,33 @@ Sequential logic, D latches
 Clock
 Instruction, what does each line of a program do?
 What does the hardware have to do?
-Stack
-RPN
+Stack & local variables
 ALU
 Heap
 Control unit & PC
+Call stack
 Program memory
 Putting it all together, use fancy animation here
 Actually building it
 What I learned
+	Capacitors on chip supplies
 What I would improve
+	Clock scheme
+	Standard interface(s)
 Acknowledgements
 */
 
 const written_to_color = new Color('#FF0000');
 const read_from_color = new Color('#00FF00');
+
+function logic_wire_color(in_: boolean): Color {
+	if(in_) {
+		return new Color('#00FF00');
+	}
+	else {
+		return new Color('#DDDDDD');
+	}
+}
 
 export default makeScene2D(function* (view) {
 	// Init
@@ -53,16 +68,39 @@ export default makeScene2D(function* (view) {
 	);
 	yield* beginSlide('Title');
 	title_ref().remove();
+	// Bits intro
+	const bin_intro_ref = createRef<Rect>();
+	view.add(
+		<Rect ref={bin_intro_ref} layout direction={'column'} width={half_width*2} height={half_height*2}>
+			<Txt fontSize={slide_title_text_size} fill={'#fff'} textAlign={'center'}>Bits (Binary Digits)</Txt>
+			<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'center'}>Also called Boolean values, most basic unit of information</Txt>
+			<Rect layout grow={1} justifyContent={'space-around'}>
+				<Rect layout direction={'column'} justifyContent={'space-around'}>
+					<Txt fontSize={slide_title_text_size} fill={'#fff'} textAlign={'center'}>0</Txt>
+					<Txt fontSize={slide_title_text_size} fill={'#fff'} textAlign={'center'}>False</Txt>
+					<Txt fontSize={slide_title_text_size} fill={'#fff'} textAlign={'center'}>0 Volts</Txt>
+					<Img src={led_off} height={half_height*0.5} alignSelf={'center'}></Img>
+				</Rect>
+				<Rect layout direction={'column'} justifyContent={'space-around'}>
+					<Txt fontSize={slide_title_text_size} fill={'#fff'} textAlign={'center'}>1</Txt>
+					<Txt fontSize={slide_title_text_size} fill={'#fff'} textAlign={'center'}>True</Txt>
+					<Txt fontSize={slide_title_text_size} fill={'#fff'} textAlign={'center'}>5 Volts</Txt>
+					<Img src={led_on} height={half_height*0.5} alignSelf={'center'}></Img>
+				</Rect>
+			</Rect>
+		</Rect>
+	);
+	yield* beginSlide('Bits & bytes');
+	bin_intro_ref().remove();
 	// Binary numbers, 0xNumbers
 	const bin_ref = createRef<Rect>();
 	view.add(
-		<Rect ref={bin_ref} layout>
-			<Rect layout direction={'column'} width={half_width}>
+		<Rect ref={bin_ref} layout justifyContent={'space-around'} width={half_width*2} height={half_height*2}>
+			<Rect layout direction={'column'} width={half_width} justifyContent={'space-around'}>
 				<Txt fontSize={slide_title_text_size} fill={'#fff'} textAlign={'center'}>Binary Numbers</Txt>
 				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
-					The most basic unit of information is called a "bit" which is short for "binary digit" (IDK if thats why but it works). A bit can be one of two values, most commonly 0 or 1 but can also be represented as False or True, and Low or High. A bit is also called a Boolean value after mathematician George Boole.
+					Made up of bits, a common length of 8 bits is a Byte.
 				</Txt>
-				<Img src={bool_value_scrot}></Img>
 				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
 					A String of bits can be interpreted as a number. Instead of each place value being a power of 10, they are powers of 2.
 				</Txt>
@@ -71,14 +109,16 @@ export default makeScene2D(function* (view) {
 					learningc.org/chapters/chapter01-computers/main-memory.html
 				</Txt>
 			</Rect>
-			<Rect layout direction={'column'} width={half_width}>
+			<Rect layout direction={'column'} width={half_width} justifyContent={'space-around'}>
 				<Txt fontSize={slide_title_text_size} fill={'#fff'} textAlign={'center'}>Hexadecimal</Txt>
 				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
 					Since binary doesn't "map well" to decimal, a representation known as Hexadecimal is used. It has a base of 16 so 6 letters are used after the decimal digits.
 				</Txt>
-				<Code fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} code={'15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0'} />
-				<Code fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} code={' ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓'} />
-				<Code fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} code={' F  E  D  C  B  A  9  8  7  6  5  4  3  2  1  0'} />
+				<Rect layout direction={'column'}>
+					<Code fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} code={'15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0'} />
+					<Code fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} code={' ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓  ↓'} />
+					<Code fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} code={' F  E  D  C  B  A  9  8  7  6  5  4  3  2  1  0'} />
+				</Rect>
 				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
 					Because the base of hexadecimal (16) is a power of the base of binary (2), each binary digit's place value maps to only one hexadecimal digit. Converting hex to binary is also easy because each hex digit maps to exactly 4 bits.
 				</Txt>
@@ -94,7 +134,7 @@ export default makeScene2D(function* (view) {
 	// Logic gates, TODO
 	const gates_ref = createRef<Rect>();
 	view.add(
-		<Rect ref={gates_ref} direction={'column'} layout>
+		<Rect ref={gates_ref} direction={'column'} width={half_width*2} height={half_height*2} layout>
 			<Txt fontSize={slide_title_text_size} fill={'#fff'} textAlign={'center'}>Logic Gates</Txt>
 			<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
 				A logic gate is anything takes one or more bits as input and returns one output. An easy way to think about logic gates is by equating them to sentances:
@@ -104,7 +144,16 @@ export default makeScene2D(function* (view) {
 			</Txt>
 		</Rect>
 	);
+	let logic_circuit = new LogicCircuit(
+		[new GateAnd(createSignal(new Vector2(0, 0)))],
+		[],
+		createSignal(20)
+	);
+	logic_circuit.init_view(view);
+	logic_circuit.components[0].compute([true, false]);
+	logic_circuit.components[0].compute_animate(0);
 	yield* beginSlide('Logic gates');
+	//yield* all(...logic_circuit.components[0].compute_animate(1));
 	gates_ref().remove();
 	// Adder
 	// TODO
@@ -731,7 +780,7 @@ class CallStack {
 	init_rect(view: View2D) {
 		let return_rect = <Rect
 			layout
-			  grow={1}
+			grow={1}
 			fill={'#000'}
 			radius={2}
 			stroke={'#fff'}
@@ -772,5 +821,172 @@ class CallStack {
 			</Rect>
 		</Rect>;
 		return return_rect;
+	}
+}
+
+class LogicCircuit {
+	components: Array<LogicDevice>;
+	nets: Array<Array<[number, number]>>;// List of nets, each net is a list pairs of [component index, component pin]
+	grid_size: SimpleSignal<number>;
+	rect_ref: Reference<Rect>;
+	constructor(components: Array<LogicDevice>, nets: Array<Array<[number, number]>>, grid_size: SimpleSignal<number>) {
+		this.components = components;
+		this.nets = nets;
+		this.grid_size = grid_size;
+		this.rect_ref = createRef<Rect>();
+	}
+	init_view(view: View2D) {
+		for(let i = 0; i < this.components.length; i++) {
+			this.components[i].init_rect(view, this.grid_size);
+		}
+	}
+}
+
+class LogicConnectionPin {
+	state: boolean;
+	high_z: boolean;
+	color: SimpleSignal<Color>;
+	relative_start_grid: Vector2;
+	direction_grid: Vector2;
+	line_ref: Reference<Line>;
+	constructor(high_z: boolean, relative_start_grid: Vector2, direction_grid: Vector2) {
+		this.state = false;
+		this.high_z = high_z;
+		this.color = createSignal(logic_wire_color(false));
+		this.relative_start_grid = relative_start_grid;
+		this.direction_grid = direction_grid;
+		this.line_ref = createRef<Line>();
+	}
+	init_view(parent_rect: Rect, grid_size: SimpleSignal<number>) {
+		parent_rect.add(<Line
+			stroke={this.color}
+			points={[
+				() => this.relative_start_grid.scale(grid_size()),
+				() => this.relative_start_grid.add(this.direction_grid).scale(grid_size())
+			]}
+			lineWidth={2}
+		/>)
+	}
+}
+
+// Could be a simple gate, or something more complicated like an adder, or maybe even the whole computer
+abstract class LogicDevice {
+    inputs: Array<LogicConnectionPin>;
+	outputs: Array<LogicConnectionPin>;
+	rect_ref: Reference<Rect>;
+	position_grid: SimpleSignal<Vector2>;
+	border_stroke: SimpleSignal<Color>;
+	constructor(input_pin_locations: Array<[Vector2, Vector2]>, output_pin_locations: Array<[Vector2, Vector2]>, position_grid: SimpleSignal<Vector2>) {
+		this.position_grid = position_grid;
+		this.border_stroke = createSignal(new Color('#FFF'));
+		this.inputs = [];
+		this.rect_ref = createRef<Rect>();
+		for(let i = 0; i < input_pin_locations.length; i++) {
+			this.inputs.push(new LogicConnectionPin(true, input_pin_locations[i][0], input_pin_locations[i][1]));
+		}
+		this.outputs = [];
+		for(let i = 0; i < output_pin_locations.length; i++) {
+			this.outputs.push(new LogicConnectionPin(false, output_pin_locations[i][0], output_pin_locations[i][1]));
+		}
+		this.compute(Array(input_pin_locations.length).fill(false));
+		this.compute_animate(0);
+	}
+    abstract init_rect(view: View2D, grid_size: SimpleSignal<number>): void;
+	init_view_pins(grid_size: SimpleSignal<number>) {
+		for(let i = 0; i < this.inputs.length + this.outputs.length; i++) {
+			this.index_pin(i).init_view(this.rect_ref(), grid_size);
+		}
+	}
+	// Just updates input and output states, doesn't modify color signals
+	abstract compute(new_inputs: Array<Boolean>): void;
+	// Updates color signals, if t > 0 will return a list of tweens
+	compute_animate(t: number): [tweens: Array<any>, propagation: number] {
+		// Input change tweens
+		let tweens: Array<any> = [];
+		for(let i = 0; i < this.inputs.length; i++) {
+			let wire_color = logic_wire_color(this.inputs[i].state);
+			if(t > 0) {
+				tweens.push(this.inputs[i].color(wire_color, t));
+			}
+			else {
+				this.inputs[i].color(wire_color);
+			}
+		}
+		// Output change tweens
+		for(let i = 0; i < this.outputs.length; i++) {
+			let wire_color = logic_wire_color(this.outputs[i].state);
+			if(t > 0) {
+				tweens.push(waitFor(t).next(this.outputs[i].color(wire_color, t)));
+			}
+			else {
+				this.outputs[i].color(wire_color);
+			}
+		}
+		return [tweens, t];
+	}
+	// Inputs are listed first, then outputs. For example pin 2 (0-indexed) of an AND gate would be the output
+	index_pin(n: number): LogicConnectionPin {
+		let pin;
+		if(n >= this.inputs.length) {
+			pin = this.outputs[n - this.inputs.length];
+		}
+		else {
+			pin = this.inputs[n];
+		}
+		return pin;
+	}
+	// returns [state, high-Z]
+	pin_state(n: number): [boolean, boolean] {
+		let pin = this.index_pin(n);
+		return [pin.state, pin.high_z];
+	}
+	position_px(grid_size: SimpleSignal<number>): Vector2 {
+		return this.position_grid().scale(grid_size());
+	}
+}
+
+class GateAnd extends LogicDevice {
+	constructor(position: SimpleSignal<Vector2>) {
+		super(
+			[
+				[new Vector2(-3, -1), new Vector2(-1, 0)],
+				[new Vector2(-3, 1), new Vector2(-1, 0)]
+			],
+			[
+				[new Vector2(3, 0), new Vector2(1, 0)],
+			],
+			position
+		);
+	}
+	init_rect(view: View2D, grid_size: SimpleSignal<number>) {
+		// TODO: Finish outline
+		view.add(<Rect
+			ref={this.rect_ref}
+			width={() => grid_size() * 8}
+			height={() => grid_size() * 4}
+			position={this.position_px(grid_size)}
+		>
+			<Line
+				points={[
+					() => new Vector2(-3, -2).scale(grid_size()),
+					() => new Vector2(-3, 2).scale(grid_size())
+				]}
+				stroke={this.border_stroke}
+				lineWidth={2}
+			/>
+			<Circle
+				width={() => grid_size() * 1}
+				height={() => grid_size() * 1}
+				position={new Vector2(0, 0)}
+				fill={'#e13238'}
+			/>
+		</Rect>);
+		this.init_view_pins(grid_size);
+	}
+	compute(new_inputs: Array<boolean>) {
+		for(let i = 0; i < 2; i++) {
+			this.inputs[i].state = new_inputs[i];
+		}
+		this.outputs[0].state = this.inputs[0].state && this.inputs[1].state;
 	}
 }
