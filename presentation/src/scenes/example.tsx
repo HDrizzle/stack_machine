@@ -826,12 +826,47 @@ class CallStack {
 
 class LogicCircuit {
 	components: Array<LogicDevice>;
-	nets: Array<Array<[number, number]>>;// List of nets, each net is a list pairs of [component index, component pin]
+	// List of nets, each net is a list pairs of [component index, component pin]
+	nets: Array<Array<[number, number]>>;
+	// Redundant w/ `nets`, just to improve performance
+	// List of (Lists of pins and corresponding net index) for each component, so `net_i = pin_to_net_lookup[component_i][pin_i]`
+	// Possibly `null` if pin is unconnected
+	pin_to_net_lookup: Array<Array<number | null>>;
 	grid_size: SimpleSignal<number>;
 	rect_ref: Reference<Rect>;
 	constructor(components: Array<LogicDevice>, nets: Array<Array<[number, number]>>, grid_size: SimpleSignal<number>) {
 		this.components = components;
 		this.nets = nets;
+		this.pin_to_net_lookup = [];
+		for(let component_i = 0; component_i < this.components.length; component_i++) {
+			let component_pins_lookup = [];
+			for(let pin_i = 0; pin_i < this.components[component_i].n_pins(); pin_i++) {
+				// Now have to look at each net to find where this pin is connected, which is why I am putting this code here for a one-time cost rather than in the loop
+				let found_net_i: number | null = null;
+				let n_nets_connected = 0;
+				for(let net_i = 0; net_i < this.nets.length; net_i++) {
+					for(let net_pin_i = 0; net_pin_i < this.nets[net_i].length; net_pin_i++) {
+						let [test_component_i, test_pin_i] = this.nets[net_i][net_pin_i];
+						if(test_component_i == component_i && test_pin_i == pin_i) {
+							found_net_i = net_i;
+							n_nets_connected += 1;
+						}
+					}
+				}
+				if(n_nets_connected == 0) {
+					component_pins_lookup.push(null);
+				}
+				else {
+					if(n_nets_connected == 1) {
+						component_pins_lookup.push(found_net_i);
+					}
+					else {
+						throw new Error(`Pin #${pin_i}  of component #${component_i} is connected to ${n_nets_connected} nets`);
+					}
+				}
+			}
+			this.pin_to_net_lookup.push(component_pins_lookup);
+		}
 		this.grid_size = grid_size;
 		this.rect_ref = createRef<Rect>();
 	}
@@ -839,6 +874,61 @@ class LogicCircuit {
 		for(let i = 0; i < this.components.length; i++) {
 			this.components[i].init_rect(view, this.grid_size);
 		}
+	}
+	// Returns whether simulation is stable (everything has propagated)
+	// To run simulation completely, loop this function until it returns `false`
+	// It may never return `false` (like of a NOT gat is connected to itself) so be sure to impose a limit to prevent infinite loops
+	compute(): boolean {
+		let anything_changed: boolean = false;
+		// For performance
+		let computed_nets_dict: {[net_i: number]: [state: boolean, valid: boolean]} = {};
+		// Calculate all input pin states, DO NOT USE .compute() YET
+		let input_states: Array<Array<boolean>> = [];
+		for(let component_i = 0; component_i < this.components.length; component_i++) {
+			let component_input_states = [];
+			for(let pin_i = 0; pin_i < this.components[component_i].inputs.length; pin_i++) {// Only iterating over input pins
+				let net_i = this.pin_to_net_lookup[component_i][pin_i];
+				let state: [state: boolean, valid: boolean];
+				if(net_i in computed_nets_dict) {// Cache hit
+					state = computed_nets_dict[net_i];
+				}
+				else {// Cache miss
+					state = this.get_net_state(net_i);
+					computed_nets_dict[net_i] = state;
+				}
+				if(!state[1]) {
+					throw new Error("Net state is either undefined or contested, simulation cannot be continued deterministically");
+				}
+				component_input_states.push(state[0]);
+			}
+			input_states.push(component_input_states);
+		}
+		// use `.compute()` to update all component outputs
+		for(let component_i = 0; component_i < this.components.length; component_i++) {
+			this.components[component_i].compute(input_states[component_i]);
+		}
+		// Check if anything was changed
+		// TODO
+		return true;
+	}
+	get_net_state(net_i: number): [state: boolean, valid: boolean] {
+		const net: Array<[number, number]> = this.nets[net_i];
+		let state = false;
+		let n_writers = 0;// To determine if floating, set, or contested
+		for(let i = 0; i < net.length; i++) {
+			let logic_pin_state: [boolean, boolean] = this.components[net[i][0]].pin_state(net[i][1]);
+			if(!logic_pin_state[1]) {// Check if pin is working as an output
+				n_writers += 1;
+				if(n_writers > 1 && state != logic_pin_state[0]) {// Already another writer which is different, contention!
+					return [state, false];
+				}
+				state = logic_pin_state[0];
+			}
+		}
+		if(n_writers == 0) {
+			return [false, false];
+		}
+		return [state, true];
 	}
 }
 
@@ -898,7 +988,7 @@ abstract class LogicDevice {
 		}
 	}
 	// Just updates input and output states, doesn't modify color signals
-	abstract compute(new_inputs: Array<Boolean>): void;
+	abstract compute(new_inputs: Array<boolean>): void;
 	// Updates color signals, if t > 0 will return a list of tweens
 	compute_animate(t: number): [tweens: Array<any>, propagation: number] {
 		// Input change tweens
@@ -924,6 +1014,9 @@ abstract class LogicDevice {
 		}
 		return [tweens, t];
 	}
+	n_pins(): number {
+		return this.inputs.length + this.outputs.length;
+	}
 	// Inputs are listed first, then outputs. For example pin 2 (0-indexed) of an AND gate would be the output
 	index_pin(n: number): LogicConnectionPin {
 		let pin;
@@ -936,7 +1029,7 @@ abstract class LogicDevice {
 		return pin;
 	}
 	// returns [state, high-Z]
-	pin_state(n: number): [boolean, boolean] {
+	pin_state(n: number): [state: boolean, high_z: boolean] {
 		let pin = this.index_pin(n);
 		return [pin.state, pin.high_z];
 	}
@@ -988,5 +1081,47 @@ class GateAnd extends LogicDevice {
 			this.inputs[i].state = new_inputs[i];
 		}
 		this.outputs[0].state = this.inputs[0].state && this.inputs[1].state;
+	}
+}
+
+// Only 1 bit, may also make more general class
+class LogicSingleInput extends LogicDevice {
+	state: boolean;
+	constructor(position: SimpleSignal<Vector2>) {
+		super(
+			[],
+			[
+				[new Vector2(1, 0), new Vector2(1, 0)],
+			],
+			position
+		);
+		this.state = false;
+	}
+	init_rect(view: View2D, grid_size: SimpleSignal<number>) {
+		view.add(<Rect
+			ref={this.rect_ref}
+			width={() => grid_size() * 3}
+			height={() => grid_size() * 2}
+			position={this.position_px(grid_size)}
+		>
+			<Line
+				points={[
+					() => new Vector2(-1, -1).scale(grid_size()),
+					() => new Vector2(1, -1).scale(grid_size()),
+					() => new Vector2(1, 1).scale(grid_size()),
+					() => new Vector2(-1, 1).scale(grid_size()),
+				]}
+				stroke={this.border_stroke}
+				lineWidth={2}
+			/>
+		</Rect>);
+		this.init_view_pins(grid_size);
+	}
+	compute(_new_inputs: Array<boolean>) {
+		this.outputs[0].state = this.state;
+	}
+	set_state(state: boolean) {
+		this.state = state;
+		this.compute([]);
 	}
 }
