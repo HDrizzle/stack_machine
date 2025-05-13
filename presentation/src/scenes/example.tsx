@@ -1,5 +1,5 @@
 import {Circle, Layout, makeScene2D, Rect, View2D, Txt, Img, Code, vector2Signal, Line, CircleSegment} from '@motion-canvas/2d';
-import {all, beginSlide, waitFor, createRef, Reference, Signal, SimpleSignal, createSignal, DEFAULT, Color, Vector2Signal, Vector2, SignalTween, SimpleVector2Signal, useLogger, easeInOutCubic, SignalGenerator} from '@motion-canvas/core';
+import {all, beginSlide, waitFor, createRef, Reference, Signal, SimpleSignal, createSignal, DEFAULT, Color, Vector2Signal, Vector2, SignalTween, SimpleVector2Signal, useLogger, easeInOutCubic, SignalGenerator, delay} from '@motion-canvas/core';
 import title_slide_background from '../../images/title_slide_background.png';
 import bool_value_scrot from '../../images/bool_value_scrot.png';
 import binary_decimal from '../../images/binary-decimal.png';
@@ -7,6 +7,7 @@ import bin_to_dec from '../../images/bin_to_dec_gsheets.png';
 import bin_to_hex from '../../images/bin_to_hex_gsheets.png';
 import led_off from '../../images/led_off.jpeg';
 import led_on from '../../images/led_on.jpeg';
+import { LogicDevice, LogicCircuit, LogicCircuitToplevelWrapper, GateNor, LogicConnectionPin } from '../logic_sim';
 
 /* Slides
 Title
@@ -149,39 +150,89 @@ export default makeScene2D(function* (view) {
 			</Txt>
 		</Rect>
 	);
-	let logic_circuit = new LogicCircuit(
+	/*let logic_circuit = new LogicCircuit(
 		[
 			new GateAnd(createSignal(new Vector2(0, -5)), "And-0"),
 			new GateNand(createSignal(new Vector2(0, 0)), "Nand-0"),
-			new GateOr(createSignal(new Vector2(10, -5)), "Or-0"),
-			new GateNor(createSignal(new Vector2(10, 0)), "Nor-0"),
+			new GateOr(createSignal(new Vector2(8, -5)), "Or-0"),
+			new GateNor(createSignal(new Vector2(8, 0)), "Nor-0"),
+			new GateXor(createSignal(new Vector2(16, -5)), "Xor-0"),
+			new GateXnor(createSignal(new Vector2(16, 0)), "Xnor-0"),
 			new GateNot(createSignal(new Vector2(0, 5)), "Not"),
 			new LogicSingleInput(createSignal(new Vector2(-6, -1)), "In-0"),
 			new LogicSingleInput(createSignal(new Vector2(-6, 1)), "In-1")
 		],
 		[
-			[["In-0", 0], ["Nand-0", 0], ["And-0", 0], ["Or-0", 0], ["Nor-0", 0]],
-			[["In-1", 0], ["Nand-0", 1], ["And-0", 1], ["Or-0", 1], ["Nor-0", 1], ["Not", 0]],
-			[["Not", 1]]
+			[
+				[["In-0", 0], ["Nand-0", 0], ["And-0", 0], ["Or-0", 0], ["Nor-0", 0], ["Xor-0", 0], ["Xnor-0", 0]],
+				[
+					[0, [[1, -5]]],
+					[0, [[1, 0]]]
+				]
+			],
+			[
+				[["In-1", 0], ["Nand-0", 1], ["And-0", 1], ["Or-0", 1], ["Nor-0", 1], ["Xor-0", 1], ["Xnor-0", 1], ["Not", 0]],
+				[
+					[0, [[1, -5]]],
+					[0, [[1, 0]]],
+					[0, [[1, 4]]]
+				]
+			],
+			[[["Not", 1]], []]
 		],
-		createSignal(40)
+		createSignal(40),
+		createSignal(new Vector2(0, 0))
 	);
 	logic_circuit.init_view(view);
 	logic_circuit.set_input("In-0", true);
-	yield* all(...logic_circuit.animate(1));
+	yield* all(...logic_circuit.animate(0));
 	logic_circuit.compute();
 	logic_circuit.set_input("In-1", true);
-	yield* all(...logic_circuit.animate(1));
+	yield* all(...logic_circuit.animate(0));
 	logic_circuit.compute();
-	yield* all(...logic_circuit.animate(1));
-	yield* logic_circuit.grid_size(20, 1).to(40, 1);
-	//yield* all(...logic_circuit.components[0].compute_animate(1));
+	yield* all(...logic_circuit.animate(0));
+	//yield* logic_circuit.grid_size(20, 0.5).to(40, 0.5);
+	//yield* all(...logic_circuit.components[0].compute_animate(1));*/
 	yield* beginSlide('Logic gates');
 	gates_ref().remove();
+	//logic_circuit.rect_ref().remove();
 	// Adder
 	// TODO
-	// Sequential logic
-	// TODO
+	// Sequential logic, Flip Flop
+	let ff: LogicCircuitToplevelWrapper = create_nor_flip_flop();
+	ff.init_view(view);
+	ff.set_input("In-0", false);
+	ff.set_input("In-0", true);
+	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
+	yield* waitFor(2);
+	ff.set_input("In-0", false);
+	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
+	yield* waitFor(1);
+	ff.set_input("In-1", true);
+	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
+	ff.set_input("In-1", false);
+	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
+	yield* waitFor(2);
+	ff.set_input("In-0", true);
+	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
+	ff.set_input("In-0", false);
+	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
+	yield* waitFor(2);
+	//yield* waitFor(2);
+	/*ff.set_input("In-0", true);
+	ff.set_input("In-1", false);
+	yield* all(...ff.compute_and_animate_until_done(0.5, 2));
+	//yield* waitFor(2);
+	ff.set_input("In-0", true);
+	ff.set_input("In-1", true);
+	yield* all(...ff.compute_and_animate_until_done(0.5));*/
+	/*yield* all(...ff.animate(0.3));
+	ff.compute();
+	yield* all(...ff.animate(0.3));
+	ff.compute();
+	yield* all(...ff.animate(0.3));*/
+	yield* beginSlide('Flip Flops');
+	ff.rect_ref().remove();
 	// Clock
 	// TODO
 	// C++ to Assembly, what do programs do?
@@ -290,6 +341,88 @@ export default makeScene2D(function* (view) {
 	);*/
 
 });
+
+/*function create_nand_flip_flop(): LogicCircuit {
+	return new LogicCircuit(
+		[
+			new GateNand(createSignal(new Vector2(0, -3)), "Nand-0"),
+			new GateNand(createSignal(new Vector2(0, 3)), "Nand-1"),
+			new LogicSingleInput(createSignal(new Vector2(-6, -4)), "In-0"),
+			new LogicSingleInput(createSignal(new Vector2(-6, 4)), "In-1")
+		],
+		[
+			[
+				[["In-0", 0], ["Nand-0", 0]],
+				[
+					[0, [[1, 0]]]
+				]
+			],
+			[
+				[["In-1", 0], ["Nand-1", 1]],
+				[
+					[0, [[1, 0]]]
+				]
+			],
+			[
+				[["Nand-0", 2], ["Nand-1", 0]],
+				[
+					[0, [[0, 2], [-7, 2], [0, 1]]]
+				]
+			],
+			[
+				[["Nand-1", 2], ["Nand-0", 1]],
+				[
+					[0, [[0, -2], [-7, -2], [0, -1]]]
+				]
+			]
+		],
+		createSignal(40),
+		createSignal(new Vector2(0, 0))
+	);
+}*/
+
+function create_nor_flip_flop(): LogicCircuitToplevelWrapper {
+	return new LogicCircuitToplevelWrapper(new LogicCircuit(
+		[
+			new GateNor(createSignal(new Vector2(0, -3)), "Nor-0"),
+			new GateNor(createSignal(new Vector2(0, 3)), "Nor-1")
+		],
+		[
+			[new LogicConnectionPin(true, new Vector2(-6, -4), new Vector2(-1, 0)), "In-0"],
+			[new LogicConnectionPin(true, new Vector2(-6, 4), new Vector2(-1, 0)), "In-1"],
+			[new LogicConnectionPin(false, new Vector2(6, -3), new Vector2(1, 0)), "Q#"],
+			[new LogicConnectionPin(false, new Vector2(6, 3), new Vector2(1, 0)), "Q"]
+		],
+		[
+			[
+				[["In-0", 0], ["Nor-0", 0]],
+				[
+					[0, [[1, 0]]]
+				]
+			],
+			[
+				[["In-1", 0], ["Nor-1", 1]],
+				[
+					[0, [[1, 0]]]
+				]
+			],
+			[
+				[["Nor-0", 2], ["Nor-1", 0], ["Q#", 0]],
+				[
+					[0, [[0, 2], [-7, 2], [0, 1]]]
+				]
+			],
+			[
+				[["Nor-1", 2], ["Nor-0", 1], ["Q", 0]],
+				[
+					[0, [[0, -2], [-7, -2], [0, -1]]]
+				]
+			]
+		],
+		createSignal(40),
+		createSignal(new Vector2(0, 0))
+	));
+}
 
 class Emulator {
 	// Object refernces
@@ -844,661 +977,5 @@ class CallStack {
 			</Rect>
 		</Rect>;
 		return return_rect;
-	}
-}
-
-class LogicCircuit {
-	components: Array<LogicDevice>;
-	// List of nets, each net is a list pairs of [component index, component pin] and a color signal for animation
-	nets: Array<[Array<[number, number]>, SimpleSignal<Color>]>;
-	// Redundant w/ `nets`, just to improve performance
-	// List of (Lists of pins and corresponding net index) for each component, so `net_i = pin_to_net_lookup[component_i][pin_i]`
-	// Possibly `null` if pin is unconnected
-	pin_to_net_lookup: Array<Array<number | null>>;
-	grid_size: SimpleSignal<number>;
-	rect_ref: Reference<Rect>;
-	component_name_lookup: {[unique_name: string]: number};
-	constructor(
-		components: Array<LogicDevice>,
-		nets: Array<Array<[number | string, number]>>,// Components can be referenced by index or unique name
-		grid_size: SimpleSignal<number>
-	) {
-		this.components = components;
-		// Find component names
-		this.component_name_lookup = {};
-		for(let component_i = 0; component_i < this.components.length; component_i++) {
-			if(this.components[component_i].unique_name !== null) {
-				// TODO: Check if name is repeated
-				this.component_name_lookup[this.components[component_i].unique_name] = component_i;
-			}
-		}
-		// Assign nets
-		this.nets = [];
-		for(let net_i = 0; net_i < nets.length; net_i++) {
-			let net_connections: Array<[number, number]> = [];
-			for(let conn_i = 0; conn_i < nets[net_i].length; conn_i++) {
-				let [component_query, pin_i] = nets[net_i][conn_i];
-				let component_i;
-				if(typeof(component_query) == "string") {// Component name, look it up
-					let component_i_possible_undef = this.component_name_lookup[component_query];
-					if(component_i_possible_undef !== undefined) {
-						component_i = component_i_possible_undef;
-					}
-					else {
-						throw new Error(`Net #${net_i} references component "${component_query}" as part of connection, which does not exist`);
-					}
-				}
-				else {// The actual component index
-					component_i = component_query
-				}
-				net_connections.push([component_i, pin_i]);
-			}
-			this.nets.push([net_connections, createSignal(logic_wire_color([false, true]))]);
-		}
-		// Create pin to net lookup table and assign pin color signals from net color signals
-		this.pin_to_net_lookup = [];
-		for(let component_i = 0; component_i < this.components.length; component_i++) {
-			let component_pins_lookup = [];
-			for(let pin_i = 0; pin_i < this.components[component_i].n_pins(); pin_i++) {
-				// Now have to look at each net to find where this pin is connected, which is why I am putting this code here for a one-time cost rather than in the loop
-				let found_net_i: number | null = null;
-				let n_nets_connected = 0;
-				for(let net_i = 0; net_i < this.nets.length; net_i++) {
-					for(let net_pin_i = 0; net_pin_i < this.nets[net_i][0].length; net_pin_i++) {
-						let [test_component_i, test_pin_i] = this.nets[net_i][0][net_pin_i];
-						if(test_component_i == component_i && test_pin_i == pin_i) {
-							found_net_i = net_i;
-							n_nets_connected += 1;
-						}
-					}
-				}
-				if(n_nets_connected == 0) {
-					component_pins_lookup.push(null);
-				}
-				else {
-					if(n_nets_connected == 1) {
-						component_pins_lookup.push(found_net_i);
-						// Assign pin color signal
-						this.components[component_i].index_pin(pin_i).color = this.nets[found_net_i][1];
-					}
-					else {
-						throw new Error(`Pin #${pin_i} of component #${component_i} is connected to ${n_nets_connected} nets`);
-					}
-				}
-			}
-			this.pin_to_net_lookup.push(component_pins_lookup);
-		}
-		this.grid_size = grid_size;
-		this.rect_ref = createRef<Rect>();
-	}
-	init_view(view: View2D) {
-		for(let i = 0; i < this.components.length; i++) {
-			this.components[i].init_rect(view, this.grid_size);
-		}
-	}
-	// Returns whether simulation is stable (everything has propagated)
-	// To run simulation completely, loop this function until it returns `false`
-	// It may never return `false` (like of a NOT gat is connected to itself) so be sure to impose a limit to prevent infinite loops
-	compute(): boolean {
-		let anything_changed: boolean = false;
-		// For performance
-		let computed_nets_dict: {[net_i: number]: [state: boolean, valid: boolean]} = {};
-		// Calculate all input pin states, DO NOT USE .compute() YET
-		let input_states: Array<Array<boolean>> = [];
-		for(let component_i = 0; component_i < this.components.length; component_i++) {
-			let component_input_states = [];
-			for(let pin_i = 0; pin_i < this.components[component_i].inputs.length; pin_i++) {// Only iterating over input pins
-				let net_i = this.pin_to_net_lookup[component_i][pin_i];
-				let state: [state: boolean, valid: boolean];
-				if(net_i in computed_nets_dict) {// Cache hit
-					state = computed_nets_dict[net_i];
-				}
-				else {// Cache miss
-					state = this.get_net_state(net_i);
-					computed_nets_dict[net_i] = state;
-				}
-				if(!state[1]) {
-					throw new Error("Net state is either undefined or contested, simulation cannot be continued deterministically");
-				}
-				component_input_states.push(state[0]);
-			}
-			input_states.push(component_input_states);
-		}
-		// use `.compute()` to update all component outputs
-		for(let component_i = 0; component_i < this.components.length; component_i++) {
-			this.components[component_i].compute(input_states[component_i]);
-		}
-		// Check if anything was changed
-		// TODO
-		return true;
-	}
-	get_net_state(net_i: number): [state: boolean, valid: boolean] {
-		const net: Array<[number, number]> = this.nets[net_i][0];
-		let state = false;
-		let n_writers = 0;// To determine if floating, set, or contested
-		for(let i = 0; i < net.length; i++) {
-			let logic_pin_state: [boolean, boolean] = this.components[net[i][0]].pin_state(net[i][1]);
-			if(!logic_pin_state[1]) {// Check if pin is working as an output
-				n_writers += 1;
-				if(n_writers > 1 && state != logic_pin_state[0]) {// Already another writer which is different, contention!
-					return [state, false];
-				}
-				state = logic_pin_state[0];
-			}
-		}
-		if(n_writers == 0) {
-			return [false, false];
-		}
-		return [state, true];
-	}
-	animate(t: number): Array<any> {
-		let out: Array<any> = [];
-		// Devices
-		for(let component_i = 0; component_i < this.components.length; component_i++) {
-			out = out.concat(this.components[component_i].animate(t));
-		}
-		// Nets
-		for(let net_i = 0; net_i < this.nets.length; net_i++) {
-			let wire_color = logic_wire_color(this.get_net_state(net_i));
-			if(wire_color != this.nets[net_i][1]()) {// Avoid useless tweens
-				if(t > 0) {
-					out.push(this.nets[net_i][1](wire_color, t));
-				}
-				else {
-					this.nets[net_i][1](wire_color);
-				}
-			}
-		}
-		return out;
-	}
-	set_input(name: string, state: boolean) {
-		let component = this.components[this.component_name_lookup[name]];
-		if(component.is_input) {
-			component.set_state(state);
-		}
-		else {
-			throw new Error(`Attempt to set input state of component "${name}" which is not an input`);
-		}
-	}
-}
-
-class LogicConnectionPin {
-	state: boolean;
-	high_z: boolean;
-	color: SimpleSignal<Color>;
-	relative_start_grid: Vector2;
-	direction_grid: Vector2;
-	line_ref: Reference<Line>;
-	constructor(high_z: boolean, relative_start_grid: Vector2, direction_grid: Vector2) {
-		this.state = false;
-		this.high_z = high_z;
-		this.color = createSignal(logic_wire_color([false, true]));
-		this.relative_start_grid = relative_start_grid;
-		this.direction_grid = direction_grid;
-		this.line_ref = createRef<Line>();
-	}
-	init_view(parent_rect: Rect, grid_size: SimpleSignal<number>) {
-		parent_rect.add(<Line
-			stroke={this.color}
-			points={[
-				() => this.relative_start_grid.scale(grid_size()),
-				() => this.relative_start_grid.add(this.direction_grid).scale(grid_size())
-			]}
-			lineWidth={2}
-		/>)
-	}
-}
-
-// Could be a simple gate, or something more complicated like an adder, or maybe even the whole computer
-abstract class LogicDevice {
-    inputs: Array<LogicConnectionPin>;
-	outputs: Array<LogicConnectionPin>;
-	rect_ref: Reference<Rect>;
-	position_grid: SimpleSignal<Vector2>;
-	border_stroke: SimpleSignal<Color>;
-	is_input: boolean;
-	unique_name: string | null;
-	constructor(input_pin_locations: Array<[Vector2, Vector2]>, output_pin_locations: Array<[Vector2, Vector2]>, position_grid: SimpleSignal<Vector2>, is_input: boolean, unique_name: string | null = null) {
-		this.position_grid = position_grid;
-		this.border_stroke = createSignal(new Color('#FFF'));
-		this.is_input = is_input;
-		this.unique_name = unique_name
-		this.inputs = [];
-		this.rect_ref = createRef<Rect>();
-		for(let i = 0; i < input_pin_locations.length; i++) {
-			this.inputs.push(new LogicConnectionPin(true, input_pin_locations[i][0], input_pin_locations[i][1]));
-		}
-		this.outputs = [];
-		for(let i = 0; i < output_pin_locations.length; i++) {
-			this.outputs.push(new LogicConnectionPin(false, output_pin_locations[i][0], output_pin_locations[i][1]));
-		}
-		this.compute(Array(input_pin_locations.length).fill(false));
-		this.animate(0);
-	}
-    abstract init_rect(view: View2D, grid_size: SimpleSignal<number>): void;
-	init_view_pins(grid_size: SimpleSignal<number>) {
-		for(let i = 0; i < this.inputs.length + this.outputs.length; i++) {
-			this.index_pin(i).init_view(this.rect_ref(), grid_size);
-		}
-	}
-	// Just updates input and output states, doesn't modify color signals
-	abstract compute(new_inputs: Array<boolean>): void;
-	// Updates color signals, if t > 0 will return a list of tweens
-	animate(t: number): Array<any> {
-		// Currently useless because tyhe whole logic circuit will deal with pin colors using net color signals
-		// Input change tweens
-		let tweens: Array<any> = [];
-		/*for(let i = 0; i < this.inputs.length; i++) {
-			let wire_color = logic_wire_color(this.inputs[i].state);
-			if(wire_color != this.inputs[i].color()) {// Avoid useless tweens
-				if(t > 0) {
-					tweens.push(this.inputs[i].color(wire_color, t));
-				}
-				else {
-					this.inputs[i].color(wire_color);
-				}
-			}
-		}
-		// Output change tweens
-		for(let i = 0; i < this.outputs.length; i++) {
-			let wire_color = logic_wire_color(this.outputs[i].state);
-			if(t > 0) {
-				tweens.push(waitFor(t).next(this.outputs[i].color(wire_color, t)));
-			}
-			else {
-				this.outputs[i].color(wire_color);
-			}
-		}*/
-		return tweens;
-	}
-	n_pins(): number {
-		return this.inputs.length + this.outputs.length;
-	}
-	// Inputs are listed first, then outputs. For example pin 2 (0-indexed) of an AND gate would be the output
-	index_pin(n: number): LogicConnectionPin {
-		let pin;
-		if(n >= this.inputs.length) {
-			pin = this.outputs[n - this.inputs.length];
-		}
-		else {
-			pin = this.inputs[n];
-		}
-		return pin;
-	}
-	// returns [state, high-Z]
-	pin_state(n: number): [state: boolean, high_z: boolean] {
-		let pin = this.index_pin(n);
-		return [pin.state, pin.high_z];
-	}
-	position_px(grid_size: SimpleSignal<number>): Vector2 {
-		return this.position_grid().scale(grid_size());
-	}
-}
-
-class GateAnd extends LogicDevice {
-	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
-		super(
-			[
-				[new Vector2(-2, -1), new Vector2(-1, 0)],
-				[new Vector2(-2, 1), new Vector2(-1, 0)]
-			],
-			[
-				[new Vector2(2, 0), new Vector2(1, 0)],
-			],
-			position,
-			false,
-			unique_name
-		);
-	}
-	init_rect(view: View2D, grid_size: SimpleSignal<number>) {
-		view.add(<Rect
-			ref={this.rect_ref}
-			width={() => grid_size() * 8}
-			height={() => grid_size() * 4}
-			position={() => this.position_px(grid_size)}
-		>
-			<Line
-				points={[
-					() => new Vector2(0, -2).scale(grid_size()),
-					() => new Vector2(-2, -2).scale(grid_size()),
-					() => new Vector2(-2, 2).scale(grid_size()),
-					() => new Vector2(0, 2).scale(grid_size())
-				]}
-				stroke={this.border_stroke}
-				lineWidth={2}
-			/>
-			<Circle
-				width={() => grid_size() * 4}
-				height={() => grid_size() * 4}
-				position={new Vector2(0, 0)}
-				stroke={this.border_stroke}
-				lineWidth={2}
-				startAngle={-90}
-				endAngle={90}
-			/>
-			<Txt fill={"FFF"} position={() => new Vector2(-grid_size()*0.3, 0)} fontSize={() => grid_size()*1.1}>AND</Txt>
-		</Rect>);
-		this.init_view_pins(grid_size);
-	}
-	compute(new_inputs: Array<boolean>) {
-		for(let i = 0; i < 2; i++) {
-			this.inputs[i].state = new_inputs[i];
-		}
-		this.outputs[0].state = this.inputs[0].state && this.inputs[1].state;
-	}
-}
-
-class GateOr extends LogicDevice {
-	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
-		super(
-			[
-				[new Vector2(-2, -1), new Vector2(-1, 0)],
-				[new Vector2(-2, 1), new Vector2(-1, 0)]
-			],
-			[
-				[new Vector2(2, 0), new Vector2(1, 0)],
-			],
-			position,
-			false,
-			unique_name
-		);
-	}
-	init_rect(view: View2D, grid_size: SimpleSignal<number>) {
-		view.add(<Rect
-			ref={this.rect_ref}
-			width={() => grid_size() * 8}
-			height={() => grid_size() * 4}
-			position={() => this.position_px(grid_size)}
-		>
-			<Line
-				points={[
-					() => new Vector2(-1.5, -2).scale(grid_size()),
-					() => new Vector2(-2.1, -2).scale(grid_size())
-				]}
-				stroke={this.border_stroke}
-				lineWidth={2}
-			/>
-			<Line
-				points={[
-					() => new Vector2(-1.5, 2).scale(grid_size()),
-					() => new Vector2(-2.1, 2).scale(grid_size())
-				]}
-				stroke={this.border_stroke}
-				lineWidth={2}
-			/>
-			<Circle
-				width={() => grid_size() * 8}
-				height={() => grid_size() * 8}
-				position={() => new Vector2(-1.5, 2).scale(grid_size())}
-				stroke={this.border_stroke}
-				lineWidth={2}
-				startAngle={-90}
-				endAngle={-30}
-			/>
-			<Circle
-				width={() => grid_size() * 8}
-				height={() => grid_size() * 8}
-				position={() => new Vector2(-1.5, -2).scale(grid_size())}
-				stroke={this.border_stroke}
-				lineWidth={2}
-				startAngle={30}
-				endAngle={90}
-			/>
-			<Circle
-				width={() => grid_size() * 12}
-				height={() => grid_size() * 12}
-				position={() => new Vector2(-7.8, 0).scale(grid_size())}
-				stroke={this.border_stroke}
-				lineWidth={2}
-				startAngle={-20}
-				endAngle={20}
-			/>
-			<Txt fill={"FFF"} position={() => new Vector2(-grid_size()*0.3, 0)} fontSize={() => grid_size()*1.1}>OR</Txt>
-		</Rect>);
-		this.init_view_pins(grid_size);
-	}
-	compute(new_inputs: Array<boolean>) {
-		for(let i = 0; i < 2; i++) {
-			this.inputs[i].state = new_inputs[i];
-		}
-		this.outputs[0].state = this.inputs[0].state || this.inputs[1].state;
-	}
-}
-
-class GateNand extends LogicDevice {
-	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
-		super(
-			[
-				[new Vector2(-2, -1), new Vector2(-1, 0)],
-				[new Vector2(-2, 1), new Vector2(-1, 0)]
-			],
-			[
-				[new Vector2(3, 0), new Vector2(1, 0)],
-			],
-			position,
-			false,
-			unique_name
-		);
-	}
-	init_rect(view: View2D, grid_size: SimpleSignal<number>) {
-		view.add(<Rect
-			ref={this.rect_ref}
-			width={() => grid_size() * 8}
-			height={() => grid_size() * 4}
-			position={() => this.position_px(grid_size)}
-		>
-			<Line
-				points={[
-					() => new Vector2(0, -2).scale(grid_size()),
-					() => new Vector2(-2, -2).scale(grid_size()),
-					() => new Vector2(-2, 2).scale(grid_size()),
-					() => new Vector2(0, 2).scale(grid_size())
-				]}
-				stroke={this.border_stroke}
-				lineWidth={2}
-			/>
-			<Circle
-				width={() => grid_size() * 4}
-				height={() => grid_size() * 4}
-				position={new Vector2(0, 0)}
-				stroke={this.border_stroke}
-				lineWidth={2}
-				startAngle={-90}
-				endAngle={90}
-			/>
-			<Circle
-				width={grid_size}
-				height={grid_size}
-				position={() => new Vector2(2.5, 0).scale(grid_size())}
-				stroke={this.border_stroke}
-				lineWidth={2}
-			/>
-			<Txt fill={"FFF"} position={() => new Vector2(0, 0)} fontSize={() => grid_size()*1.1}>NAND</Txt>
-		</Rect>);
-		this.init_view_pins(grid_size);
-	}
-	compute(new_inputs: Array<boolean>) {
-		for(let i = 0; i < 2; i++) {
-			this.inputs[i].state = new_inputs[i];
-		}
-		this.outputs[0].state = !(this.inputs[0].state && this.inputs[1].state);
-	}
-}
-
-class GateNor extends LogicDevice {
-	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
-		super(
-			[
-				[new Vector2(-2, -1), new Vector2(-1, 0)],
-				[new Vector2(-2, 1), new Vector2(-1, 0)]
-			],
-			[
-				[new Vector2(3, 0), new Vector2(1, 0)],
-			],
-			position,
-			false,
-			unique_name
-		);
-	}
-	init_rect(view: View2D, grid_size: SimpleSignal<number>) {
-		view.add(<Rect
-			ref={this.rect_ref}
-			width={() => grid_size() * 8}
-			height={() => grid_size() * 4}
-			position={() => this.position_px(grid_size)}
-		>
-			<Line
-				points={[
-					() => new Vector2(-1.5, -2).scale(grid_size()),
-					() => new Vector2(-2.1, -2).scale(grid_size())
-				]}
-				stroke={this.border_stroke}
-				lineWidth={2}
-			/>
-			<Line
-				points={[
-					() => new Vector2(-1.5, 2).scale(grid_size()),
-					() => new Vector2(-2.1, 2).scale(grid_size())
-				]}
-				stroke={this.border_stroke}
-				lineWidth={2}
-			/>
-			<Circle
-				width={() => grid_size() * 8}
-				height={() => grid_size() * 8}
-				position={() => new Vector2(-1.5, 2).scale(grid_size())}
-				stroke={this.border_stroke}
-				lineWidth={2}
-				startAngle={-90}
-				endAngle={-30}
-			/>
-			<Circle
-				width={() => grid_size() * 8}
-				height={() => grid_size() * 8}
-				position={() => new Vector2(-1.5, -2).scale(grid_size())}
-				stroke={this.border_stroke}
-				lineWidth={2}
-				startAngle={30}
-				endAngle={90}
-			/>
-			<Circle
-				width={() => grid_size() * 12}
-				height={() => grid_size() * 12}
-				position={() => new Vector2(-7.8, 0).scale(grid_size())}
-				stroke={this.border_stroke}
-				lineWidth={2}
-				startAngle={-20}
-				endAngle={20}
-			/>
-			<Circle
-				width={grid_size}
-				height={grid_size}
-				position={() => new Vector2(2.5, 0).scale(grid_size())}
-				stroke={this.border_stroke}
-				lineWidth={2}
-			/>
-			<Txt fill={"FFF"} position={() => new Vector2(-grid_size()*0.3, 0)} fontSize={() => grid_size()*1.1}>NOR</Txt>
-		</Rect>);
-		this.init_view_pins(grid_size);
-	}
-	compute(new_inputs: Array<boolean>) {
-		for(let i = 0; i < 2; i++) {
-			this.inputs[i].state = new_inputs[i];
-		}
-		this.outputs[0].state = !(this.inputs[0].state || this.inputs[1].state);
-	}
-}
-
-class GateNot extends LogicDevice {
-	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
-		super(
-			[
-				[new Vector2(-2, 0), new Vector2(-1, 0)]
-			],
-			[
-				[new Vector2(3, 0), new Vector2(1, 0)],
-			],
-			position,
-			false,
-			unique_name
-		);
-	}
-	init_rect(view: View2D, grid_size: SimpleSignal<number>) {
-		view.add(<Rect
-			ref={this.rect_ref}
-			width={() => grid_size() * 8}
-			height={() => grid_size() * 4}
-			position={() => this.position_px(grid_size)}
-		>
-			<Line
-				points={[
-					() => new Vector2(2, 0).scale(grid_size()),
-					() => new Vector2(-2, -2).scale(grid_size()),
-					() => new Vector2(-2, 2).scale(grid_size()),
-					() => new Vector2(2, 0).scale(grid_size())
-				]}
-				stroke={this.border_stroke}
-				lineWidth={2}
-			/>
-			<Circle
-				width={grid_size}
-				height={grid_size}
-				position={() => new Vector2(2.5, 0).scale(grid_size())}
-				stroke={this.border_stroke}
-				lineWidth={2}
-			/>
-			<Txt fill={"FFF"} position={() => new Vector2(-grid_size()*0.5, 0)} fontSize={() => grid_size()*1.1}>NOT</Txt>
-		</Rect>);
-		this.init_view_pins(grid_size);
-	}
-	compute(new_inputs: Array<boolean>) {
-		this.inputs[0].state = new_inputs[0];
-		this.outputs[0].state = !this.inputs[0].state;
-	}
-}
-
-// Only 1 bit, may also make more general class
-class LogicSingleInput extends LogicDevice {
-	state: boolean;
-	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
-		super(
-			[],
-			[
-				[new Vector2(1, 0), new Vector2(1, 0)],
-			],
-			position,
-			true,
-			unique_name
-		);
-		this.state = false;
-	}
-	init_rect(view: View2D, grid_size: SimpleSignal<number>) {
-		view.add(<Rect
-			ref={this.rect_ref}
-			width={() => grid_size() * 3}
-			height={() => grid_size() * 2}
-			position={() => this.position_px(grid_size)}
-		>
-			<Line
-				points={[
-					() => new Vector2(-1, -1).scale(grid_size()),
-					() => new Vector2(1, -1).scale(grid_size()),
-					() => new Vector2(1, 1).scale(grid_size()),
-					() => new Vector2(-1, 1).scale(grid_size()),
-					() => new Vector2(-1, -1).scale(grid_size())
-				]}
-				stroke={this.border_stroke}
-				lineWidth={2}
-			/>
-			<Txt text={() => this.state ? "1" : "0"} fill={"FFF"} position={() => new Vector2(0, 0)} fontSize={() => grid_size()*1.1} />
-		</Rect>);
-		this.init_view_pins(grid_size);
-	}
-	compute(_new_inputs: Array<boolean>) {
-		this.outputs[0].state = this.state;
-	}
-	set_state(state: boolean) {
-		this.state = state;
-		this.compute([]);
 	}
 }
