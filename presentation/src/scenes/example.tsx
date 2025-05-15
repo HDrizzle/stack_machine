@@ -198,24 +198,41 @@ export default makeScene2D(function* (view) {
 	//logic_circuit.rect_ref().remove();
 	// Adder
 	// TODO
+	// Logic sim test
+	let sim = new LogicCircuitToplevelWrapper(new LogicCircuit(
+		[],
+		[
+			[new LogicConnectionPin(new Vector2(-2, 0), new Vector2(-1, 0)), "in"],
+			[new LogicConnectionPin(new Vector2(-2, 0), new Vector2(-1, 0)), "out"]
+		],
+		[
+			[["in", "out"], [[0, [[4, 0]]]]]
+		],
+		createSignal(40),
+		createSignal(new Vector2(0, 0))
+	));
+	sim.init_view(view);
+	sim.set_conn_state("in", true);
+	yield* all(...sim.compute_and_animate_until_done(0.2, 2));
+	yield* beginSlide('Test');
 	// Sequential logic, Flip Flop
 	let ff: LogicCircuitToplevelWrapper = create_nor_flip_flop();
 	ff.init_view(view);
-	ff.set_input("In-0", false);
-	ff.set_input("In-0", true);
+	ff.set_conn_state("In-0", false);
+	ff.set_conn_state("In-0", true);
 	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
 	yield* waitFor(2);
-	ff.set_input("In-0", false);
+	ff.set_conn_state("In-0", false);
 	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
 	yield* waitFor(1);
-	ff.set_input("In-1", true);
+	ff.set_conn_state("In-1", true);
 	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
-	ff.set_input("In-1", false);
+	ff.set_conn_state("In-1", false);
 	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
 	yield* waitFor(2);
-	ff.set_input("In-0", true);
+	ff.set_conn_state("In-0", true);
 	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
-	ff.set_input("In-0", false);
+	ff.set_conn_state("In-0", false);
 	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
 	yield* waitFor(2);
 	//yield* waitFor(2);
@@ -232,7 +249,7 @@ export default makeScene2D(function* (view) {
 	ff.compute();
 	yield* all(...ff.animate(0.3));*/
 	yield* beginSlide('Flip Flops');
-	ff.rect_ref().remove();
+	ff.remove();
 	// Clock
 	// TODO
 	// C++ to Assembly, what do programs do?
@@ -382,38 +399,38 @@ export default makeScene2D(function* (view) {
 }*/
 
 function create_nor_flip_flop(): LogicCircuitToplevelWrapper {
-	return new LogicCircuitToplevelWrapper(new LogicCircuit(
+	let out = new LogicCircuitToplevelWrapper(new LogicCircuit(
 		[
 			new GateNor(createSignal(new Vector2(0, -3)), "Nor-0"),
 			new GateNor(createSignal(new Vector2(0, 3)), "Nor-1")
 		],
 		[
-			[new LogicConnectionPin(true, new Vector2(-6, -4), new Vector2(-1, 0)), "In-0"],
-			[new LogicConnectionPin(true, new Vector2(-6, 4), new Vector2(-1, 0)), "In-1"],
-			[new LogicConnectionPin(false, new Vector2(6, -3), new Vector2(1, 0)), "Q#"],
-			[new LogicConnectionPin(false, new Vector2(6, 3), new Vector2(1, 0)), "Q"]
+			[new LogicConnectionPin(new Vector2(-6, -4), new Vector2(-1, 0)), "In-0"],
+			[new LogicConnectionPin(new Vector2(-6, 4), new Vector2(-1, 0)), "In-1"],
+			[new LogicConnectionPin(new Vector2(6, -3), new Vector2(1, 0)), "Q#"],
+			[new LogicConnectionPin(new Vector2(6, 3), new Vector2(1, 0)), "Q"]
 		],
 		[
 			[
-				[["In-0", 0], ["Nor-0", 0]],
+				["In-0", ["Nor-0", 0]],
 				[
 					[0, [[1, 0]]]
 				]
 			],
 			[
-				[["In-1", 0], ["Nor-1", 1]],
+				["In-1", ["Nor-1", 1]],
 				[
 					[0, [[1, 0]]]
 				]
 			],
 			[
-				[["Nor-0", 2], ["Nor-1", 0], ["Q#", 0]],
+				[["Nor-0", 2], ["Nor-1", 0], "Q#"],
 				[
 					[0, [[0, 2], [-7, 2], [0, 1]]]
 				]
 			],
 			[
-				[["Nor-1", 2], ["Nor-0", 1], ["Q", 0]],
+				[["Nor-1", 2], ["Nor-0", 1], "Q"],
 				[
 					[0, [[0, -2], [-7, -2], [0, -1]]]
 				]
@@ -422,6 +439,9 @@ function create_nor_flip_flop(): LogicCircuitToplevelWrapper {
 		createSignal(40),
 		createSignal(new Vector2(0, 0))
 	));
+	out.set_conn_state("In-0", true);
+	out.set_conn_state("In-1", false);
+	return out;
 }
 
 class Emulator {
