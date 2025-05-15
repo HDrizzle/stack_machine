@@ -199,27 +199,29 @@ export default makeScene2D(function* (view) {
 	// Adder
 	// TODO
 	// Logic sim test
-	let sim = new LogicCircuitToplevelWrapper(new LogicCircuit(
+	/*let sim = new LogicCircuitToplevelWrapper(new LogicCircuit(
 		[],
 		[
 			[new LogicConnectionPin(new Vector2(-2, 0), new Vector2(-1, 0)), "in"],
-			[new LogicConnectionPin(new Vector2(-2, 0), new Vector2(-1, 0)), "out"]
+			[new LogicConnectionPin(new Vector2(2, 0), new Vector2(1, 0)), "out"]
 		],
 		[
-			[["in", "out"], [[0, [[4, 0]]]]]
+			[["in", "out"], [[new Vector2(-1, 0), [[2, 0]]]]]
 		],
 		createSignal(40),
 		createSignal(new Vector2(0, 0))
 	));
 	sim.init_view(view);
 	sim.set_conn_state("in", true);
+	sim.set_conn_state("out", false, false);
 	yield* all(...sim.compute_and_animate_until_done(0.2, 2));
-	yield* beginSlide('Test');
+	yield* waitFor(1);
+	sim.set_conn_state("in", false);
+	yield* all(...sim.compute_and_animate_until_done(0.2, 2));
+	yield* beginSlide('Test');*/
 	// Sequential logic, Flip Flop
 	let ff: LogicCircuitToplevelWrapper = create_nor_flip_flop();
 	ff.init_view(view);
-	ff.set_conn_state("In-0", false);
-	ff.set_conn_state("In-0", true);
 	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
 	yield* waitFor(2);
 	ff.set_conn_state("In-0", false);
@@ -249,7 +251,7 @@ export default makeScene2D(function* (view) {
 	ff.compute();
 	yield* all(...ff.animate(0.3));*/
 	yield* beginSlide('Flip Flops');
-	ff.remove();
+	//ff.remove();
 	// Clock
 	// TODO
 	// C++ to Assembly, what do programs do?
@@ -405,34 +407,30 @@ function create_nor_flip_flop(): LogicCircuitToplevelWrapper {
 			new GateNor(createSignal(new Vector2(0, 3)), "Nor-1")
 		],
 		[
-			[new LogicConnectionPin(new Vector2(-6, -4), new Vector2(-1, 0)), "In-0"],
-			[new LogicConnectionPin(new Vector2(-6, 4), new Vector2(-1, 0)), "In-1"],
-			[new LogicConnectionPin(new Vector2(6, -3), new Vector2(1, 0)), "Q#"],
-			[new LogicConnectionPin(new Vector2(6, 3), new Vector2(1, 0)), "Q"]
+			[new LogicConnectionPin(new Vector2(-3, -4), new Vector2(-1, 0)), "In-0"],
+			[new LogicConnectionPin(new Vector2(-3, 4), new Vector2(-1, 0)), "In-1"],
+			[new LogicConnectionPin(new Vector2(4, -3), new Vector2(1, 0)), "Q#"],
+			[new LogicConnectionPin(new Vector2(4, 3), new Vector2(1, 0)), "Q"]
 		],
 		[
 			[
 				["In-0", ["Nor-0", 0]],
-				[
-					[0, [[1, 0]]]
-				]
+				[]
 			],
 			[
 				["In-1", ["Nor-1", 1]],
-				[
-					[0, [[1, 0]]]
-				]
+				[]
 			],
 			[
 				[["Nor-0", 2], ["Nor-1", 0], "Q#"],
 				[
-					[0, [[0, 2], [-7, 2], [0, 1]]]
+					[new Vector2(4, -3), [[0, 2], [-7, 2], [0, 1]]]
 				]
 			],
 			[
 				[["Nor-1", 2], ["Nor-0", 1], "Q"],
 				[
-					[0, [[0, -2], [-7, -2], [0, -1]]]
+					[new Vector2(4, 3), [[0, -2], [-7, -2], [0, -1]]]
 				]
 			]
 		],

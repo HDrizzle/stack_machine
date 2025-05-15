@@ -1,5 +1,5 @@
 import {Circle, Layout, makeScene2D, Rect, View2D, Txt, Img, Code, vector2Signal, Line, CircleSegment} from '@motion-canvas/2d';
-import {all, beginSlide, waitFor, createRef, Reference, Signal, SimpleSignal, createSignal, DEFAULT, Color, Vector2Signal, Vector2, SignalTween, SimpleVector2Signal, useLogger, easeInOutCubic, SignalGenerator, delay} from '@motion-canvas/core';
+import {all, beginSlide, waitFor, createRef, Reference, Signal, SimpleSignal, createSignal, DEFAULT, Color, Vector2Signal, Vector2, SignalTween, SimpleVector2Signal, useLogger, easeInOutCubic, SignalGenerator, delay, Logger} from '@motion-canvas/core';
 
 /* Logic simulation & animation usage
 To create a simulation:
@@ -135,12 +135,13 @@ export class LogicCircuit /*extends LogicDevice*/ {
 	grid_size: SimpleSignal<number>;
 	rect_ref: Reference<Rect>;
 	position_grid: SimpleSignal<Vector2>;
+	logger: Logger | Console;
 	component_name_lookup: {[unique_name: string]: number};
 	external_connections_name_lookup: {[unique_name: string]: number};
 	constructor(
 		components: Array<LogicDevice>,
 		external_connections: Array<[LogicConnectionPin, string]>,// Pin, name
-		nets: Array<[Array<[number | string, number] | string>, Array<[number, Array<[number, number]>]>]>,// Components can be referenced by index or unique name, a connection `[number | string, number] | string` can be [component name | component index, pin i] | external connection name
+		nets: Array<[Array<[number | string, number] | string>, Array<[Vector2, Array<[number, number]>]>]>,// Components can be referenced by index or unique name, a connection `[number | string, number] | string` can be [component name | component index, pin i] | external connection name
 		grid_size: SimpleSignal<number>,
 		position_grid: SimpleSignal<Vector2>
 	) {
@@ -149,6 +150,7 @@ export class LogicCircuit /*extends LogicDevice*/ {
 		this.external_connections = external_connections;
 		this.grid_size = grid_size;
 		this.position_grid = position_grid;
+		this.logger = useLogger();
 		// Find component names
 		this.component_name_lookup = {};
 		for(let component_i = 0; component_i < this.components.length; component_i++) {
@@ -277,7 +279,7 @@ export class LogicCircuit /*extends LogicDevice*/ {
 		for(let net_i = 0; net_i < this.nets.length; net_i++) {
 			let net = this.nets[net_i];
 			for(let wire_i = 0; wire_i < net.wires.length; wire_i++) {
-				let starting_pos = this.get_pin_grid_position(...net.component_connections[net.wires[wire_i][0]]);
+				let starting_pos: Vector2 = net.wires[wire_i][0];
 				let points_grid: Array<Vector2> = [starting_pos];
 				for(let seg_i = 0; seg_i < net.wires[wire_i][1].length; seg_i++) {
 					let displacement_grid = net.wires[wire_i][1][seg_i];
@@ -361,6 +363,7 @@ export class LogicCircuit /*extends LogicDevice*/ {
 				output_states.push(component.pin_state(i));
 			}
 			component.set_all_pin_states(component_input_states[component_i]);
+			component.compute();
 			for(let i = 0; i < component.n_pins(); i++) {
 				//console.log(`lhs = ${output_states[i]}, rhs = ${component.pin_state(i)}`);
 				if(output_states[i] != component.pin_state(i)) {// TODO: Fix
@@ -410,8 +413,10 @@ export class LogicCircuit /*extends LogicDevice*/ {
 			}
 		}
 		if(n_writers == 0) {
+			//this.logger.debug(`Net #${net_i} has undefined state`);
 			return [false, false];
 		}
+		//this.logger.debug(`Net #${net_i} has state: ${state}`);
 		return [state, true];
 	}
 	animate(t: number): Array<any> {
@@ -475,6 +480,10 @@ export class LogicCircuitToplevelWrapper {
 		let pin = this.circuit.external_connections[this.circuit.external_connections_name_lookup[name]][0];
 		if(driven) {
 			pin.state = state;
+			pin.externally_driven = true;
+		}
+		else {
+			pin.externally_driven = false;
 		}
 	}
 	compute_and_animate_until_done(t: number, max_iter: number = 50): Array<any> {
@@ -495,18 +504,18 @@ export class LogicNet {
 	// Graphical connections (does not affect simulation)
 	// Each wire has a starting position, then a list of displacement vectors (in grid space) that are chained together
 	wires: Array<[Vector2, Array<Vector2>]>;
-	constructor(component_connections: Array<[number, number]>, external_connections: Array<number>, wires: Array<[number, boolean, Array<[number, number]>]>) {
+	constructor(component_connections: Array<[number, number]>, external_connections: Array<number>, wires: Array<[Vector2, Array<[number, number]>]>) {
 		this.color = createSignal(logic_wire_color([false, true]));
 		this.component_connections = component_connections;
 		this.external_connections = external_connections;
 		this.wires = [];
 		for(let i = 0; i < wires.length; i++) {
 			let wire_connections = [];
-			for(let conn_i = 0; conn_i < wires[i][2].length; conn_i++) {
-				let [x, y] = wires[i][2][conn_i];
+			for(let conn_i = 0; conn_i < wires[i][1].length; conn_i++) {
+				let [x, y] = wires[i][1][conn_i];
 				wire_connections.push(new Vector2(x, y));
 			}
-			this.wires.push([wires[i][0], wires[i][1], wire_connections]);
+			this.wires.push([wires[i][0], wire_connections]);
 		}
 	}
 }
@@ -580,6 +589,18 @@ export class LogicSingleIO {
 		this.state = createSignal(pin.state);
 	}
 	init_view(parent_rect: Rect, grid_size: SimpleSignal<number>) {
+		let points_centered = [
+			new Vector2(-1, -1),
+			new Vector2(1, -1),
+			new Vector2(1, 1),
+			new Vector2(-1, 1),
+			new Vector2(-1, -1)
+		];
+		// Adjust them by the direction of the pin
+		let points = [];
+		for(let i = 0; i < points_centered.length; i++) {
+			points.push(() => points_centered[i].add(this.pin.direction_grid.scale(2)).scale(grid_size()));
+		}
 		parent_rect.add(<Rect
 			ref={this.rect_ref}
 			width={() => grid_size() * 3}
@@ -587,18 +608,13 @@ export class LogicSingleIO {
 			position={() => this.pin.relative_start_grid.scale(grid_size())}
 		>
 			<Line
-				points={[
-					() => new Vector2(-1, -1).scale(grid_size()),
-					() => new Vector2(1, -1).scale(grid_size()),
-					() => new Vector2(1, 1).scale(grid_size()),
-					() => new Vector2(-1, 1).scale(grid_size()),
-					() => new Vector2(-1, -1).scale(grid_size())
-				]}
+				points={points}
 				stroke={this.pin.color}
 				lineWidth={2}
 			/>
-			<Txt text={() => this.state() ? "1" : "0"} fill={"FFF"} position={() => new Vector2(0, 0)} fontSize={() => grid_size()*1.1} />
+			<Txt text={() => this.state() ? "1" : "0"} fill={"FFF"} position={() => this.pin.direction_grid.scale(2).scale(grid_size())} fontSize={() => grid_size()*1.1} />
 		</Rect>);
+		this.pin.init_view(parent_rect, grid_size);
 	}
 	set_state(state: boolean) {
 		this.state(state);
@@ -893,6 +909,9 @@ export class GateNor extends LogicDevice {
 			position,
 			unique_name
 		);
+		this.pins[0].internally_driven = false;
+		this.pins[1].internally_driven = false;
+		this.pins[2].internally_driven = true;
 	}
 	init_view(parent_rect: Rect, grid_size: SimpleSignal<number>) {
 		parent_rect.add(<Rect
@@ -956,9 +975,6 @@ export class GateNor extends LogicDevice {
 		this.init_view_pins(grid_size);
 	}
 	compute() {
-		this.pins[0].internally_driven = false;
-		this.pins[1].internally_driven = false;
-		this.pins[2].internally_driven = true;
 		this.pins[2].state = !(this.pins[0].state || this.pins[1].state);
 	}
 }
