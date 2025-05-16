@@ -7,7 +7,6 @@ To create a simulation:
 The `LogicCircuit` class contains most of the simulation logic, however it does extend the `LogicDevice` class meaning it can be nested inside another larger simulation.
 To interact with the simulation:
 	When creating a `LogicCircuit`, the parameter `external_connections` is used to define the inputs and outputs (or bidirectional, the high-impedence status can change)
-	TODO: stuff that requires extending `LogicDevice`
 */
 
 export function logic_wire_color(in_: [state: boolean, valid: boolean]): Color {
@@ -58,7 +57,7 @@ export abstract class LogicDevice {
 	// Sets pin #pin_i with either a boolean value (externally driven) or with null (not ext driven)
 	set_pin_state(pin_i: number, state: boolean | null): void {
 		let pin = this.pins[pin_i];
-		if(state != null) {
+		if(state !== null) {
 			if(pin.internally_driven && pin.state != state) {
 				throw new Error(`LogicDevice pin #${pin_i} attempt to set contests with internally driven state`);
 			}
@@ -120,7 +119,7 @@ export abstract class LogicDevice {
 }
 
 // TODO: extend LogicDevice, this gonna be fire once I get it working
-export class LogicCircuit /*extends LogicDevice*/ {
+export class LogicCircuit extends LogicDevice {
 	components: Array<LogicDevice>;
 	external_connections: Array<[LogicConnectionPin, string]>;// pin, name. Very similar to `LogicDevice.pins`
 	// List of nets, each net is a list pairs of [component index, component pin] and a color signal for animation
@@ -143,21 +142,25 @@ export class LogicCircuit /*extends LogicDevice*/ {
 		external_connections: Array<[LogicConnectionPin, string]>,// Pin, name
 		nets: Array<[Array<[number | string, number] | string>, Array<[Vector2, Array<[number, number]>]>]>,// Components can be referenced by index or unique name, a connection `[number | string, number] | string` can be [component name | component index, pin i] | external connection name
 		grid_size: SimpleSignal<number>,
-		position_grid: SimpleSignal<Vector2>
+		position_grid: SimpleSignal<Vector2>,
+		unique_name: string | null = null
 	) {
-		//super();
+		let pin_locations: Array<[Vector2, Vector2]> = [];
+		for(let conn_i = 0; conn_i < external_connections.length; conn_i++) {
+			pin_locations.push([external_connections[conn_i][0].relative_start_grid, external_connections[conn_i][0].direction_grid]);
+		}
+		super(pin_locations, position_grid, unique_name);
 		this.components = components;
 		this.external_connections = external_connections;
 		this.grid_size = grid_size;
-		this.position_grid = position_grid;
 		this.logger = useLogger();
 		// Find component names
 		this.component_name_lookup = {};
 		for(let component_i = 0; component_i < this.components.length; component_i++) {
 			let component = this.components[component_i];
-			if(component.unique_name != null) {
+			if(component.unique_name !== null) {
 				// Check if name is repeated
-				if(this.component_name_lookup[component.unique_name] != null) {
+				if(this.component_name_lookup[component.unique_name] !== undefined) {
 					throw new Error(`The component name "${component.unique_name}" is used at least twice`);
 				}
 				this.component_name_lookup[component.unique_name] = component_i;
@@ -168,7 +171,7 @@ export class LogicCircuit /*extends LogicDevice*/ {
 		for(let conn_i = 0; conn_i < this.external_connections.length; conn_i++) {
 			let conn = this.external_connections[conn_i];
 			// Check if name is repeated
-			if(this.external_connections_name_lookup[conn[1]] != null) {
+			if(this.external_connections_name_lookup[conn[1]] !== undefined) {
 				throw new Error(`The external connection name "${conn[1]}" is used at least twice`);
 			}
 			this.external_connections_name_lookup[conn[1]] = conn_i;
@@ -210,6 +213,7 @@ export class LogicCircuit /*extends LogicDevice*/ {
 		// Create pin to net lookup table and assign pin color signals from net color signals
 		this.component_pin_to_net_lookup = [];
 		this.ext_conn_to_net_lookup = [];
+		let new_nets = [];// For unconnected outputs to still have color animations
 		for(let component_i = 0; component_i < this.components.length; component_i++) {
 			let component_pins_lookup = [];
 			for(let pin_i = 0; pin_i < this.components[component_i].n_pins(); pin_i++) {
@@ -225,8 +229,12 @@ export class LogicCircuit /*extends LogicDevice*/ {
 						}
 					}
 				}
-				if(n_nets_connected == 0) {
-					component_pins_lookup.push(null);
+				if(n_nets_connected == 0) {// Create a net just for this pin, so it's color can be animated correctly
+					let new_net = new LogicNet([[component_i, pin_i]], [], []);
+					component_pins_lookup.push(this.nets.length + new_nets.length);
+					this.components[component_i].pins[pin_i].color = new_net.color;
+					n_nets_connected += 1;
+					new_nets.push(new_net);
 				}
 				else {
 					if(n_nets_connected == 1) {
@@ -238,9 +246,11 @@ export class LogicCircuit /*extends LogicDevice*/ {
 						throw new Error(`Pin #${pin_i} of component #${component_i} is connected to ${n_nets_connected} nets`);
 					}
 				}
+				
 			}
 			this.component_pin_to_net_lookup.push(component_pins_lookup);
 		}
+		this.nets = this.nets.concat(new_nets);
 		for(let ext_conn_i = 0; ext_conn_i < this.external_connections.length; ext_conn_i++) {
 			// Now have to look at each net to find where this pin is connected, which is why I am putting this code here for a one-time cost rather than in the loop
 			let found_net_i: number | null = null;
@@ -312,7 +322,9 @@ export class LogicCircuit /*extends LogicDevice*/ {
 				// Check if pin is high-z, proceed only if it is
 				let net_i = this.component_pin_to_net_lookup[component_i][pin_i];
 				if(net_i == null) {
-					throw new Error(`High-Z pin #${pin_i} of component #${component_i} is not connected to a net`);
+					//throw new Error(`High-Z pin #${pin_i} of component #${component_i} is not connected to a net`);
+					input_states.push(null);
+					continue;
 				}
 				let state: [state: boolean, valid: boolean];
 				if(net_i in computed_nets_dict) {// Cache hit
@@ -337,7 +349,9 @@ export class LogicCircuit /*extends LogicDevice*/ {
 		for(let ext_conn_i = 0; ext_conn_i < this.external_connections.length; ext_conn_i++) {
 			let net_i = this.ext_conn_to_net_lookup[ext_conn_i];
 			if(net_i == null) {
-				throw new Error(`Circuit output external connection #${ext_conn_i} is not connected to a net`);
+				//throw new Error(`Circuit output external connection #${ext_conn_i} is not connected to a net`);
+				ext_conn_output_states.push(null);
+				continue;
 			}
 			let state: [state: boolean, valid: boolean];
 			if(net_i in computed_nets_dict) {// Cache hit
@@ -374,12 +388,20 @@ export class LogicCircuit /*extends LogicDevice*/ {
 		// Update external connections
 		for(let ext_conn_i = 0; ext_conn_i < this.external_connections.length; ext_conn_i++) {
 			let new_state = ext_conn_output_states[ext_conn_i];
+			let pin = this.external_connections[ext_conn_i][0];
 			if(new_state !== null) {
-				if(this.external_connections[ext_conn_i][0].externally_driven && this.external_connections[ext_conn_i][0].state != new_state) {
-					throw new Error(`External connection #${ext_conn_i} ("${this.external_connections[ext_conn_i][1]}") is contested`);
+				if(pin.externally_driven) {
+					if(pin.state != new_state) {
+						throw new Error(`External connection #${ext_conn_i} ("${this.external_connections[ext_conn_i][1]}") is contested`);
+					}
 				}
-				this.external_connections[ext_conn_i][0].state = new_state;
-				this.external_connections[ext_conn_i][0].internally_driven = true;
+				else {// Only if pin is not externally driven, because Problem: an input connection will internally drive itself, causing a contention error when it is changed externally
+					pin.state = new_state;
+					pin.internally_driven = true;
+				}
+			}
+			else {
+				pin.internally_driven = false;
 			}
 		}
 		return anything_changed;
@@ -456,6 +478,31 @@ export class LogicCircuit /*extends LogicDevice*/ {
 		}
 		return out;
 	}
+	set_pin_state(pin_ref: number | string, state: boolean | null): void {
+		let pin_i;
+		if(typeof(pin_ref) == "string") {
+			pin_i = this.external_connections_name_lookup[pin_ref];
+		}
+		else {
+			pin_i = pin_ref;
+		}
+		let pin = this.external_connections[pin_i][0];
+		//this.logger.debug(`Set pin #${pin_ref} to state: ${state}`);
+		if(state !== null) {
+			if(pin.internally_driven && pin.state != state) {
+				throw new Error(`LogicCircuit ext conn #${pin_i} ("${this.external_connections[pin_i][1]}") attempt to set contests with internally driven state, current_state=${pin.state}, new state=${state}`);
+			}
+			pin.state = state;
+			pin.externally_driven = true;
+		}
+		else {
+			pin.externally_driven = false;
+		}
+	}
+	pin_state(n: number): [state: boolean, high_z: boolean] {
+		let pin = this.external_connections[n][0];
+		return [pin.state, !pin.internally_driven];
+	}
 }
 
 export class LogicCircuitToplevelWrapper {
@@ -476,21 +523,21 @@ export class LogicCircuitToplevelWrapper {
 			this.graphic_bits[i].init_view(parent_rect, this.circuit.grid_size);
 		}
 	}
-	set_conn_state(name: string, state: boolean, driven: boolean = true): void {
-		let pin = this.circuit.external_connections[this.circuit.external_connections_name_lookup[name]][0];
-		if(driven) {
-			pin.state = state;
-			pin.externally_driven = true;
-		}
-		else {
-			pin.externally_driven = false;
-		}
+	set_pin_state(pin_ref: number | string, state: boolean | null): void {
+		this.circuit.set_pin_state(pin_ref, state);
 	}
 	compute_and_animate_until_done(t: number, max_iter: number = 50): Array<any> {
+		// TODO: update graphic bits
 		return this.circuit.compute_and_animate_until_done(t, max_iter);
 	}
 	remove() {
 		this.circuit.rect_ref().remove();
+		for(let i = 0; i < this.graphic_bits.length; i++) {
+			this.graphic_bits[i].rect_ref().remove();
+		}
+		/*for(let i = 0; i < this.circuit.external_connections.length; i++) {
+			this.circuit.external_connections[i][0].line_ref().remove();
+		}*/
 	}
 }
 
@@ -519,34 +566,6 @@ export class LogicNet {
 		}
 	}
 }
-
-// Old one
-/*export class LogicConnectionPin {
-	state: boolean;
-	high_z: boolean;
-	color: SimpleSignal<Color>;
-	relative_start_grid: Vector2;
-	direction_grid: Vector2;
-	line_ref: Reference<Line>;
-	constructor(high_z: boolean, relative_start_grid: Vector2, direction_grid: Vector2) {
-		this.state = false;
-		this.high_z = high_z;
-		this.color = createSignal(logic_wire_color([false, true]));
-		this.relative_start_grid = relative_start_grid;
-		this.direction_grid = direction_grid;
-		this.line_ref = createRef<Line>();
-	}
-	init_view(parent_rect: Rect, grid_size: SimpleSignal<number>) {
-		parent_rect.add(<Line
-			stroke={this.color}
-			points={[
-				() => this.relative_start_grid.scale(grid_size()),
-				() => this.relative_start_grid.add(this.direction_grid).scale(grid_size())
-			]}
-			lineWidth={2}
-		/>)
-	}
-}*/
 
 export class LogicConnectionPin {
 	state: boolean;
@@ -621,18 +640,20 @@ export class LogicSingleIO {
 	}
 }
 
-/*
-class GateAnd extends LogicDevice {
+export class GateAnd extends LogicDevice {
 	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
 		super(
 			[
-				[new Vector2(-2, -1), new Vector2(-1, 0), true],
-				[new Vector2(-2, 1), new Vector2(-1, 0), true],
-				[new Vector2(2, 0), new Vector2(1, 0), false],
+				[new Vector2(-2, -1), new Vector2(-1, 0)],
+				[new Vector2(-2, 1), new Vector2(-1, 0)],
+				[new Vector2(2, 0), new Vector2(1, 0)],
 			],
 			position,
 			unique_name
 		);
+		this.pins[0].internally_driven = false;
+		this.pins[1].internally_driven = false;
+		this.pins[2].internally_driven = true;
 	}
 	init_view(parent_rect: Rect, grid_size: SimpleSignal<number>) {
 		parent_rect.add(<Rect
@@ -664,29 +685,25 @@ class GateAnd extends LogicDevice {
 		</Rect>);
 		this.init_view_pins(grid_size);
 	}
-	compute(new_inputs: Array<boolean>) {
-		for(let i = 0; i < 2; i++) {
-			this.inputs[i].state = new_inputs[i];
-		}
-		this.outputs[0].state = this.inputs[0].state && this.inputs[1].state;
+	compute() {
+		this.pins[2].state = this.pins[0].state && this.pins[1].state;
 	}
 }
 
-class GateOr extends LogicDevice {
+export class GateOr extends LogicDevice {
 	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
 		super(
 			[
 				[new Vector2(-2, -1), new Vector2(-1, 0)],
-				[new Vector2(-2, 1), new Vector2(-1, 0)]
-			],
-			[
-				[new Vector2(2, 0), new Vector2(1, 0)],
+				[new Vector2(-2, 1), new Vector2(-1, 0)],
+				[new Vector2(2, 0), new Vector2(1, 0)]
 			],
 			position,
-			false,
-			false,
 			unique_name
 		);
+		this.pins[0].internally_driven = false;
+		this.pins[1].internally_driven = false;
+		this.pins[2].internally_driven = true;
 	}
 	init_view(parent_rect: Rect, grid_size: SimpleSignal<number>) {
 		parent_rect.add(<Rect
@@ -742,29 +759,25 @@ class GateOr extends LogicDevice {
 		</Rect>);
 		this.init_view_pins(grid_size);
 	}
-	compute(new_inputs: Array<boolean>) {
-		for(let i = 0; i < 2; i++) {
-			this.inputs[i].state = new_inputs[i];
-		}
-		this.outputs[0].state = this.inputs[0].state || this.inputs[1].state;
+	compute() {
+		this.pins[2].state = this.pins[0].state || this.pins[1].state;
 	}
 }
 
-class GateXor extends LogicDevice {
+export class GateXor extends LogicDevice {
 	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
 		super(
 			[
 				[new Vector2(-2.3, -1), new Vector2(-0.7, 0)],
-				[new Vector2(-2.3, 1), new Vector2(-0.7, 0)]
-			],
-			[
-				[new Vector2(2, 0), new Vector2(1, 0)],
+				[new Vector2(-2.3, 1), new Vector2(-0.7, 0)],
+				[new Vector2(2, 0), new Vector2(1, 0)]
 			],
 			position,
-			false,
-			false,
 			unique_name
 		);
+		this.pins[0].internally_driven = false;
+		this.pins[1].internally_driven = false;
+		this.pins[2].internally_driven = true;
 	}
 	init_view(parent_rect: Rect, grid_size: SimpleSignal<number>) {
 		parent_rect.add(<Rect
@@ -829,29 +842,25 @@ class GateXor extends LogicDevice {
 		</Rect>);
 		this.init_view_pins(grid_size);
 	}
-	compute(new_inputs: Array<boolean>) {
-		for(let i = 0; i < 2; i++) {
-			this.inputs[i].state = new_inputs[i];
-		}
-		this.outputs[0].state = this.inputs[0].state != this.inputs[1].state;
+	compute() {
+		this.pins[2].state = this.pins[0].state != this.pins[1].state;
 	}
 }
 
-class GateNand extends LogicDevice {
+export class GateNand extends LogicDevice {
 	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
 		super(
 			[
 				[new Vector2(-2, -1), new Vector2(-1, 0)],
-				[new Vector2(-2, 1), new Vector2(-1, 0)]
-			],
-			[
+				[new Vector2(-2, 1), new Vector2(-1, 0)],
 				[new Vector2(3, 0), new Vector2(1, 0)],
 			],
 			position,
-			false,
-			false,
 			unique_name
 		);
+		this.pins[0].internally_driven = false;
+		this.pins[1].internally_driven = false;
+		this.pins[2].internally_driven = true;
 	}
 	init_view(parent_rect: Rect, grid_size: SimpleSignal<number>) {
 		parent_rect.add(<Rect
@@ -890,13 +899,10 @@ class GateNand extends LogicDevice {
 		</Rect>);
 		this.init_view_pins(grid_size);
 	}
-	compute(new_inputs: Array<boolean>) {
-		for(let i = 0; i < 2; i++) {
-			this.inputs[i].state = new_inputs[i];
-		}
-		this.outputs[0].state = !(this.inputs[0].state && this.inputs[1].state);
+	compute() {
+		this.pins[0].state = !(this.pins[0].state && this.pins[1].state);
 	}
-}*/
+}
 
 export class GateNor extends LogicDevice {
 	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
@@ -978,22 +984,21 @@ export class GateNor extends LogicDevice {
 		this.pins[2].state = !(this.pins[0].state || this.pins[1].state);
 	}
 }
-/*
-class GateXnor extends LogicDevice {
+
+export class GateXnor extends LogicDevice {
 	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
 		super(
 			[
 				[new Vector2(-2.3, -1), new Vector2(-0.7, 0)],
-				[new Vector2(-2.3, 1), new Vector2(-0.7, 0)]
-			],
-			[
-				[new Vector2(3, 0), new Vector2(1, 0)],
+				[new Vector2(-2.3, 1), new Vector2(-0.7, 0)],
+				[new Vector2(3, 0), new Vector2(1, 0)]
 			],
 			position,
-			false,
-			false,
 			unique_name
 		);
+		this.pins[0].internally_driven = false;
+		this.pins[1].internally_driven = false;
+		this.pins[2].internally_driven = true;
 	}
 	init_view(parent_rect: Rect, grid_size: SimpleSignal<number>) {
 		parent_rect.add(<Rect
@@ -1065,28 +1070,23 @@ class GateXnor extends LogicDevice {
 		</Rect>);
 		this.init_view_pins(grid_size);
 	}
-	compute(new_inputs: Array<boolean>) {
-		for(let i = 0; i < 2; i++) {
-			this.inputs[i].state = new_inputs[i];
-		}
-		this.outputs[0].state = this.inputs[0].state == this.inputs[1].state;
+	compute() {
+		this.pins[2].state = this.pins[0].state == this.pins[1].state;
 	}
 }
 
-class GateNot extends LogicDevice {
+export class GateNot extends LogicDevice {
 	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
 		super(
 			[
-				[new Vector2(-2, 0), new Vector2(-1, 0)]
-			],
-			[
-				[new Vector2(3, 0), new Vector2(1, 0)],
+				[new Vector2(-2, 0), new Vector2(-1, 0)],
+				[new Vector2(3, 0), new Vector2(1, 0)]
 			],
 			position,
-			false,
-			false,
 			unique_name
 		);
+		this.pins[0].internally_driven = false;
+		this.pins[1].internally_driven = true;
 	}
 	init_view(parent_rect: Rect, grid_size: SimpleSignal<number>) {
 		parent_rect.add(<Rect
@@ -1116,8 +1116,7 @@ class GateNot extends LogicDevice {
 		</Rect>);
 		this.init_view_pins(grid_size);
 	}
-	compute(new_inputs: Array<boolean>) {
-		this.inputs[0].state = new_inputs[0];
-		this.outputs[0].state = !this.inputs[0].state;
+	compute() {
+		this.pins[1].state = !this.pins[0].state;
 	}
-}*/
+}

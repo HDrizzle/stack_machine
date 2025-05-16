@@ -7,7 +7,8 @@ import bin_to_dec from '../../images/bin_to_dec_gsheets.png';
 import bin_to_hex from '../../images/bin_to_hex_gsheets.png';
 import led_off from '../../images/led_off.jpeg';
 import led_on from '../../images/led_on.jpeg';
-import { LogicDevice, LogicCircuit, LogicCircuitToplevelWrapper, GateNor, LogicConnectionPin } from '../logic_sim';
+import { LogicDevice, LogicCircuit, LogicCircuitToplevelWrapper, GateAnd, GateNand, GateOr, GateNor, GateXor, GateXnor, GateNot, LogicConnectionPin } from '../logic_sim';
+import { create_nor_flip_flop, create_d_level_latch } from '../logic_circuit_creators';
 
 /* Slides
 Title
@@ -137,6 +138,16 @@ export default makeScene2D(function* (view) {
 	);
 	yield* beginSlide('Binary');
 	bin_ref().remove();
+	// D latch TEST
+	/*let d_latch = new LogicCircuitToplevelWrapper(create_d_level_latch());
+	d_latch.init_view(view);
+	yield* all(...d_latch.compute_and_animate_until_done(0.2, 2));
+	yield* waitFor(2);
+	d_latch.set_pin_state("CLK", false);
+	yield* all(...d_latch.compute_and_animate_until_done(0.2, 2));
+	yield* waitFor(1);
+	yield* beginSlide('D Latch');
+	d_latch.remove();*/
 	// Logic gates, TODO
 	const gates_ref = createRef<Rect>();
 	view.add(
@@ -150,7 +161,7 @@ export default makeScene2D(function* (view) {
 			</Txt>
 		</Rect>
 	);
-	/*let logic_circuit = new LogicCircuit(
+	let logic_circuit = new LogicCircuitToplevelWrapper(new LogicCircuit(
 		[
 			new GateAnd(createSignal(new Vector2(0, -5)), "And-0"),
 			new GateNand(createSignal(new Vector2(0, 0)), "Nand-0"),
@@ -158,100 +169,66 @@ export default makeScene2D(function* (view) {
 			new GateNor(createSignal(new Vector2(8, 0)), "Nor-0"),
 			new GateXor(createSignal(new Vector2(16, -5)), "Xor-0"),
 			new GateXnor(createSignal(new Vector2(16, 0)), "Xnor-0"),
-			new GateNot(createSignal(new Vector2(0, 5)), "Not"),
-			new LogicSingleInput(createSignal(new Vector2(-6, -1)), "In-0"),
-			new LogicSingleInput(createSignal(new Vector2(-6, 1)), "In-1")
+			new GateNot(createSignal(new Vector2(0, 5)), "Not")
+		],
+		[
+			[new LogicConnectionPin(new Vector2(-6, -1), new Vector2(-1, 0)), "In-0"],
+			[new LogicConnectionPin(new Vector2(-6, 1), new Vector2(-1, 0)), "In-1"]
 		],
 		[
 			[
-				[["In-0", 0], ["Nand-0", 0], ["And-0", 0], ["Or-0", 0], ["Nor-0", 0], ["Xor-0", 0], ["Xnor-0", 0]],
+				["In-0", ["Nand-0", 0], ["And-0", 0], ["Or-0", 0], ["Nor-0", 0], ["Xor-0", 0], ["Xnor-0", 0]],
 				[
-					[0, [[1, -5]]],
-					[0, [[1, 0]]]
+					[new Vector2(-6, -1), [[1, -5]]],
+					[new Vector2(-6, -1), [[1, 0]]]
 				]
 			],
 			[
-				[["In-1", 0], ["Nand-0", 1], ["And-0", 1], ["Or-0", 1], ["Nor-0", 1], ["Xor-0", 1], ["Xnor-0", 1], ["Not", 0]],
+				["In-1", ["Nand-0", 1], ["And-0", 1], ["Or-0", 1], ["Nor-0", 1], ["Xor-0", 1], ["Xnor-0", 1], ["Not", 0]],
 				[
-					[0, [[1, -5]]],
-					[0, [[1, 0]]],
-					[0, [[1, 4]]]
+					[new Vector2(-6, 1), [[1, -5]]],
+					[new Vector2(-6, 1), [[1, 0]]],
+					[new Vector2(-6, 1), [[1, 4]]]
 				]
 			],
 			[[["Not", 1]], []]
 		],
 		createSignal(40),
 		createSignal(new Vector2(0, 0))
-	);
+	));
 	logic_circuit.init_view(view);
-	logic_circuit.set_input("In-0", true);
-	yield* all(...logic_circuit.animate(0));
-	logic_circuit.compute();
-	logic_circuit.set_input("In-1", true);
-	yield* all(...logic_circuit.animate(0));
-	logic_circuit.compute();
-	yield* all(...logic_circuit.animate(0));
+	logic_circuit.set_pin_state("In-0", true);
+	yield* all(...logic_circuit.compute_and_animate_until_done(0.2, 2));
+	logic_circuit.set_pin_state("In-1", true);
+	yield* all(...logic_circuit.compute_and_animate_until_done(0.2, 2));
 	//yield* logic_circuit.grid_size(20, 0.5).to(40, 0.5);
-	//yield* all(...logic_circuit.components[0].compute_animate(1));*/
+	//yield* all(...logic_circuit.components[0].compute_animate(1));
 	yield* beginSlide('Logic gates');
 	gates_ref().remove();
-	//logic_circuit.rect_ref().remove();
+	logic_circuit.remove();
 	// Adder
 	// TODO
-	// Logic sim test
-	/*let sim = new LogicCircuitToplevelWrapper(new LogicCircuit(
-		[],
-		[
-			[new LogicConnectionPin(new Vector2(-2, 0), new Vector2(-1, 0)), "in"],
-			[new LogicConnectionPin(new Vector2(2, 0), new Vector2(1, 0)), "out"]
-		],
-		[
-			[["in", "out"], [[new Vector2(-1, 0), [[2, 0]]]]]
-		],
-		createSignal(40),
-		createSignal(new Vector2(0, 0))
-	));
-	sim.init_view(view);
-	sim.set_conn_state("in", true);
-	sim.set_conn_state("out", false, false);
-	yield* all(...sim.compute_and_animate_until_done(0.2, 2));
-	yield* waitFor(1);
-	sim.set_conn_state("in", false);
-	yield* all(...sim.compute_and_animate_until_done(0.2, 2));
-	yield* beginSlide('Test');*/
 	// Sequential logic, Flip Flop
-	let ff: LogicCircuitToplevelWrapper = create_nor_flip_flop();
+	let ff = new LogicCircuitToplevelWrapper(create_nor_flip_flop());
 	ff.init_view(view);
+	//ff.set_pin_state("In-0", false);
 	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
 	yield* waitFor(2);
-	ff.set_conn_state("In-0", false);
+	ff.set_pin_state("In-0", false);
 	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
 	yield* waitFor(1);
-	ff.set_conn_state("In-1", true);
+	ff.set_pin_state("In-1", true);
 	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
-	ff.set_conn_state("In-1", false);
-	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
-	yield* waitFor(2);
-	ff.set_conn_state("In-0", true);
-	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
-	ff.set_conn_state("In-0", false);
+	ff.set_pin_state("In-1", false);
 	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
 	yield* waitFor(2);
-	//yield* waitFor(2);
-	/*ff.set_input("In-0", true);
-	ff.set_input("In-1", false);
-	yield* all(...ff.compute_and_animate_until_done(0.5, 2));
-	//yield* waitFor(2);
-	ff.set_input("In-0", true);
-	ff.set_input("In-1", true);
-	yield* all(...ff.compute_and_animate_until_done(0.5));*/
-	/*yield* all(...ff.animate(0.3));
-	ff.compute();
-	yield* all(...ff.animate(0.3));
-	ff.compute();
-	yield* all(...ff.animate(0.3));*/
+	ff.set_pin_state("In-0", true);
+	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
+	ff.set_pin_state("In-0", false);
+	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
+	yield* waitFor(2);
 	yield* beginSlide('Flip Flops');
-	//ff.remove();
+	ff.remove();
 	// Clock
 	// TODO
 	// C++ to Assembly, what do programs do?
@@ -360,87 +337,6 @@ export default makeScene2D(function* (view) {
 	);*/
 
 });
-
-/*function create_nand_flip_flop(): LogicCircuit {
-	return new LogicCircuit(
-		[
-			new GateNand(createSignal(new Vector2(0, -3)), "Nand-0"),
-			new GateNand(createSignal(new Vector2(0, 3)), "Nand-1"),
-			new LogicSingleInput(createSignal(new Vector2(-6, -4)), "In-0"),
-			new LogicSingleInput(createSignal(new Vector2(-6, 4)), "In-1")
-		],
-		[
-			[
-				[["In-0", 0], ["Nand-0", 0]],
-				[
-					[0, [[1, 0]]]
-				]
-			],
-			[
-				[["In-1", 0], ["Nand-1", 1]],
-				[
-					[0, [[1, 0]]]
-				]
-			],
-			[
-				[["Nand-0", 2], ["Nand-1", 0]],
-				[
-					[0, [[0, 2], [-7, 2], [0, 1]]]
-				]
-			],
-			[
-				[["Nand-1", 2], ["Nand-0", 1]],
-				[
-					[0, [[0, -2], [-7, -2], [0, -1]]]
-				]
-			]
-		],
-		createSignal(40),
-		createSignal(new Vector2(0, 0))
-	);
-}*/
-
-function create_nor_flip_flop(): LogicCircuitToplevelWrapper {
-	let out = new LogicCircuitToplevelWrapper(new LogicCircuit(
-		[
-			new GateNor(createSignal(new Vector2(0, -3)), "Nor-0"),
-			new GateNor(createSignal(new Vector2(0, 3)), "Nor-1")
-		],
-		[
-			[new LogicConnectionPin(new Vector2(-3, -4), new Vector2(-1, 0)), "In-0"],
-			[new LogicConnectionPin(new Vector2(-3, 4), new Vector2(-1, 0)), "In-1"],
-			[new LogicConnectionPin(new Vector2(4, -3), new Vector2(1, 0)), "Q#"],
-			[new LogicConnectionPin(new Vector2(4, 3), new Vector2(1, 0)), "Q"]
-		],
-		[
-			[
-				["In-0", ["Nor-0", 0]],
-				[]
-			],
-			[
-				["In-1", ["Nor-1", 1]],
-				[]
-			],
-			[
-				[["Nor-0", 2], ["Nor-1", 0], "Q#"],
-				[
-					[new Vector2(4, -3), [[0, 2], [-7, 2], [0, 1]]]
-				]
-			],
-			[
-				[["Nor-1", 2], ["Nor-0", 1], "Q"],
-				[
-					[new Vector2(4, 3), [[0, -2], [-7, -2], [0, -1]]]
-				]
-			]
-		],
-		createSignal(40),
-		createSignal(new Vector2(0, 0))
-	));
-	out.set_conn_state("In-0", true);
-	out.set_conn_state("In-1", false);
-	return out;
-}
 
 class Emulator {
 	// Object refernces
