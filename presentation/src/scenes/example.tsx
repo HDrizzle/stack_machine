@@ -8,7 +8,7 @@ import bin_to_hex from '../../images/bin_to_hex_gsheets.png';
 import led_off from '../../images/led_off.jpeg';
 import led_on from '../../images/led_on.jpeg';
 import { LogicDevice, LogicCircuit, LogicCircuitToplevelWrapper, GateAnd, GateNand, GateOr, GateNor, GateXor, GateXnor, GateNot, LogicConnectionPin } from '../logic_sim';
-import { create_nor_flip_flop, create_d_level_latch } from '../logic_circuit_creators';
+import { create_nor_flip_flop, create_d_level_latch } from '../derived_circuits';
 
 /* Slides
 Title
@@ -139,15 +139,40 @@ export default makeScene2D(function* (view) {
 	yield* beginSlide('Binary');
 	bin_ref().remove();
 	// D latch TEST
-	/*let d_latch = new LogicCircuitToplevelWrapper(create_d_level_latch());
+	let d_latch = new LogicCircuitToplevelWrapper(create_d_level_latch(createSignal(40)));
 	d_latch.init_view(view);
-	yield* all(...d_latch.compute_and_animate_until_done(0.2, 2));
-	yield* waitFor(2);
-	d_latch.set_pin_state("CLK", false);
-	yield* all(...d_latch.compute_and_animate_until_done(0.2, 2));
+	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
+	//yield* d_latch.circuit.rect_ref().scale(0.5, 1).to(1, 1);
 	yield* waitFor(1);
+	d_latch.set_pin_state("CLK", false);
+	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
+	yield* waitFor(0.5);
+	d_latch.set_pin_state("D", true);// Pulse when disabled
+	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
+	yield* waitFor(0.5);
+	d_latch.set_pin_state("D", false);
+	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
+	yield* waitFor(0.5);
+	d_latch.set_pin_state("CLK", true);// Enable and pulse again
+	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
+	yield* waitFor(0.5);
+	d_latch.set_pin_state("D", true);// Pulse when enabled
+	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
+	yield* waitFor(0.5);
+	d_latch.set_pin_state("D", false);
+	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
+	yield* waitFor(0.5);
+	d_latch.set_pin_state("D", true);// Pulse when enabled
+	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
+	yield* waitFor(0.5);
+	d_latch.set_pin_state("CLK", false);// Disable and save state
+	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
+	yield* waitFor(1);
+	d_latch.set_pin_state("D", false);
+	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
+	yield* waitFor(0.5);
 	yield* beginSlide('D Latch');
-	d_latch.remove();*/
+	d_latch.remove();
 	// Logic gates, TODO
 	const gates_ref = createRef<Rect>();
 	view.add(
@@ -163,44 +188,51 @@ export default makeScene2D(function* (view) {
 	);
 	let logic_circuit = new LogicCircuitToplevelWrapper(new LogicCircuit(
 		[
-			new GateAnd(createSignal(new Vector2(0, -5)), "And-0"),
-			new GateNand(createSignal(new Vector2(0, 0)), "Nand-0"),
-			new GateOr(createSignal(new Vector2(8, -5)), "Or-0"),
-			new GateNor(createSignal(new Vector2(8, 0)), "Nor-0"),
-			new GateXor(createSignal(new Vector2(16, -5)), "Xor-0"),
-			new GateXnor(createSignal(new Vector2(16, 0)), "Xnor-0"),
-			new GateNot(createSignal(new Vector2(0, 5)), "Not")
+			new GateAnd(createSignal(new Vector2(-7, -5)), "And-0"),
+			new GateNand(createSignal(new Vector2(-7, 0)), "Nand-0"),
+			new GateOr(createSignal(new Vector2(1, -5)), "Or-0"),
+			new GateNor(createSignal(new Vector2(1, 0)), "Nor-0"),
+			new GateXor(createSignal(new Vector2(9, -5)), "Xor-0"),
+			new GateXnor(createSignal(new Vector2(9, 0)), "Xnor-0"),
+			new GateNot(createSignal(new Vector2(-7, 5)), "Not")
 		],
 		[
-			[new LogicConnectionPin(new Vector2(-6, -1), new Vector2(-1, 0)), "In-0"],
-			[new LogicConnectionPin(new Vector2(-6, 1), new Vector2(-1, 0)), "In-1"]
+			new LogicConnectionPin(new Vector2(-10, -1), 'w', "In-0"),
+			new LogicConnectionPin(new Vector2(-10, 1), 'w', "In-1")
 		],
 		[
 			[
-				["In-0", ["Nand-0", 0], ["And-0", 0], ["Or-0", 0], ["Nor-0", 0], ["Xor-0", 0], ["Xnor-0", 0]],
+				["In-0", ["Nand-0", 'a'], ["And-0", 'a'], ["Or-0", 'a'], ["Nor-0", 'a'], ["Xor-0", 'a'], ["Xnor-0", 'a']],
 				[
-					[new Vector2(-6, -1), [[1, -5]]],
-					[new Vector2(-6, -1), [[1, 0]]]
-				]
+					[new Vector2(-10, -1), [[1, -5]]],
+					[new Vector2(-10, -1), [[1, 0]]]
+				], []
 			],
 			[
-				["In-1", ["Nand-0", 1], ["And-0", 1], ["Or-0", 1], ["Nor-0", 1], ["Xor-0", 1], ["Xnor-0", 1], ["Not", 0]],
+				["In-1", ["Nand-0", 'b'], ["And-0", 'b'], ["Or-0", 'b'], ["Nor-0", 'b'], ["Xor-0", 'b'], ["Xnor-0", 'b'], ["Not", 'a']],
 				[
-					[new Vector2(-6, 1), [[1, -5]]],
-					[new Vector2(-6, 1), [[1, 0]]],
-					[new Vector2(-6, 1), [[1, 4]]]
-				]
-			],
-			[[["Not", 1]], []]
+					[new Vector2(-10, 1), [[1, -5]]],
+					[new Vector2(-10, 1), [[1, 0]]],
+					[new Vector2(-10, 1), [[1, 4]]]
+				], []
+			]
 		],
-		createSignal(40),
-		createSignal(new Vector2(0, 0))
+		createSignal(40)
 	));
 	logic_circuit.init_view(view);
 	logic_circuit.set_pin_state("In-0", true);
+	logic_circuit.set_pin_state("In-1", false);
 	yield* all(...logic_circuit.compute_and_animate_until_done(0.2, 2));
+	yield* waitFor(1);
 	logic_circuit.set_pin_state("In-1", true);
 	yield* all(...logic_circuit.compute_and_animate_until_done(0.2, 2));
+	yield* waitFor(1);
+	logic_circuit.set_pin_state("In-0", false);
+	yield* all(...logic_circuit.compute_and_animate_until_done(0.2, 2));
+	yield* waitFor(1);
+	logic_circuit.set_pin_state("In-1", false);
+	yield* all(...logic_circuit.compute_and_animate_until_done(0.2, 2));
+	yield* waitFor(1);
 	//yield* logic_circuit.grid_size(20, 0.5).to(40, 0.5);
 	//yield* all(...logic_circuit.components[0].compute_animate(1));
 	yield* beginSlide('Logic gates');
@@ -209,7 +241,7 @@ export default makeScene2D(function* (view) {
 	// Adder
 	// TODO
 	// Sequential logic, Flip Flop
-	let ff = new LogicCircuitToplevelWrapper(create_nor_flip_flop());
+	let ff = new LogicCircuitToplevelWrapper(create_nor_flip_flop(createSignal(40)));
 	ff.init_view(view);
 	//ff.set_pin_state("In-0", false);
 	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
