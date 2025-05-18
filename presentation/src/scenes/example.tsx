@@ -8,28 +8,39 @@ import bin_to_hex from '../../images/bin_to_hex_gsheets.png';
 import led_off from '../../images/led_off.jpeg';
 import led_on from '../../images/led_on.jpeg';
 import { LogicDevice, LogicCircuit, LogicCircuitToplevelWrapper, GateAnd, GateNand, GateOr, GateNor, GateXor, GateXnor, GateNot, LogicConnectionPin } from '../logic_sim';
-import { create_nor_flip_flop, create_d_level_latch } from '../derived_circuits';
+import { create_nor_flip_flop, create_d_level_latch, create_d_edge_latch } from '../derived_circuits';
 
 /* Slides
-Title
+-- Title --
+Goals
+Parts of a computer (very basic)
+Instructions, what does each line of a program do? (use C++ example)
+Assembly
+Control flow
+Memory
+-- Abstract, how to make the magic happen? --
 Binary intro
 Binary numbers, 0xNumbers
 Logic gates
 Adder
-Sequential logic, D latches
+Sequential logic, D latches, edge triggering
+SRAM, use photo of actual chip, explain how DRAM is different
 Clock
-Instruction, what does each line of a program do?
+Sequencers
+-- My specific design --
+Instructions
 What does the hardware have to do?
-Stack & local variables
+Stack, local variables
 ALU
-Heap
+Heap, easy to use for random stuff
 Control unit & PC
 Call stack
 Program memory
-Putting it all together, use fancy animation here
+-- How to build it, lots of pictures --
 Actually building it
+Problems
 What I learned
-	Capacitors on chip supplies
+	Capacitors across chip power pins, use photo of double-pulse on the scope
 What I would improve
 	Clock scheme
 	Standard interface(s)
@@ -62,7 +73,7 @@ export default makeScene2D(function* (view) {
 	const citation_text_size = 15;
 	view.fill('#000');// Background
 	// Starting slides
-	// Title
+	// -- Title --
 	const title_ref = createRef<Rect>();
 	view.add(
 		<Rect ref={title_ref}>
@@ -75,6 +86,30 @@ export default makeScene2D(function* (view) {
 	);
 	yield* beginSlide('Title');
 	title_ref().remove();
+	let slide_title_ref = createRef<Txt>();
+	let current_slide_title = createSignal('Goals');
+	view.add(<Txt
+		ref={slide_title_ref}
+		text={current_slide_title}
+		fontSize={slide_title_text_size}
+		position={new Vector2(-half_width*0.85, -half_height*0.85)}
+		textAlign={'left'}
+		stroke={'#FFF'}
+		fill={'#FFF'}
+	/>);
+	// Goals
+	// TODO
+	// Parts of a computer (very basic)
+	// TODO
+	// Instructions, what does each line of a program do? (use C++ example)
+	// TODO
+	// Assembly
+	// TODO
+	// Control flow
+	// TODO
+	// Memory
+	// TODO
+	// -- Abstract, how to make the magic happen? --
 	// Bits intro
 	const bin_intro_ref = createRef<Rect>();
 	view.add(
@@ -138,8 +173,117 @@ export default makeScene2D(function* (view) {
 	);
 	yield* beginSlide('Binary');
 	bin_ref().remove();
+	// Logic gates, TODO
+	current_slide_title('Logic Gates');
+	const gates_ref = createRef<Rect>();
+	view.add(// TODO
+		<Rect ref={gates_ref} direction={'column'} width={half_width*2} height={half_height*2} layout>
+			
+		</Rect>
+	);
+	let logic_circuit = new LogicCircuitToplevelWrapper(new LogicCircuit(
+		[
+			new GateAnd(createSignal(new Vector2(-10, -5)), "And-0"),
+			new GateNand(createSignal(new Vector2(-10, 0)), "Nand-0"),
+			new GateOr(createSignal(new Vector2(0, -5)), "Or-0"),
+			new GateNor(createSignal(new Vector2(0, 0)), "Nor-0"),
+			new GateXor(createSignal(new Vector2(10, -5)), "Xor-0"),
+			new GateXnor(createSignal(new Vector2(10, 0)), "Xnor-0"),
+			new GateNot(createSignal(new Vector2(-10, 5)), "Not")
+		],
+		[
+			new LogicConnectionPin(new Vector2(-15, -11), 'w', "A"),
+			new LogicConnectionPin(new Vector2(-15, -9), 'w', "B")
+		],
+		[
+			[
+				["A", ["Nand-0", 'a'], ["And-0", 'a'], ["Or-0", 'a'], ["Nor-0", 'a'], ["Xor-0", 'a'], ["Xnor-0", 'a']],
+				[
+					[new Vector2(-15, -11), [[21, 0]]],
+					[new Vector2(-14, -11), [[0, 5], [1, 0]]],
+					[new Vector2(-4, -11), [[0, 5], [1, 0]]],
+					[new Vector2(6, -11), [[0, 5], [1, 0]]],
+					[new Vector2(-14, -6), [[0, 5], [1, 0]]],
+					[new Vector2(-4, -6), [[0, 5], [1, 0]]],
+					[new Vector2(6, -6), [[0, 5], [1, 0]]]
+				],
+				[
+					new Vector2(-14, -11),
+					new Vector2(-4, -11),
+					new Vector2(-14, -6),
+					new Vector2(-4, -6),
+					new Vector2(6, -6),
+				]
+			],
+			[
+				["B", ["Nand-0", 'b'], ["And-0", 'b'], ["Or-0", 'b'], ["Nor-0", 'b'], ["Xor-0", 'b'], ["Xnor-0", 'b'], ["Not", 'a']],
+				[
+					[new Vector2(-15, -9), [[20, 0]]],
+					[new Vector2(-15, -9), [[0, 5], [2, 0]]],
+					[new Vector2(-5, -9), [[0, 5], [2, 0]]],
+					[new Vector2(5, -9), [[0, 5], [2, 0]]],
+					[new Vector2(-15, -4), [[0, 5], [2, 0]]],
+					[new Vector2(-5, -4), [[0, 5], [2, 0]]],
+					[new Vector2(5, -4), [[0, 5], [2, 0]]],
+					[new Vector2(-15, 1), [[0, 4], [2, 0]]]
+				],
+				[
+					new Vector2(-15, -9),
+					new Vector2(-5, -9),
+					new Vector2(-15, -4),
+					new Vector2(-15, 1),
+					new Vector2(-5, -4),
+					new Vector2(5, -4),
+				]
+			]
+		],
+		createSignal(40),
+		createSignal(new Vector2(0, 5))
+	));
+	logic_circuit.init_view(view);
+	logic_circuit.set_pin_state("A", true);
+	logic_circuit.set_pin_state("B", false);
+	yield* all(...logic_circuit.compute_and_animate_until_done(0.2, 2));
+	yield* waitFor(1);
+	logic_circuit.set_pin_state("B", true);
+	yield* all(...logic_circuit.compute_and_animate_until_done(0.2, 2));
+	yield* waitFor(1);
+	logic_circuit.set_pin_state("A", false);
+	yield* all(...logic_circuit.compute_and_animate_until_done(0.2, 2));
+	yield* waitFor(1);
+	logic_circuit.set_pin_state("B", false);
+	yield* all(...logic_circuit.compute_and_animate_until_done(0.2, 2));
+	yield* waitFor(1);
+	//yield* logic_circuit.grid_size(20, 0.5).to(40, 0.5);
+	//yield* all(...logic_circuit.components[0].compute_animate(1));
+	yield* beginSlide('Logic gates');
+	gates_ref().remove();
+	logic_circuit.remove();
+	// Adder
+	// TODO
+	// Sequential logic, Flip Flop
+	let ff = new LogicCircuitToplevelWrapper(create_nor_flip_flop(createSignal(40)));
+	ff.init_view(view);
+	//ff.set_pin_state("In-0", false);
+	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
+	yield* waitFor(2);
+	ff.set_pin_state("In-0", false);
+	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
+	yield* waitFor(1);
+	ff.set_pin_state("In-1", true);
+	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
+	ff.set_pin_state("In-1", false);
+	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
+	yield* waitFor(2);
+	ff.set_pin_state("In-0", true);
+	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
+	ff.set_pin_state("In-0", false);
+	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
+	yield* waitFor(2);
+	yield* beginSlide('Flip Flops');
+	ff.remove();
 	// D latch TEST
-	let d_latch = new LogicCircuitToplevelWrapper(create_d_level_latch(createSignal(40)));
+	let d_latch = new LogicCircuitToplevelWrapper(create_d_edge_latch(createSignal(40)));
 	d_latch.init_view(view);
 	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
 	//yield* d_latch.circuit.rect_ref().scale(0.5, 1).to(1, 1);
@@ -173,94 +317,6 @@ export default makeScene2D(function* (view) {
 	yield* waitFor(0.5);
 	yield* beginSlide('D Latch');
 	d_latch.remove();
-	// Logic gates, TODO
-	const gates_ref = createRef<Rect>();
-	view.add(
-		<Rect ref={gates_ref} direction={'column'} width={half_width*2} height={half_height*2} layout>
-			<Txt fontSize={slide_title_text_size} fill={'#fff'} textAlign={'center'}>Logic Gates</Txt>
-			<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
-				A logic gate is anything takes one or more bits as input and returns one output. An easy way to think about logic gates is by equating them to sentances:
-			</Txt>
-			<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
-				"If __ AND __ then __" is an AND gate, "If __ OR __ then __" is an OR gate.
-			</Txt>
-		</Rect>
-	);
-	let logic_circuit = new LogicCircuitToplevelWrapper(new LogicCircuit(
-		[
-			new GateAnd(createSignal(new Vector2(-7, -5)), "And-0"),
-			new GateNand(createSignal(new Vector2(-7, 0)), "Nand-0"),
-			new GateOr(createSignal(new Vector2(1, -5)), "Or-0"),
-			new GateNor(createSignal(new Vector2(1, 0)), "Nor-0"),
-			new GateXor(createSignal(new Vector2(9, -5)), "Xor-0"),
-			new GateXnor(createSignal(new Vector2(9, 0)), "Xnor-0"),
-			new GateNot(createSignal(new Vector2(-7, 5)), "Not")
-		],
-		[
-			new LogicConnectionPin(new Vector2(-10, -1), 'w', "In-0"),
-			new LogicConnectionPin(new Vector2(-10, 1), 'w', "In-1")
-		],
-		[
-			[
-				["In-0", ["Nand-0", 'a'], ["And-0", 'a'], ["Or-0", 'a'], ["Nor-0", 'a'], ["Xor-0", 'a'], ["Xnor-0", 'a']],
-				[
-					[new Vector2(-10, -1), [[1, -5]]],
-					[new Vector2(-10, -1), [[1, 0]]]
-				], []
-			],
-			[
-				["In-1", ["Nand-0", 'b'], ["And-0", 'b'], ["Or-0", 'b'], ["Nor-0", 'b'], ["Xor-0", 'b'], ["Xnor-0", 'b'], ["Not", 'a']],
-				[
-					[new Vector2(-10, 1), [[1, -5]]],
-					[new Vector2(-10, 1), [[1, 0]]],
-					[new Vector2(-10, 1), [[1, 4]]]
-				], []
-			]
-		],
-		createSignal(40)
-	));
-	logic_circuit.init_view(view);
-	logic_circuit.set_pin_state("In-0", true);
-	logic_circuit.set_pin_state("In-1", false);
-	yield* all(...logic_circuit.compute_and_animate_until_done(0.2, 2));
-	yield* waitFor(1);
-	logic_circuit.set_pin_state("In-1", true);
-	yield* all(...logic_circuit.compute_and_animate_until_done(0.2, 2));
-	yield* waitFor(1);
-	logic_circuit.set_pin_state("In-0", false);
-	yield* all(...logic_circuit.compute_and_animate_until_done(0.2, 2));
-	yield* waitFor(1);
-	logic_circuit.set_pin_state("In-1", false);
-	yield* all(...logic_circuit.compute_and_animate_until_done(0.2, 2));
-	yield* waitFor(1);
-	//yield* logic_circuit.grid_size(20, 0.5).to(40, 0.5);
-	//yield* all(...logic_circuit.components[0].compute_animate(1));
-	yield* beginSlide('Logic gates');
-	gates_ref().remove();
-	logic_circuit.remove();
-	// Adder
-	// TODO
-	// Sequential logic, Flip Flop
-	let ff = new LogicCircuitToplevelWrapper(create_nor_flip_flop(createSignal(40)));
-	ff.init_view(view);
-	//ff.set_pin_state("In-0", false);
-	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
-	yield* waitFor(2);
-	ff.set_pin_state("In-0", false);
-	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
-	yield* waitFor(1);
-	ff.set_pin_state("In-1", true);
-	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
-	ff.set_pin_state("In-1", false);
-	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
-	yield* waitFor(2);
-	ff.set_pin_state("In-0", true);
-	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
-	ff.set_pin_state("In-0", false);
-	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
-	yield* waitFor(2);
-	yield* beginSlide('Flip Flops');
-	ff.remove();
 	// Clock
 	// TODO
 	// C++ to Assembly, what do programs do?

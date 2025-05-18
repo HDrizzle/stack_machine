@@ -102,10 +102,98 @@ export function create_d_level_latch(grid_size: SimpleSignal<number>, unique_nam
 	);
 	out.set_pin_state("D", false);
 	out.set_pin_state("CLK", true);
+	out.compute();// Make sure it is in a stable state
+	out.compute();
 	return out;
 }
+
+export function create_d_edge_latch(grid_size: SimpleSignal<number>, unique_name: string | null = null): LogicCircuit {
+	let ff = create_nor_flip_flop(grid_size, "ff");
+	let out = new LogicCircuit(
+		[
+			ff,
+			new GateNot(createSignal(new Vector2(-13, -5)), "not"),
+			new GateAnd(createSignal(new Vector2(-6, -4)), "and-0"),
+			new GateAnd(createSignal(new Vector2(-6, 4)), "and-1"),
+			new GateNot(createSignal(new Vector2(-20, 0)), "edge-not"),
+			new GateAnd(createSignal(new Vector2(-12, 1)), "edge-and")
+		],
+		[
+			new LogicConnectionPin(new Vector2(-23, -3), 'w', "D"),
+			new LogicConnectionPin(new Vector2(-23, 3), 'w', "CLK"),
+			new LogicConnectionPin(new Vector2(4, 3), 'e', "Q#"),
+			new LogicConnectionPin(new Vector2(4, -3), 'e', "Q")
+		],
+		[
+			[
+				["D", ["and-1", 'b'], ["not", 'a']],
+				[
+					[new Vector2(-23, -3), [[7, 0], [0, -2]]],
+					[new Vector2(-16, -3), [[0, 8], [7, 0]]]
+				],
+				[new Vector2(-16, -3)]
+			],
+			[
+				[["not", 'q'], ["and-0", 'a']],
+				[], []
+			],
+			[
+				[["and-0", 'q'], ["ff", 'In-0']],
+				[], []
+			],
+			[
+				[["and-1", 'q'], ["ff", 'In-1']],
+				[], []
+			],
+			[
+				[['edge-and', 'q'], ["and-0", 'b'], ["and-1", 'a']],
+				[
+					[new Vector2(-9, -3), [[0, 6]]]
+				], [new Vector2(-9, 1)]
+			],
+			[
+				[["ff", 'Q#'], "Q"],
+				[], [new Vector2(4, -3)]
+			],
+			[
+				[["ff", 'Q'], "Q#"],
+				[], [new Vector2(4, 3)]
+			],
+			[
+				[['edge-not', 'q'], ['edge-and', 'a']],
+				[
+					[new Vector2(-16, 0), [[1, 0]]]
+				], []
+			],
+			[
+				['CLK', ['edge-not', 'a'], ['edge-and', 'b']],
+				[
+					[new Vector2(-23, 3), [[0, -3]]],
+					[new Vector2(-23, 3), [[8, 0], [0, -1]]]
+				],
+				[new Vector2(-23, 3)]
+			]
+		],
+		grid_size,
+		createSignal(new Vector2(10, 0)),
+		unique_name
+	);
+	out.set_pin_state("D", false);
+	// Make sure the FF is stable
+	out.set_pin_state("CLK", false);
+	out.compute();
+	out.compute();
+	out.compute();
+	out.compute();
+	out.set_pin_state("CLK", true);
+	out.compute();
+	out.compute();
+	out.compute();
+	return out;
+}
+
 /*
-class DLatchLevel extends LogicDevice {
+class DLatchEdge extends LogicDevice {
 	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
 		super(
 			[
