@@ -8,7 +8,7 @@ import bin_to_hex from '../../images/bin_to_hex_gsheets.png';
 import led_off from '../../images/led_off.jpeg';
 import led_on from '../../images/led_on.jpeg';
 import { LogicDevice, LogicCircuit, LogicCircuitToplevelWrapper, GateAnd, GateNand, GateOr, GateNor, GateXor, GateXnor, GateNot, LogicConnectionPin } from '../logic_sim';
-import { create_nor_flip_flop, create_d_level_latch, create_d_edge_latch } from '../derived_circuits';
+import { create_nor_flip_flop, create_d_level_latch, DLatchEdge } from '../derived_circuits';
 
 /* Slides
 -- Title --
@@ -92,7 +92,8 @@ export default makeScene2D(function* (view) {
 		ref={slide_title_ref}
 		text={current_slide_title}
 		fontSize={slide_title_text_size}
-		position={new Vector2(-half_width*0.85, -half_height*0.85)}
+		topLeft={new Vector2(-half_width*0.9, -half_height*0.85)}
+		width={half_width*1.8}
 		textAlign={'left'}
 		stroke={'#FFF'}
 		fill={'#FFF'}
@@ -283,38 +284,32 @@ export default makeScene2D(function* (view) {
 	yield* beginSlide('Flip Flops');
 	ff.remove();
 	// D latch TEST
-	let d_latch = new LogicCircuitToplevelWrapper(create_d_edge_latch(createSignal(40)));
+	let d_latch = new LogicCircuitToplevelWrapper(DLatchEdge.create_internal_circuit(createSignal(40)));
 	d_latch.init_view(view);
 	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
 	//yield* d_latch.circuit.rect_ref().scale(0.5, 1).to(1, 1);
-	yield* waitFor(1);
-	d_latch.set_pin_state("CLK", false);
-	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
+	yield* d_latch.animate_changes([["CLK", false], ['D', false]], 0.1, 5);
 	yield* waitFor(0.5);
-	d_latch.set_pin_state("D", true);// Pulse when disabled
-	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
+	yield* d_latch.animate_changes([['D', true]], 0.1, 5);
 	yield* waitFor(0.5);
-	d_latch.set_pin_state("D", false);
-	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
+	yield* d_latch.animate_changes([['CLK', true]], 0.1, 5);
+	yield* waitFor(0.3);
+	yield* d_latch.animate_changes([['CLK', false]], 0.1, 5);
 	yield* waitFor(0.5);
-	d_latch.set_pin_state("CLK", true);// Enable and pulse again
-	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
+	yield* d_latch.animate_changes([['D', false]], 0.1, 5);
 	yield* waitFor(0.5);
-	d_latch.set_pin_state("D", true);// Pulse when enabled
-	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
+	yield* d_latch.animate_changes([['CLK', true]], 0.1, 5);
 	yield* waitFor(0.5);
-	d_latch.set_pin_state("D", false);
-	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
+	yield* d_latch.animate_changes([['D', true]], 0.1, 5);
 	yield* waitFor(0.5);
-	d_latch.set_pin_state("D", true);// Pulse when enabled
-	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
+	yield* d_latch.animate_changes([['CLK', false]], 0.1, 5);
 	yield* waitFor(0.5);
-	d_latch.set_pin_state("CLK", false);// Disable and save state
-	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
-	yield* waitFor(1);
-	d_latch.set_pin_state("D", false);
-	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
-	yield* waitFor(0.5);
+	yield* d_latch.animate_changes([['CLK', true]], 0.1, 5);
+	yield* waitFor(0.3);
+	// Swap with other latch graphic
+	let new_latch_circuit = LogicDevice.create_circuit(new DLatchEdge(createSignal(new Vector2(0, 0)), 'latch'), createSignal(40));
+	yield* d_latch.animate_swap_in_new_circuit(new_latch_circuit, 1);
+	yield* waitFor(2);
 	yield* beginSlide('D Latch');
 	d_latch.remove();
 	// Clock

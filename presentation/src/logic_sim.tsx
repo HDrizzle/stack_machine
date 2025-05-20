@@ -9,7 +9,7 @@ To interact with the simulation:
 	When creating a `LogicCircuit`, the parameter `external_connections` is used to define the inputs and outputs (or bidirectional, the high-impedence status can change)
 */
 
-const FONT_GRID_SIZE_SCALE = 1.1;
+export const FONT_GRID_SIZE_SCALE = 1.1;
 
 export function logic_wire_color(in_: [state: boolean, valid: boolean]): Color {
 	if(in_[1]) {
@@ -46,16 +46,22 @@ export abstract class LogicDevice {
 	border_stroke: SimpleSignal<Color>;
 	unique_name: string | null;
 	pin_name_lookup: {[unique_name: string]: number};
+	sub_compute_cycles: number;
 	constructor(
 		pins: Array<LogicConnectionPin>,// [Position, Outgoing direction, Name], or with the length specified as something other than 1
 		position_grid: SimpleSignal<Vector2> | (() => Vector2),
-		unique_name: string | null = null
+		unique_name: string | null = null,
+		sub_compute_cycles: number = 1// If this device (or circuit) needs extra cycles for the output to propogate correctly
 	) {
 		this.position_grid = position_grid;
 		this.border_stroke = createSignal(new Color('#FFF'));
 		this.unique_name = unique_name
 		this.pins = pins;
 		this.rect_ref = createRef<Rect>();
+		this.sub_compute_cycles = sub_compute_cycles;
+		if(this.sub_compute_cycles < 1) {
+			throw new Error(`Sub-compute cycles must be at least 1, not ${this.sub_compute_cycles}`);
+		}
 		// Find pin names
 		this.pin_name_lookup = {};
 		for(let conn_i = 0; conn_i < this.pins.length; conn_i++) {
@@ -67,14 +73,19 @@ export abstract class LogicDevice {
 			this.pin_name_lookup[pin.name] = conn_i;
 		}
 	}
-	abstract init_view(parent_rect: Rect, grid_size: SimpleSignal<number>): void;
+	abstract init_view(parent_rect: View2D | Rect, grid_size: SimpleSignal<number>): void;
 	init_view_pins(grid_size: SimpleSignal<number>) {
 		for(let i = 0; i < this.pins.length; i++) {
 			this.pins[i].init_view(this.rect_ref(), grid_size);
 		}
 	}
 	// Just updates input and output states, doesn't modify color signals
-	abstract compute(): void;
+	abstract compute_private(): void;
+	compute(): void {
+		for(let i = 0; i < this.sub_compute_cycles; i++) {
+			this.compute_private();
+		}
+	}
 	// Sets pin #pin_i with either a boolean value (externally driven) or with null (not ext driven)
 	/*set_pin_state(pin_i: number, state: boolean | null): void {
 		let pin = this.pins[pin_i];
@@ -162,9 +173,31 @@ export abstract class LogicDevice {
 	set_state(_state: boolean) {
 		throw new Error("Attempt to set input state on logic device instance where it is not overridden, meaning it is not an input");
 	}
+	static create_circuit(device: LogicDevice, grid_size: SimpleSignal<number>): LogicCircuit {
+		// Creating new ones so that the same actual objects aren't referenced by the circuit and device "pins", leading to complicated issues
+		let ext_conn_pins: Array<LogicConnectionPin> = [];
+		let nets: Array<[Array<[string, string] | string>, [], []]> = [];
+		for(let i = 0; i < device.pins.length; i++) {
+			let device_pin = device.pins[i];
+			ext_conn_pins.push(new LogicConnectionPin(device_pin.relative_start_grid, device_pin.direction, device_pin.name, device_pin.length));
+			// assign net
+			nets.push([
+				[[device.unique_name, device_pin.name], device_pin.name],
+				[], []
+			]);
+		}
+		return new LogicCircuit(
+			[device],
+			ext_conn_pins,
+			nets,
+			grid_size,
+			createSignal(new Vector2(0, 0)),
+			device.unique_name,
+			1
+		)
+	}
 }
 
-// TODO: extend LogicDevice, this gonna be fire once I get it working
 export class LogicCircuit extends LogicDevice {
 	components: Array<LogicDevice>;
 	//external_connections: Array<[LogicConnectionPin, string]>;// pin, name. Very similar to `LogicDevice.pins`
@@ -193,13 +226,14 @@ export class LogicCircuit extends LogicDevice {
 		]>,
 		grid_size: SimpleSignal<number>,
 		position_grid: SimpleSignal<Vector2> | (() => Vector2) = createSignal(new Vector2(0, 0)),
-		unique_name: string | null = null
+		unique_name: string | null = null,
+		sub_compute_cycles: number = 1
 	) {
 		/*let pin_locations: Array<[Vector2, string]> = [];
 		for(let conn_i = 0; conn_i < external_connections.length; conn_i++) {
 			pin_locations.push([external_connections[conn_i][0].relative_start_grid, external_connections[conn_i][0].direction]);
 		}*/
-		super(external_connections, position_grid, unique_name);
+		super(external_connections, position_grid, unique_name, sub_compute_cycles);
 		this.components = components;
 		this.grid_size = grid_size;
 		this.logger = useLogger();
@@ -357,7 +391,7 @@ export class LogicCircuit extends LogicDevice {
 	// Returns whether simulation is stable (everything has propagated)
 	// To run simulation completely, loop this function until it returns `false`
 	// It may never return `false` (like of a NOT gat is connected to itself) so be sure to impose a limit to prevent infinite loops
-	compute(): boolean {
+	compute_private(): boolean {
 		// For performance
 		let computed_nets_dict: {[net_i: number]: [state: boolean, valid: boolean]} = {};
 		// Calculate all component input pin states, DO NOT USE .compute() YET
@@ -511,7 +545,7 @@ export class LogicCircuit extends LogicDevice {
 		let out: Array<any> = [];
 		let iter: number = 0;
 		while(iter < max_iter) {
-			let compute_done = !this.compute();
+			let compute_done = !this.compute_private();
 			out.push(delay(iter*t, all(...this.animate(t))));
 			//out.push(waitFor(t*iter).next(this.grid_size(20, t/2).to(DEFAULT, t/2)));
 			//out.push(this.grid_size(20, t/2).to(DEFAULT, t/2));
@@ -552,6 +586,9 @@ export class LogicCircuitToplevelWrapper {
 			position={() => this.position_grid().scale(this.circuit.grid_size())}
 		/>);
 		this.circuit.init_view(this.rect_ref());
+		this.init_view_graphic_bits();
+	}
+	init_view_graphic_bits(): void {
 		for(let i = 0; i < this.graphic_bits.length; i++) {
 			this.graphic_bits[i].init_view(this.circuit.rect_ref(), this.circuit.grid_size);// Use circuit's rectangle because the pin's grid position is relative to the circuit
 		}
@@ -571,6 +608,41 @@ export class LogicCircuitToplevelWrapper {
 		for(let i = 0; i < this.circuit.external_connections.length; i++) {
 			this.circuit.external_connections[i][0].line_ref().remove();
 		}*/
+	}
+	animate_changes(changes: Array<[pin_ref: number | string, state: boolean | null]>, t_step: number, max_cycles: number) {
+		/* This block of code:
+
+		d_latch.set_pin_state("CLK", false);
+		yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
+
+		Becomes:
+
+		yield* all(...d_latch.animate_changes([["CLK", false]], 0.1, 5));
+		*/
+		for(let i = 0; i < changes.length; i++) {
+			this.set_pin_state(...changes[i]);
+		}
+		return this.compute_and_animate_until_done(t_step, max_cycles);
+	}
+	animate_swap_in_new_circuit(new_circuit: LogicCircuit, t: number) {
+		// All external connection names have to match perfectly
+		let tweens: Array<any> = [];
+		// Old circuit fade out
+		tweens.push(this.circuit.rect_ref().opacity(0, t));
+		// New circuit fade in
+		new_circuit.init_view(this.rect_ref());
+		new_circuit.rect_ref().opacity(0);
+		tweens.push(new_circuit.rect_ref().opacity(1, t));
+		// Logic I/O pins moving to new layout, assign them to something other than the old circuit's rect so they don't fade out
+		// TODO
+		// Remove old circuit
+		// TODO
+		// Assign new circuit
+		this.circuit = new_circuit;
+		return tweens;
+	}
+	animate_form_part_of_larger_circuit(larger_circuit: LogicCircuit, component_to_replace: string | number) {
+		// TODO
 	}
 }
 
@@ -750,7 +822,7 @@ export class GateAnd extends LogicDevice {
 		</Rect>);
 		this.init_view_pins(grid_size);
 	}
-	compute() {
+	compute_private() {
 		this.pins[2].state = this.pins[0].state && this.pins[1].state;
 	}
 }
@@ -824,7 +896,7 @@ export class GateOr extends LogicDevice {
 		</Rect>);
 		this.init_view_pins(grid_size);
 	}
-	compute() {
+	compute_private() {
 		this.pins[2].state = this.pins[0].state || this.pins[1].state;
 	}
 }
@@ -907,7 +979,7 @@ export class GateXor extends LogicDevice {
 		</Rect>);
 		this.init_view_pins(grid_size);
 	}
-	compute() {
+	compute_private() {
 		this.pins[2].state = this.pins[0].state != this.pins[1].state;
 	}
 }
@@ -964,7 +1036,7 @@ export class GateNand extends LogicDevice {
 		</Rect>);
 		this.init_view_pins(grid_size);
 	}
-	compute() {
+	compute_private() {
 		this.pins[0].state = !(this.pins[0].state && this.pins[1].state);
 	}
 }
@@ -1045,7 +1117,7 @@ export class GateNor extends LogicDevice {
 		</Rect>);
 		this.init_view_pins(grid_size);
 	}
-	compute() {
+	compute_private() {
 		this.pins[2].state = !(this.pins[0].state || this.pins[1].state);
 	}
 }
@@ -1135,7 +1207,7 @@ export class GateXnor extends LogicDevice {
 		</Rect>);
 		this.init_view_pins(grid_size);
 	}
-	compute() {
+	compute_private() {
 		this.pins[2].state = this.pins[0].state == this.pins[1].state;
 	}
 }
@@ -1181,7 +1253,7 @@ export class GateNot extends LogicDevice {
 		</Rect>);
 		this.init_view_pins(grid_size);
 	}
-	compute() {
+	compute_private() {
 		this.pins[1].state = !this.pins[0].state;
 	}
 }
