@@ -8,7 +8,7 @@ import bin_to_hex from '../../images/bin_to_hex_gsheets.png';
 import led_off from '../../images/led_off.jpeg';
 import led_on from '../../images/led_on.jpeg';
 import { LogicDevice, LogicCircuit, LogicCircuitToplevelWrapper, GateAnd, GateNand, GateOr, GateNor, GateXor, GateXnor, GateNot, LogicConnectionPin } from '../logic_sim';
-import { create_nor_flip_flop, create_d_level_latch, DLatchEdge } from '../derived_circuits';
+import { create_nor_flip_flop, create_d_level_latch, DLatchEdge, DLatchEdge8Bit } from '../derived_circuits';
 
 /* Slides
 -- Title --
@@ -25,11 +25,12 @@ Logic gates
 Adder
 Sequential logic, D latches, edge triggering
 SRAM, use photo of actual chip, explain how DRAM is different
+Fetch, Decode, Execute
 Clock
 -- My specific design --
 Instructions
 What does the hardware have to do?
-Timing
+Timing, use circuitverse timing screenshots
 Sequencers
 Stack, local variables
 ALU
@@ -284,6 +285,31 @@ export default makeScene2D(function* (view) {
 	yield* waitFor(2);
 	yield* beginSlide('Flip Flops');
 	ff.remove();
+	// 8 Bit latch
+	let byte_latch_grid_signal = createSignal(18);
+	let byte_latch = new LogicCircuitToplevelWrapper(DLatchEdge8Bit.create_internal_circuit(byte_latch_grid_signal));
+	byte_latch.init_view(view);
+	yield* byte_latch.animate_changes([[`OE`, true]], 0.2, 5);
+	yield* waitFor(0.5);
+	// Demo
+	for(let i = 0; i < 8; i++) {
+		yield* byte_latch.animate_changes([[`D${i}`, true]], 0.1, 5);
+		yield* waitFor(0.5);
+		yield* byte_latch.animate_changes([[`CLK`, true]], 0.1, 5);
+		yield* waitFor(0.5);
+		yield* byte_latch.animate_changes([[`CLK`, false]], 0.1, 5);
+		yield* waitFor(0.5);
+	}
+	yield* byte_latch.animate_changes([[`OE`, false]], 0.1, 5);
+	yield* waitFor(0.5);
+	yield* byte_latch.animate_changes([[`OE`, true]], 0.1, 5);
+	yield* waitFor(0.5);
+	let new_byte_latch_circuit = LogicDevice.create_circuit(new DLatchEdge8Bit(createSignal(new Vector2(0, 0)), 'latch-8-bit'), byte_latch_grid_signal);
+	yield* byte_latch.animate_swap_in_new_circuit(view, new_byte_latch_circuit, 2);
+	yield* waitFor(2);
+	yield* all(...byte_latch.compute_and_animate_until_done(0.1, 5));
+	yield* beginSlide('Byte Latch');
+	byte_latch.remove();
 	// D latch TEST
 	let d_latch = new LogicCircuitToplevelWrapper(DLatchEdge.create_internal_circuit(createSignal(40)));
 	d_latch.init_view(view);
@@ -311,24 +337,6 @@ export default makeScene2D(function* (view) {
 	let new_latch_circuit = LogicDevice.create_circuit(new DLatchEdge(createSignal(new Vector2(0, 0)), 'latch'), createSignal(40));
 	yield* d_latch.animate_swap_in_new_circuit(view, new_latch_circuit, 2);
 	yield* waitFor(2);
-	yield* d_latch.animate_changes([["CLK", false], ['D', false]], 0.1, 5);
-	yield* waitFor(0.5);
-	yield* d_latch.animate_changes([['D', true]], 0.1, 5);
-	yield* waitFor(0.5);
-	yield* d_latch.animate_changes([['CLK', true]], 0.1, 5);
-	yield* waitFor(0.3);
-	yield* d_latch.animate_changes([['CLK', false]], 0.1, 5);
-	yield* waitFor(0.5);
-	yield* d_latch.animate_changes([['D', false]], 0.1, 5);
-	yield* waitFor(0.5);
-	yield* d_latch.animate_changes([['CLK', true]], 0.1, 5);
-	yield* waitFor(0.5);
-	yield* d_latch.animate_changes([['D', true]], 0.1, 5);
-	yield* waitFor(0.5);
-	yield* d_latch.animate_changes([['CLK', false]], 0.1, 5);
-	yield* waitFor(0.5);
-	yield* d_latch.animate_changes([['CLK', true]], 0.1, 5);
-	yield* waitFor(0.3);
 	yield* beginSlide('D Latch');
 	d_latch.remove();
 	// Clock

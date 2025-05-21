@@ -47,6 +47,7 @@ export abstract class LogicDevice {
 	unique_name: string | null;
 	pin_name_lookup: {[unique_name: string]: number};
 	sub_compute_cycles: number;
+	logger: Logger | Console;
 	constructor(
 		pins: Array<LogicConnectionPin>,// [Position, Outgoing direction, Name], or with the length specified as something other than 1
 		position_grid: SimpleSignal<Vector2> | (() => Vector2),
@@ -57,6 +58,7 @@ export abstract class LogicDevice {
 		this.border_stroke = createSignal(new Color('#FFF'));
 		this.unique_name = unique_name
 		this.pins = pins;
+		this.logger = useLogger();
 		this.rect_ref = createRef<Rect>();
 		this.sub_compute_cycles = sub_compute_cycles;
 		if(this.sub_compute_cycles < 1) {
@@ -101,19 +103,11 @@ export abstract class LogicDevice {
 		}
 	}*/
 	set_pin_state(pin_ref: number | string, state: boolean | null): void {
-		let pin_i;
-		if(typeof(pin_ref) == "string") {
-			pin_i = this.pin_name_lookup[pin_ref];
-		}
-		else {
-			pin_i = pin_ref;
-		}
-		let pin = this.pins[pin_i];
-		//this.logger.debug(`Set pin #${pin_ref} to state: ${state}`);
+		let pin = this.query_pin(pin_ref);
 		if(state !== null) {
 			if(pin.internally_driven) {
 				if(pin.internally_driven && pin.state != state) {
-					throw new Error(`LogicDevice "${this.unique_name}" pin #${pin_i} ("${pin.name}") attempt to set contests with internally driven state, current_state=${pin.state}, new state=${state}`);
+					throw new Error(`LogicDevice "${this.unique_name}" pin ("${pin.name}") attempt to set contests with internally driven state, current_state=${pin.state}, new state=${state}`);
 				}
 			}
 			else {
@@ -124,6 +118,20 @@ export abstract class LogicDevice {
 		else {
 			pin.externally_driven = false;
 		}
+	}
+	query_pin(pin_ref: number | string): LogicConnectionPin {
+		let pin_i;
+		if(typeof(pin_ref) == "string") {
+			pin_i = this.pin_name_lookup[pin_ref];
+		}
+		else {
+			pin_i = pin_ref;
+		}
+		let pin = this.pins[pin_i];
+		if(pin === undefined) {
+			throw new Error(`Pin reference ${pin_ref} is not valid for device "${this.unique_name}"`);
+		}
+		return pin;
 	}
 	// Uses `this.set_pin_state()` on all pins with `states` corresponding to pins
 	set_all_pin_states(states: Array<boolean | null>): void {
@@ -213,7 +221,6 @@ export class LogicCircuit extends LogicDevice {
 	grid_size: SimpleSignal<number>;
 	rect_ref: Reference<Rect>;
 	position_grid: SimpleSignal<Vector2>;
-	logger: Logger | Console;
 	component_name_lookup: {[unique_name: string]: number};
 	//external_connections_name_lookup: {[unique_name: string]: number};
 	constructor(
@@ -236,7 +243,6 @@ export class LogicCircuit extends LogicDevice {
 		super(external_connections, position_grid, unique_name, sub_compute_cycles);
 		this.components = components;
 		this.grid_size = grid_size;
-		this.logger = useLogger();
 		// Find component names
 		this.component_name_lookup = {};
 		for(let component_i = 0; component_i < this.components.length; component_i++) {
@@ -509,7 +515,7 @@ export class LogicCircuit extends LogicDevice {
 			if(ext_pin.externally_driven) {// Check if pin is working as an "output" (input to this circuit)
 				n_writers += 1;
 				if(n_writers > 1 && state != ext_pin.state) {// Already another writer which is different, contention!
-					throw new Error(`External connection #${net_ext_conns[i]} is contested`);
+					throw new Error(`External connection #${net_ext_conns[i]} ("${ext_pin.name}") on circuit "${this.unique_name}" is contested`);
 				}
 				state = ext_pin.state;
 			}
@@ -743,6 +749,7 @@ export class LogicSingleIO {
 	rect_ref: Reference<Rect>;
 	state: SimpleSignal<boolean>;
 	pin: LogicConnectionPin;
+	static half_extent: number = 0.5;
 	constructor(pin: LogicConnectionPin) {
 		this.rect_ref = createRef<Rect>();
 		this.pin = pin;
@@ -750,11 +757,11 @@ export class LogicSingleIO {
 	}
 	init_view(parent_rect: Rect, grid_size: SimpleSignal<number>) {
 		let points_centered = [
-			new Vector2(-1, -1),
-			new Vector2(1, -1),
-			new Vector2(1, 1),
-			new Vector2(-1, 1),
-			new Vector2(-1, -1)
+			new Vector2(-LogicSingleIO.half_extent, -LogicSingleIO.half_extent),
+			new Vector2(LogicSingleIO.half_extent, -LogicSingleIO.half_extent),
+			new Vector2(LogicSingleIO.half_extent, LogicSingleIO.half_extent),
+			new Vector2(-LogicSingleIO.half_extent, LogicSingleIO.half_extent),
+			new Vector2(-LogicSingleIO.half_extent, -LogicSingleIO.half_extent)
 		];
 		let text_align: string;
 		switch(this.pin.direction.toLowerCase()) {
@@ -771,7 +778,7 @@ export class LogicSingleIO {
 		// Adjust them by the direction of the pin
 		let points = [];
 		for(let i = 0; i < points_centered.length; i++) {
-			points.push(() => points_centered[i].add(direction_to_unit_vec(this.pin.direction).scale(2)).scale(grid_size()));
+			points.push(() => points_centered[i].add(direction_to_unit_vec(this.pin.direction).scale(1+LogicSingleIO.half_extent)).scale(grid_size()));
 		}
 		parent_rect.add(<Rect
 			ref={this.rect_ref}
@@ -784,13 +791,13 @@ export class LogicSingleIO {
 				stroke={this.pin.color}
 				lineWidth={2}
 			/>
-			<Txt text={() => this.state() ? "1" : "0"} fill={"FFF"} position={() => direction_to_unit_vec(this.pin.direction).scale(grid_size()*2)} fontSize={() => grid_size()*1.1} />
+			<Txt text={() => this.state() ? "1" : "0"} fill={"FFF"} position={() => direction_to_unit_vec(this.pin.direction).scale(grid_size()*1.5)} fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE*0.7} />
 			<Txt
 				text={this.pin.name}
 				fill={"#FFF"}
 				stroke={"FFF"}
-				position={() => direction_to_unit_vec(this.pin.direction).scale(grid_size()*4)}
-				fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE}
+				position={() => direction_to_unit_vec(this.pin.direction).scale(grid_size()*3)}
+				fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE*0.7}
 			/>
 		</Rect>);
 		this.pin.init_view(parent_rect, grid_size);
@@ -1278,5 +1285,47 @@ export class GateNot extends LogicDevice {
 	}
 	compute_private() {
 		this.pins[1].state = !this.pins[0].state;
+	}
+}
+
+export class TriBuffer extends LogicDevice {
+	constructor(position: SimpleSignal<Vector2> | (() => Vector2), unique_name: string | null = null) {
+		super(
+			[
+				new LogicConnectionPin(new Vector2(-2, 0), 'w', 'A'),
+				new LogicConnectionPin(new Vector2(2, 0), 'e', 'Q'),
+				new LogicConnectionPin(new Vector2(0, -1), 'n', 'OE')
+			],
+			position,
+			unique_name
+		);
+		this.pins[0].internally_driven = false;
+		this.pins[1].internally_driven = false;
+		this.pins[2].internally_driven = false;
+	}
+	init_view(parent_rect: Rect, grid_size: SimpleSignal<number>) {
+		parent_rect.add(<Rect
+			ref={this.rect_ref}
+			width={() => grid_size() * 8}
+			height={() => grid_size() * 4}
+			position={() => this.position_px(grid_size)}
+		>
+			<Line
+				points={[
+					() => new Vector2(2, 0).scale(grid_size()),
+					() => new Vector2(-2, -2).scale(grid_size()),
+					() => new Vector2(-2, 2).scale(grid_size()),
+					() => new Vector2(2, 0).scale(grid_size())
+				]}
+				stroke={this.border_stroke}
+				lineWidth={2}
+			/>
+			<Txt fill={"FFF"} position={() => new Vector2(-grid_size()*0.5, 0)} fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE}>TRI</Txt>
+		</Rect>);
+		this.init_view_pins(grid_size);
+	}
+	compute_private() {
+		this.pins[1].internally_driven = this.pins[2].state;
+		this.pins[1].state = this.pins[0].state;
 	}
 }
