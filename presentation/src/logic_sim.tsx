@@ -386,7 +386,7 @@ export class LogicCircuit extends LogicDevice {
 	}
 	get_pin_grid_position(component_i: number, pin_i: number) {
 		let component = this.components[component_i];
-		return component.position_grid().add(component.pins[pin_i].relative_start_grid.add(direction_to_unit_vec(component.pins[pin_i].direction)));
+		return component.position_grid().add(component.pins[pin_i].relative_start_grid().add(direction_to_unit_vec(component.pins[pin_i].direction)));
 	}
 	// Returns whether simulation is stable (everything has propagated)
 	// To run simulation completely, loop this function until it returns `false`
@@ -624,7 +624,7 @@ export class LogicCircuitToplevelWrapper {
 		}
 		return this.compute_and_animate_until_done(t_step, max_cycles);
 	}
-	animate_swap_in_new_circuit(new_circuit: LogicCircuit, t: number) {
+	animate_swap_in_new_circuit(parent_rect: View2D | Rect, new_circuit: LogicCircuit, t: number) {
 		// All external connection names have to match perfectly
 		let tweens: Array<any> = [];
 		// Old circuit fade out
@@ -634,11 +634,28 @@ export class LogicCircuitToplevelWrapper {
 		new_circuit.rect_ref().opacity(0);
 		tweens.push(new_circuit.rect_ref().opacity(1, t));
 		// Logic I/O pins moving to new layout, assign them to something other than the old circuit's rect so they don't fade out
-		// TODO
-		// Remove old circuit
-		// TODO
+		for(let i = 0; i < this.graphic_bits.length; i++) {
+			let pin = this.graphic_bits[i];
+			pin.pin.line_ref().remove();
+			pin.rect_ref().remove();
+			pin.pin.line_ref = createRef<Line>();
+			let old_abs_position = pin.pin.relative_start_grid().add(this.circuit.position_grid());
+			let old_state = pin.pin.state;
+			let old_ext_driven = pin.pin.externally_driven;
+			// Reassign pin
+			pin.pin = new_circuit.pins[i];
+			pin.pin.state = old_state;
+			pin.pin.externally_driven = old_ext_driven;
+			let new_final_rel_position = pin.pin.relative_start_grid()
+			pin.pin.relative_start_grid(old_abs_position);
+			tweens.push(pin.pin.relative_start_grid(new_final_rel_position.add(new_circuit.position_grid()), t));
+			pin.init_view(parent_rect, new_circuit.grid_size);
+		}
 		// Assign new circuit
 		this.circuit = new_circuit;
+		// Propagate & set states correctly
+		this.circuit.compute();
+		this.circuit.animate(0);
 		return tweens;
 	}
 	animate_form_part_of_larger_circuit(larger_circuit: LogicCircuit, component_to_replace: string | number) {
@@ -684,17 +701,22 @@ export class LogicConnectionPin {
 	internally_driven: boolean;
 	externally_driven: boolean;
 	color: SimpleSignal<Color>;
-	relative_start_grid: Vector2;
+	relative_start_grid: SimpleSignal<Vector2>;
 	direction: string;
 	length: number;
 	name: string;
 	line_ref: Reference<Line>;
-	constructor(relative_start_grid: Vector2, direction: string, name: string, length: number = 1) {
+	constructor(relative_start_grid: Vector2 | SimpleSignal<Vector2>, direction: string, name: string, length: number = 1) {
 		this.state = false;
 		this.internally_driven = false;
 		this.externally_driven = false;
 		this.color = createSignal(logic_wire_color([false, true]));
-		this.relative_start_grid = relative_start_grid;
+		if(relative_start_grid instanceof Vector2) {
+			this.relative_start_grid = createSignal(relative_start_grid);
+		}
+		else {
+			this.relative_start_grid = relative_start_grid;
+		}
 		this.direction = direction;
 		this.name = name;
 		this.length = length;
@@ -703,10 +725,11 @@ export class LogicConnectionPin {
 	init_view(parent_rect: Rect, grid_size: SimpleSignal<number>) {
 		parent_rect.add(
 			<Line
+				ref={this.line_ref}
 				stroke={this.color}
 				points={[
-					() => this.relative_start_grid.scale(grid_size()),
-					() => this.relative_start_grid.add(direction_to_unit_vec(this.direction).scale(this.length)).scale(grid_size())
+					() => this.relative_start_grid().scale(grid_size()),
+					() => this.relative_start_grid().add(direction_to_unit_vec(this.direction).scale(this.length)).scale(grid_size())
 				]}
 				lineWidth={2}
 			/>
@@ -754,7 +777,7 @@ export class LogicSingleIO {
 			ref={this.rect_ref}
 			width={() => grid_size() * 3}
 			height={() => grid_size() * 2}
-			position={() => this.pin.relative_start_grid.scale(grid_size())}
+			position={() => this.pin.relative_start_grid().scale(grid_size())}
 		>
 			<Line
 				points={points}

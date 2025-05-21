@@ -26,10 +26,11 @@ Adder
 Sequential logic, D latches, edge triggering
 SRAM, use photo of actual chip, explain how DRAM is different
 Clock
-Sequencers
 -- My specific design --
 Instructions
 What does the hardware have to do?
+Timing
+Sequencers
 Stack, local variables
 ALU
 Heap, easy to use for random stuff
@@ -308,8 +309,26 @@ export default makeScene2D(function* (view) {
 	yield* waitFor(0.3);
 	// Swap with other latch graphic
 	let new_latch_circuit = LogicDevice.create_circuit(new DLatchEdge(createSignal(new Vector2(0, 0)), 'latch'), createSignal(40));
-	yield* d_latch.animate_swap_in_new_circuit(new_latch_circuit, 1);
+	yield* d_latch.animate_swap_in_new_circuit(view, new_latch_circuit, 2);
 	yield* waitFor(2);
+	yield* d_latch.animate_changes([["CLK", false], ['D', false]], 0.1, 5);
+	yield* waitFor(0.5);
+	yield* d_latch.animate_changes([['D', true]], 0.1, 5);
+	yield* waitFor(0.5);
+	yield* d_latch.animate_changes([['CLK', true]], 0.1, 5);
+	yield* waitFor(0.3);
+	yield* d_latch.animate_changes([['CLK', false]], 0.1, 5);
+	yield* waitFor(0.5);
+	yield* d_latch.animate_changes([['D', false]], 0.1, 5);
+	yield* waitFor(0.5);
+	yield* d_latch.animate_changes([['CLK', true]], 0.1, 5);
+	yield* waitFor(0.5);
+	yield* d_latch.animate_changes([['D', true]], 0.1, 5);
+	yield* waitFor(0.5);
+	yield* d_latch.animate_changes([['CLK', false]], 0.1, 5);
+	yield* waitFor(0.5);
+	yield* d_latch.animate_changes([['CLK', true]], 0.1, 5);
+	yield* waitFor(0.3);
 	yield* beginSlide('D Latch');
 	d_latch.remove();
 	// Clock

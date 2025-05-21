@@ -115,10 +115,10 @@ export class DLatchEdge extends LogicDevice {
 	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
 		super(
 			[
-				new LogicConnectionPin(new Vector2(-6, -3), 'w', "D"),
-				new LogicConnectionPin(new Vector2(-6, 3), 'w', "CLK"),
-				new LogicConnectionPin(new Vector2(6, 3), 'e', "Q#"),
-				new LogicConnectionPin(new Vector2(6, -3), 'e', "Q")
+				new LogicConnectionPin(new Vector2(-3, -2), 'w', "D"),
+				new LogicConnectionPin(new Vector2(-3, 2), 'w', "CLK"),
+				new LogicConnectionPin(new Vector2(3, 2), 'e', "Q#"),
+				new LogicConnectionPin(new Vector2(3, -2), 'e', "Q")
 			],
 			createSignal(new Vector2(0, 0)),
 			unique_name
@@ -135,11 +135,11 @@ export class DLatchEdge extends LogicDevice {
 		>
 			<Line
 				points={[
-					() => new Vector2(-6, -4).scale(grid_size()),
-					() => new Vector2(6, -4).scale(grid_size()),
-					() => new Vector2(6, 4).scale(grid_size()),
-					() => new Vector2(-6, 4).scale(grid_size()),
-					() => new Vector2(-6, -4).scale(grid_size())
+					() => new Vector2(-3, -3).scale(grid_size()),
+					() => new Vector2(3, -3).scale(grid_size()),
+					() => new Vector2(3, 3).scale(grid_size()),
+					() => new Vector2(-3, 3).scale(grid_size()),
+					() => new Vector2(-3, -3).scale(grid_size())
 				]}
 				stroke={this.border_stroke}
 				lineWidth={2}
