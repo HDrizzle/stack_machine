@@ -1,4 +1,4 @@
-import { Line, Rect, Txt, View2D } from '@motion-canvas/2d';
+import { Line, Rect, Txt, View2D, Circle } from '@motion-canvas/2d';
 import { LogicDevice, LogicCircuit, LogicCircuitToplevelWrapper, GateAnd, GateNand, GateOr, GateNor, GateXor, GateXnor, GateNot, LogicConnectionPin, FONT_GRID_SIZE_SCALE, TriBuffer, LogicNet } from './logic_sim';
 import { Vector2, createSignal, SimpleSignal } from '@motion-canvas/core';
 
@@ -27,13 +27,13 @@ export function create_nor_flip_flop(grid_size: SimpleSignal<number>, unique_nam
 				[["Nor-0", 'q'], ["Nor-1", 'a'], "Q#"],
 				[
 					[new Vector2(4, -3), [[0, 2], [-7, 2], [0, 1]]]
-				], []
+				], [new Vector2(4, -3)]
 			],
 			[
 				[["Nor-1", 'q'], ["Nor-0", 'b'], "Q"],
 				[
 					[new Vector2(4, 3), [[0, -2], [-7, -2], [0, -1]]]
-				], []
+				], [new Vector2(4, 3)]
 			]
 		],
 		grid_size,
@@ -91,11 +91,11 @@ export function create_d_level_latch(grid_size: SimpleSignal<number>, unique_nam
 			],
 			[
 				[["ff", 'Q#'], "Q"],
-				[], [new Vector2(4, -3)]
+				[], []
 			],
 			[
 				[["ff", 'Q'], "Q#"],
-				[], [new Vector2(4, 3)]
+				[], []
 			]
 		],
 		grid_size,
@@ -107,6 +107,121 @@ export function create_d_level_latch(grid_size: SimpleSignal<number>, unique_nam
 	out.compute();// Make sure it is in a stable state
 	out.compute();
 	return out;
+}
+
+export class LayoutQuadAnd extends LogicCircuit {
+	static half_height: number = 8;
+	constructor(grid_size: SimpleSignal<number>, position_grid: SimpleSignal<Vector2> | (() => Vector2) = createSignal(new Vector2(0, 0))) {
+		super(
+			[
+				new GateAnd(createSignal(new Vector2(-10, 4)), "and-0"),
+				new GateAnd(createSignal(new Vector2(5, 4)), "and-1"),
+				new GateAnd(createSignal(new Vector2(10, -4)), "and-2"),
+				new GateAnd(createSignal(new Vector2(-5, -4)), "and-3")
+			],
+			[
+				new LogicConnectionPin(new Vector2(-15, LayoutQuadAnd.half_height), 's', "1"),
+				new LogicConnectionPin(new Vector2(-10, LayoutQuadAnd.half_height), 's', "2"),
+				new LogicConnectionPin(new Vector2(-5, LayoutQuadAnd.half_height), 's', "3"),
+				new LogicConnectionPin(new Vector2(0, LayoutQuadAnd.half_height), 's', "4"),
+				new LogicConnectionPin(new Vector2(5, LayoutQuadAnd.half_height), 's', "5"),
+				new LogicConnectionPin(new Vector2(10, LayoutQuadAnd.half_height), 's', "6"),
+				new LogicConnectionPin(new Vector2(15, LayoutQuadAnd.half_height), 's', "7"),
+				new LogicConnectionPin(new Vector2(15, -LayoutQuadAnd.half_height), 'n', "8"),
+				new LogicConnectionPin(new Vector2(10, -LayoutQuadAnd.half_height), 'n', "9"),
+				new LogicConnectionPin(new Vector2(5, -LayoutQuadAnd.half_height), 'n', "10"),
+				new LogicConnectionPin(new Vector2(0, -LayoutQuadAnd.half_height), 'n', "11"),
+				new LogicConnectionPin(new Vector2(-5, -LayoutQuadAnd.half_height), 'n', "12"),
+				new LogicConnectionPin(new Vector2(-10, -LayoutQuadAnd.half_height), 'n', "13"),
+				new LogicConnectionPin(new Vector2(-15, -LayoutQuadAnd.half_height), 'n', "14"),
+			],
+			[
+				[
+					['1', ['and-0', 'a']],
+					[[new Vector2(-15, 8), [[0, -5], [3, 0]]]], []
+				],
+				[
+					['2', ['and-0', 'b']],
+					[[new Vector2(-10, 8), [[0, -1], [-3, 0], [0, -2]]]], []
+				],
+				[
+					['3', ['and-0', 'q']],
+					[[new Vector2(-7, 4), [[2, 0], [0, 4]]]], []
+				],
+				[
+					['4', ['and-1', 'a']],
+					[[new Vector2(0, 8), [[0, -5], [3, 0]]]], []
+				],
+				[
+					['5', ['and-1', 'b']],
+					[[new Vector2(5, 8), [[0, -1], [-3, 0], [0, -2]]]], []
+				],
+				[
+					['6', ['and-1', 'q']],
+					[[new Vector2(8, 4), [[2, 0], [0, 4]]]], []
+				],
+				[
+					['8', ['and-2', 'a']],
+					[[new Vector2(15, -8), [[0, 5], [-3, 0]]]], []
+				],
+				[
+					['9', ['and-2', 'b']],
+					[[new Vector2(10, -8), [[0, 1], [3, 0], [0, 2]]]], []
+				],
+				[
+					['10', ['and-2', 'q']],
+					[[new Vector2(7, -4), [[-2, 0], [0, -4]]]], []
+				],
+				[
+					['11', ['and-3', 'a']],
+					[[new Vector2(0, -8), [[0, 5], [-3, 0]]]], []
+				],
+				[
+					['12', ['and-3', 'b']],
+					[[new Vector2(-5, -8), [[0, 1], [3, 0], [0, 2]]]], []
+				],
+				[
+					['13', ['and-3', 'q']],
+					[[new Vector2(-8, -4), [[-2, 0], [0, -4]]]], []
+				],
+			],
+			grid_size,
+			position_grid,
+			'quad-and-layout'
+		);
+		let pins_to_set_high = ['1', '2', '4', '5', '8', '9', '11', '12'];
+		for(let i = 0; i < pins_to_set_high.length; i++) {
+			this.set_pin_state(pins_to_set_high[i], true);
+		}
+	}
+	init_view(view: View2D | Rect): void {
+		super.init_view(view);
+		this.rect_ref().add(<Line
+			points={[
+				() => new Vector2(-17, 2).scale(this.grid_size()),
+				() => new Vector2(-17, LayoutQuadAnd.half_height).scale(this.grid_size()),
+				() => new Vector2(17, LayoutQuadAnd.half_height).scale(this.grid_size()),
+				() => new Vector2(17, -LayoutQuadAnd.half_height).scale(this.grid_size()),
+				() => new Vector2(-17, -LayoutQuadAnd.half_height).scale(this.grid_size()),
+				() => new Vector2(-17, -2).scale(this.grid_size()),
+			]}
+			stroke={'#FFF'}
+			lineWidth={2}
+		/>);
+		this.rect_ref().add(<Circle
+			width={() => this.grid_size() * 4}
+			height={() => this.grid_size() * 4}
+			position={() => new Vector2(-17, 0).scale(this.grid_size())}
+			stroke={'#FFF'}
+			lineWidth={2}
+			startAngle={-90}
+			endAngle={90}
+		/>);
+		this.rect_ref().add(<Txt fontSize={() => this.grid_size()*FONT_GRID_SIZE_SCALE} position={() => new Vector2(-15, -7).scale(this.grid_size())} fill={'#FFF'}>POWER</Txt>);
+		this.rect_ref().add(<Txt fontSize={() => this.grid_size()*FONT_GRID_SIZE_SCALE} position={() => new Vector2(15, 7).scale(this.grid_size())} fill={'#FFF'}>GND</Txt>);
+		this.components[2].rect_ref().rotation(180);
+		this.components[3].rect_ref().rotation(180);
+	}
 }
 
 export class DLatchEdge extends LogicDevice {
@@ -227,11 +342,11 @@ export class DLatchEdge extends LogicDevice {
 				],
 				[
 					[["ff", 'Q#'], "Q"],
-					[], [new Vector2(4, -3)]
+					[], []
 				],
 				[
 					[["ff", 'Q'], "Q#"],
-					[], [new Vector2(4, 3)]
+					[], []
 				],
 				[
 					[['edge-not', 'q'], ['edge-and', 'a']],

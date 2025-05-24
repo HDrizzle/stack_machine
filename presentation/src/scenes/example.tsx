@@ -13,20 +13,19 @@ import image_cpu from '../../images/cpu.jpg';
 import image_hard_drive from '../../images/hard_drive.jpg';
 import image_ports from '../../images/ports.jpg';
 import image_dram from '../../images/dram.png';
+import image_quad_and from '../../images/photo_quad_and.jpeg';
 import { LogicDevice, LogicCircuit, LogicCircuitToplevelWrapper, GateAnd, GateNand, GateOr, GateNor, GateXor, GateXnor, GateNot, LogicConnectionPin } from '../logic_sim';
-import { create_nor_flip_flop, create_d_level_latch, DLatchEdge, DLatchEdge8Bit } from '../derived_circuits';
+import { create_nor_flip_flop, create_d_level_latch, DLatchEdge, DLatchEdge8Bit, LayoutQuadAnd } from '../derived_circuits';
 
 /* Slides
 -- Title --
 Goals
 Parts of a computer (very basic)
-Instructions, what does each line of a program do? (use C++ example)
-Assembly
-Control flow
 -- Abstract, how to make the magic happen? --
 Binary intro
 Binary numbers, 0xNumbers
-Logic gates
+Logic gates, demo with all of them
+Chip layout circuit alongside actual photo
 Adder
 Sequential logic, D latches, edge triggering
 SRAM, use photo of actual chip, explain how DRAM is different
@@ -44,7 +43,9 @@ Control unit & PC
 Call stack
 Program memory
 -- How to build it, lots of pictures --
-Actually building it
+Attempt at PCB etching
+Parts from China
+Soldering...
 Problems
 What I learned
 	Capacitors across chip power pins, use photo of double-pulse on the scope
@@ -84,7 +85,7 @@ export default makeScene2D(function* (view) {
 	/*current_slide_title('Slide Name');
 	slide_ref = createRef<Rect>();
 	view.add(
-		<Rect ref={slide_ref}>
+		<Rect ref={slide_ref} layout topLeft={generic_slide_top_left_pos} width={half_width*2} height={half_height*2}>
 			
 		</Rect>
 	);
@@ -142,10 +143,10 @@ export default makeScene2D(function* (view) {
 	yield* beginSlide(current_slide_title());
 	slide_ref().remove();
 	// Parts of a computer (very basic)
-	// TODO
 	// Images needed: Hard drive, CPU, Ports, DRAM stick
 	current_slide_title('Parts of a Computer');
 	slide_ref = createRef<Rect>();
+	// TODO
 	view.add(
 		<Rect ref={slide_ref} layout topLeft={generic_slide_top_left_pos} width={half_width*2} height={half_height*2}>
 			<Rect layout direction={'column'} alignItems={'center'} justifyContent={'center'}>
@@ -156,12 +157,6 @@ export default makeScene2D(function* (view) {
 	);
 	yield* beginSlide(current_slide_title());
 	slide_ref().remove();
-	// Instructions, what does each line of a program do? (use C++ example)
-	// TODO
-	// Assembly
-	// TODO
-	// Control flow
-	// TODO
 	// -- Abstract, how to make the magic happen? --
 	// Bits intro
 	current_slide_title('Bits (Binary Digits)');
@@ -188,9 +183,10 @@ export default makeScene2D(function* (view) {
 	yield* beginSlide(current_slide_title());
 	slide_ref().remove();
 	// Binary numbers, 0xNumbers
-	const bin_ref = createRef<Rect>();
+	current_slide_title('Binary numbers');
+	slide_ref = createRef<Rect>();
 	view.add(
-		<Rect ref={bin_ref} layout justifyContent={'space-around'} width={half_width*2} height={half_height*2}>
+		<Rect ref={slide_ref} layout justifyContent={'space-around'} width={half_width*2} height={half_height*2}>
 			<Rect layout direction={'column'} width={half_width} justifyContent={'space-around'}>
 				<Txt fontSize={slide_title_text_size} fill={'#fff'} textAlign={'center'}>Binary Numbers</Txt>
 				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
@@ -224,9 +220,9 @@ export default makeScene2D(function* (view) {
 			</Rect>
 		</Rect>
 	);
-	yield* beginSlide('Binary');
-	bin_ref().remove();
-	// Logic gates, TODO
+	yield* beginSlide(current_slide_title());
+	slide_ref().remove();
+	// Logic gates
 	current_slide_title('Logic Gates');
 	const gates_ref = createRef<Rect>();
 	view.add(// TODO
@@ -294,24 +290,36 @@ export default makeScene2D(function* (view) {
 		createSignal(new Vector2(0, 5))
 	));
 	logic_circuit.init_view(view);
-	logic_circuit.set_pin_state("A", true);
-	logic_circuit.set_pin_state("B", false);
-	yield* all(...logic_circuit.compute_and_animate_until_done(0.2, 2));
+	yield* all(...logic_circuit.animate_changes([["A", true], ["B", false]], 0.2, 2));
 	yield* waitFor(1);
-	logic_circuit.set_pin_state("B", true);
-	yield* all(...logic_circuit.compute_and_animate_until_done(0.2, 2));
+	yield* all(...logic_circuit.animate_changes([["B", true]], 0.2, 2));
 	yield* waitFor(1);
-	logic_circuit.set_pin_state("A", false);
-	yield* all(...logic_circuit.compute_and_animate_until_done(0.2, 2));
+	yield* all(...logic_circuit.animate_changes([["A", false]], 0.2, 2));
 	yield* waitFor(1);
-	logic_circuit.set_pin_state("B", false);
-	yield* all(...logic_circuit.compute_and_animate_until_done(0.2, 2));
+	yield* all(...logic_circuit.animate_changes([["B", false]], 0.2, 2));
 	yield* waitFor(1);
 	//yield* logic_circuit.grid_size(20, 0.5).to(40, 0.5);
 	//yield* all(...logic_circuit.components[0].compute_animate(1));
 	yield* beginSlide('Logic gates');
 	gates_ref().remove();
 	logic_circuit.remove();
+	// Chip layout circuit alongside actual photo
+	current_slide_title('What they actually look like');
+	slide_ref = createRef<Rect>();
+	let circuit_container = createRef<Rect>();
+	view.add(
+		<Rect ref={slide_ref} topLeft={generic_slide_top_left_pos} width={half_width*2} height={half_height*2}>
+			<Img src={image_quad_and} maxHeight={half_height*0.6} maxWidth={half_width*0.8} position={new Vector2(0, -half_height*0.75)} />
+			<Rect ref={circuit_container} position={new Vector2(0, half_height*0.1)} />
+		</Rect>
+	);
+	let quad_and_circuit = new LogicCircuitToplevelWrapper(new LayoutQuadAnd(createSignal(20), createSignal(new Vector2(0, 0))));
+	quad_and_circuit.init_view(circuit_container());
+	yield* quad_and_circuit.animate_changes([], 0.1, 5);
+	yield* waitFor(0.5);
+	yield* beginSlide(current_slide_title());
+	circuit_container().remove();
+	slide_ref().remove();
 	// Adder
 	// TODO
 	// Sequential logic, Flip Flop, Epic animation sequence

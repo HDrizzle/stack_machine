@@ -702,6 +702,8 @@ export class LogicCircuitToplevelWrapper {
 		else {
 			throw new Error(`Call to animate_form_part_of_larger_circuit references component "${component_to_replace}", which does not exist`);
 		}
+		let current_grid_size = this.circuit.grid_size();
+		this.circuit.grid_size = larger_circuit.grid_size;
 		// If this circuit was previously displayed, remove it
 		if(this.circuit.rect_ref() !== undefined) {
 			this.circuit.rect_ref().remove();
@@ -716,11 +718,10 @@ export class LogicCircuitToplevelWrapper {
 		let old_grid_size: number = larger_circuit.grid_size();
 		let old_position: Vector2 = larger_circuit.position_grid();
 		// Set new circuit so that its position and grid size lines up with original sub-circuit
-		larger_circuit.grid_size(this.circuit.grid_size());
+		larger_circuit.grid_size(current_grid_size);
 		larger_circuit.position_grid(larger_circuit.components[component_i].position_grid().scale(-1));
 		// Reassign things
 		this.circuit.position_grid(larger_circuit.components[component_i].position_grid);
-		this.circuit.grid_size = larger_circuit.grid_size;
 		larger_circuit.components[component_i].rect_ref().remove();
 		larger_circuit.components[component_i] = this.circuit;
 		this.circuit = larger_circuit;
