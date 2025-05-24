@@ -212,9 +212,8 @@ export class LogicCircuit extends LogicDevice {
 	// List of nets, each net is a list pairs of [component index, component pin] and a color signal for animation
 	nets: Array<LogicNet>;
 	// Redundant w/ `nets`, just to improve performance, for component pins
-	// List of (Lists of pins and corresponding net index) for each component, so `net_i = pin_to_net_lookup[component_i][pin_i]`
-	// Possibly `null` if pin is unconnected
-	component_pin_to_net_lookup: Array<Array<number | null>>;
+	// List of (Lists of pins and corresponding net index) for each component, so `net_i = this.component_pin_to_net_lookup[component_i][pin_i]`
+	component_pin_to_net_lookup: Array<Array<number>>;
 	// Same as `component_pin_to_net_lookup` but for external connections
 	// `net_i = ext_conn_to_net_lookup[ext_conn_i]`
 	ext_conn_to_net_lookup: Array<number | null>;
@@ -288,7 +287,7 @@ export class LogicCircuit extends LogicDevice {
 			}
 			this.nets.push(new LogicNet(net_component_connections, net_external_connections, nets[net_i][1], nets[net_i][2]));
 		}
-		// Create pin to net lookup table and assign pin color signals from net color signals
+		// Create pin to net lookup table
 		this.component_pin_to_net_lookup = [];
 		this.ext_conn_to_net_lookup = [];
 		let new_nets = [];// For unconnected outputs to still have color animations
@@ -310,7 +309,7 @@ export class LogicCircuit extends LogicDevice {
 				if(n_nets_connected == 0) {// Create a net just for this pin, so it's color can be animated correctly
 					let new_net = new LogicNet([[component_i, pin_i]], [], [], []);
 					component_pins_lookup.push(this.nets.length + new_nets.length);
-					this.components[component_i].pins[pin_i].color = new_net.color;
+					//this.components[component_i].pins[pin_i].color = new_net.color;
 					n_nets_connected += 1;
 					new_nets.push(new_net);
 				}
@@ -318,7 +317,7 @@ export class LogicCircuit extends LogicDevice {
 					if(n_nets_connected == 1) {
 						component_pins_lookup.push(found_net_i);
 						// Assign pin color signal
-						this.components[component_i].pins[pin_i].color = this.nets[found_net_i].color;
+						//this.components[component_i].pins[pin_i].color = this.nets[found_net_i].color;
 					}
 					else {
 						throw new Error(`Pin #${pin_i} of component #${component_i} is connected to ${n_nets_connected} nets`);
@@ -349,13 +348,14 @@ export class LogicCircuit extends LogicDevice {
 				if(n_nets_connected == 1) {
 					this.ext_conn_to_net_lookup.push(found_net_i);
 					// Assign pin color signal
-					this.pins[ext_conn_i].color = this.nets[found_net_i].color;
+					//this.pins[ext_conn_i].color = this.nets[found_net_i].color;
 				}
 				else {
 					throw new Error(`External connection #${ext_conn_i} is connected to ${n_nets_connected} nets`);
 				}
 			}
 		}
+		this.assign_pin_signals_from_net_signals();
 		this.rect_ref = createRef<Rect>();
 	}
 	init_view(view: View2D | Rect) {
@@ -387,6 +387,20 @@ export class LogicCircuit extends LogicDevice {
 					height={() => this.grid_size()*0.5}
 					fill={net.color}
 				/>);
+			}
+		}
+		this.init_view_pins(this.grid_size);
+	}
+	assign_pin_signals_from_net_signals(): void {
+		for(let component_i = 0; component_i < this.components.length; component_i++) {
+			for(let pin_i = 0; pin_i < this.components[component_i].n_pins(); pin_i++) {
+				this.components[component_i].pins[pin_i].color = this.nets[this.component_pin_to_net_lookup[component_i][pin_i]].color;
+			}
+		}
+		for(let ext_conn_i = 0; ext_conn_i < this.pins.length; ext_conn_i++) {
+			let net_i = this.ext_conn_to_net_lookup[ext_conn_i];
+			if(net_i !== null) {
+				this.pins[ext_conn_i].color = this.nets[net_i].color;
 			}
 		}
 	}
@@ -578,11 +592,14 @@ export class LogicCircuitToplevelWrapper {
 	constructor(circuit: LogicCircuit, position_grid: SimpleSignal<Vector2> | (() => Vector2) = createSignal(new Vector2(0, 0))) {
 		this.circuit = circuit;
 		this.position_grid = position_grid;
-		// Create inputs and outputs and assign signals
-		this.graphic_bits = [];
 		this.rect_ref = createRef<Rect>();
-		for(let i = 0; i < circuit.pins.length; i++) {
-			let conn = circuit.pins[i];
+		// Create inputs and outputs and assign signals
+		this.create_graphic_bits();
+	}
+	create_graphic_bits(): void {
+		this.graphic_bits = [];
+		for(let i = 0; i < this.circuit.pins.length; i++) {
+			let conn = this.circuit.pins[i];
 			this.graphic_bits.push(new LogicSingleIO(conn));
 		}
 	}
@@ -642,9 +659,7 @@ export class LogicCircuitToplevelWrapper {
 		// Logic I/O pins moving to new layout, assign them to something other than the old circuit's rect so they don't fade out
 		for(let i = 0; i < this.graphic_bits.length; i++) {
 			let pin = this.graphic_bits[i];
-			pin.pin.line_ref().remove();
 			pin.rect_ref().remove();
-			pin.pin.line_ref = createRef<Line>();
 			let old_abs_position = pin.pin.relative_start_grid().add(this.circuit.position_grid());
 			let old_state = pin.pin.state;
 			let old_ext_driven = pin.pin.externally_driven;
@@ -656,6 +671,13 @@ export class LogicCircuitToplevelWrapper {
 			pin.pin.relative_start_grid(old_abs_position);
 			tweens.push(pin.pin.relative_start_grid(new_final_rel_position.add(new_circuit.position_grid()), t));
 			pin.init_view(parent_rect, new_circuit.grid_size);
+			// When the animation is done, transfer the pin to the circuit's rect so it can be correctly removed with the circuit
+			tweens.push(delay(t, () => {
+				pin.pin.line_ref().remove();
+				pin.rect_ref().remove();
+				pin.pin.relative_start_grid(new_final_rel_position);
+				pin.init_view(new_circuit.rect_ref(), new_circuit.grid_size);
+			}));
 		}
 		// Assign new circuit
 		this.circuit = new_circuit;
@@ -664,8 +686,55 @@ export class LogicCircuitToplevelWrapper {
 		this.circuit.animate(0);
 		return tweens;
 	}
-	animate_form_part_of_larger_circuit(larger_circuit: LogicCircuit, component_to_replace: string | number) {
-		// TODO
+	animate_form_part_of_larger_circuit(larger_circuit: LogicCircuit, component_to_replace: string, t: number) {
+		// The larger circuit's position and grid size doesn't have to line up with `this.circuit`, this function will make it initially line up then animate it moving back to its original position and scale
+		// Clear graphic bits
+		for(let i = 0; i < this.graphic_bits.length; i++) {
+			let pin = this.graphic_bits[i];
+			pin.rect_ref().remove();// Keep the underlying pin's line ref because its part of the component
+		}
+		// Clear component's rect
+		let component_i: number;
+		let component_i_possible_undef = larger_circuit.component_name_lookup[component_to_replace];
+		if(component_i_possible_undef !== undefined) {
+			component_i = component_i_possible_undef;
+		}
+		else {
+			throw new Error(`Call to animate_form_part_of_larger_circuit references component "${component_to_replace}", which does not exist`);
+		}
+		// If this circuit was previously displayed, remove it
+		if(this.circuit.rect_ref() !== undefined) {
+			this.circuit.rect_ref().remove();
+			this.circuit.rect_ref = createRef<Rect>();
+		}
+		// If larger circuit hasn't been displayed, add it
+		if(larger_circuit.rect_ref() === undefined) {
+			larger_circuit.init_view(this.rect_ref());
+		}
+		this.circuit.init_view(larger_circuit.rect_ref());
+		// Save new circuit's position and grid size
+		let old_grid_size: number = larger_circuit.grid_size();
+		let old_position: Vector2 = larger_circuit.position_grid();
+		// Set new circuit so that its position and grid size lines up with original sub-circuit
+		larger_circuit.grid_size(this.circuit.grid_size());
+		larger_circuit.position_grid(larger_circuit.components[component_i].position_grid().scale(-1));
+		// Reassign things
+		this.circuit.position_grid(larger_circuit.components[component_i].position_grid);
+		this.circuit.grid_size = larger_circuit.grid_size;
+		larger_circuit.components[component_i].rect_ref().remove();
+		larger_circuit.components[component_i] = this.circuit;
+		this.circuit = larger_circuit;
+		this.circuit.assign_pin_signals_from_net_signals();
+		this.create_graphic_bits();
+		this.init_view_graphic_bits();// Must happen after `this.circuit` is reassigned
+		// Propagate & set states correctly
+		this.circuit.compute();
+		this.circuit.animate(0);
+		// Animate
+		let tweens: Array<any> = [];
+		tweens.push(this.circuit.grid_size(old_grid_size, t));
+		tweens.push(this.circuit.position_grid(old_position, t));
+		return tweens;
 	}
 }
 
@@ -704,6 +773,7 @@ export class LogicNet {
 
 export class LogicConnectionPin {
 	state: boolean;
+	state_for_animations: SimpleSignal<boolean>;
 	internally_driven: boolean;
 	externally_driven: boolean;
 	color: SimpleSignal<Color>;
@@ -714,6 +784,7 @@ export class LogicConnectionPin {
 	line_ref: Reference<Line>;
 	constructor(relative_start_grid: Vector2 | SimpleSignal<Vector2>, direction: string, name: string, length: number = 1) {
 		this.state = false;
+		this.state_for_animations = createSignal(false);
 		this.internally_driven = false;
 		this.externally_driven = false;
 		this.color = createSignal(logic_wire_color([false, true]));
@@ -800,7 +871,7 @@ export class LogicSingleIO {
 				fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE*0.7}
 			/>
 		</Rect>);
-		this.pin.init_view(parent_rect, grid_size);
+		//this.pin.init_view(parent_rect, grid_size);
 	}
 	set_state(state: boolean) {
 		this.state(state);

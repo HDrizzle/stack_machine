@@ -362,6 +362,139 @@ export class DLatchEdge8Bit extends LogicDevice {
 		let y_increment: number = 7;
 		let pin_input_x: number = -10;
 		let pin_output_x: number = 5;
+		let clock_conn_y: number = 25;
+		let oe_conn_y: number = clock_conn_y+1;
+		// Create components
+		let components: Array<LogicDevice> = [];
+		// Latches
+		for(let i = 0; i < 8; i++) {
+			components.push(new DLatchEdge(createSignal(new Vector2(latches_x, latches_y_start + y_increment*i)), `latch-${i}`));
+		}
+		// OE buffers
+		for(let i = 0; i < 8; i++) {
+			components.push(new TriBuffer(createSignal(new Vector2(buffers_x, buffers_y_start + y_increment*i)), `buffer-${i}`));
+		}
+		// Create nets
+		let nets: Array<[
+			Array<[string, string] | string>,// Components are referenced by their name and a pin name, an external connection is referenced by its name
+			Array<[Vector2, Array<[number, number]>]>,// Wires (just for graphics)
+			Array<Vector2> | null// Connection dots (just for graphics)
+		]> = [];
+		for(let i = 0; i < 8; i++) {
+			// Data input
+			nets.push([
+				[`D${i}`, [`latch-${i}`, 'D']], [[new Vector2(pin_input_x, pins_y_start + i*y_increment), [[1, 0]]]], []
+			]);
+			// latch -> buffer
+			nets.push([
+				[[`latch-${i}`, 'Q'], [`buffer-${i}`, 'A']], [], []
+			]);
+			// buffer -> output
+			nets.push([
+				[[`buffer-${i}`, 'Q'], `Q${i}`], [], []
+			]);
+		}
+		// CLK & OE
+		let clock_dests: Array<[string, string] | string> = ['CLK'];
+		let clock_wires: Array<[Vector2, Array<[number, number]>]> = [
+			[new Vector2(pin_input_x, clock_conn_y), [[1, 0]]],
+			[new Vector2(pin_input_x+1, latches_y_start+2), [[0, y_increment*7]]]
+		];
+		let clock_points: Array<Vector2> = [
+			new Vector2(pin_input_x+1, clock_conn_y)
+		];
+		let oe_dests: Array<[string, string] | string> = ['OE'];
+		let oe_wires: Array<[Vector2, Array<[number, number]>]> = [
+			[new Vector2(pin_input_x, oe_conn_y), [[0, 3], [15, 0], [0, -57]]]
+		];
+		let oe_points: Array<Vector2> = [];
+		for(let i = 0; i < 8; i++) {
+			clock_dests.push([`latch-${i}`, 'CLK']);
+			if(i >= 1 && i < 7) {
+				clock_points.push(new Vector2(pin_input_x+1, latches_y_start+2+y_increment*i));
+			}
+			oe_dests.push([`buffer-${i}`, 'OE']);
+			oe_wires.push([new Vector2(buffers_x, buffers_y_start+y_increment*i-2), [[3, 0]]]);
+			if(i >= 1) {
+				oe_points.push(new Vector2(buffers_x+3, buffers_y_start+y_increment*i-2));
+			}
+		}
+		nets.push([
+			clock_dests, clock_wires, clock_points
+		]);
+		nets.push([
+			oe_dests, oe_wires, oe_points
+		]);
+		// Create ext connections
+		let ext_conns: Array<LogicConnectionPin> = DLatchEdge8Bit.create_logic_connection_pins(pin_input_x, pin_output_x, pins_y_start, y_increment);
+		let out = new LogicCircuit(
+			components,
+			ext_conns,
+			nets,
+			grid_size,
+			createSignal(new Vector2(10, 0)),
+			unique_name
+		);
+		out.compute();
+		return out;
+	}
+}
+
+export class MemoryBlock256 extends LogicDevice {
+	prev_write_clock_state: boolean;
+	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
+		super(
+			DLatchEdge8Bit.create_logic_connection_pins(-3, 3, -5, 1),
+			position,
+			unique_name
+		);
+		for(let i = 0; i < 8; i++) {
+			this.query_pin(`D${i}`).internally_driven = false;
+			this.query_pin(`Q${i}`).internally_driven = true;
+		}
+		this.query_pin('CLK').internally_driven = false;
+		this.query_pin('OE').internally_driven = false;
+		this.prev_write_clock_state = false;
+	}
+	static create_logic_connection_pins(start_x: number, end_x: number, start_y: number, y_inc: number): Array<LogicConnectionPin> {
+		let out: Array<LogicConnectionPin> = [];
+		for(let i = 0; i < 8; i++) {
+			let y = start_y + y_inc*i;
+			out.push(new LogicConnectionPin(new Vector2(start_x, y), 'w', `D${i}`));
+			out.push(new LogicConnectionPin(new Vector2(end_x, y), 'e', `Q${i}`));
+		}
+		out.push(new LogicConnectionPin(new Vector2(start_x, start_y + 2 + y_inc*7), 'w', "CLK"));
+		out.push(new LogicConnectionPin(new Vector2(start_x, start_y + 3 + y_inc*7), 'w', "OE"));
+		return out;
+	}
+	init_view(parent_rect: View2D | Rect, grid_size: SimpleSignal<number>): void {
+		// TODO
+		parent_rect.add(<Rect
+			ref={this.rect_ref}
+			position={() => this.position_px(grid_size)}
+		>
+			
+		</Rect>);
+		this.init_view_pins(grid_size);
+	}
+	compute_private(): void {
+		// TODO
+	}
+	set_output_enable_state(state: boolean): void {
+		for(let i = 0; i < 8; i++) {
+			this.query_pin(`Q${i}`).internally_driven = state;
+		}
+	}
+	static create_internal_circuit(grid_size: SimpleSignal<number>, unique_name: string | null = null): LogicCircuit {
+		// TODO
+		let latches_x: number = -5;
+		let buffers_x: number = 2;
+		let latches_y_start: number = -24;
+		let buffers_y_start: number = -26;
+		let pins_y_start: number = -26;
+		let y_increment: number = 7;
+		let pin_input_x: number = -10;
+		let pin_output_x: number = 5;
 		// Create components
 		let components: Array<LogicDevice> = [];
 		// Latches
@@ -419,3 +552,55 @@ export class DLatchEdge8Bit extends LogicDevice {
 		return out;
 	}
 }
+
+/*export class FullAdder extends LogicDevice {
+	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
+		super(
+			[
+				new LogicConnectionPin(new Vector2(0, -3), 'n', "Cin"),
+				new LogicConnectionPin(new Vector2(-3, -2), 'w', "A"),
+				new LogicConnectionPin(new Vector2(-3, 2), 'w', "B"),
+				new LogicConnectionPin(new Vector2(3, 2), 'e', "Out"),
+				new LogicConnectionPin(new Vector2(0, 3), 's', "Cout")
+			],
+			position,
+			unique_name
+		);
+		this.pins[0].internally_driven = false;
+		this.pins[1].internally_driven = false;
+		this.pins[2].internally_driven = false;
+		this.pins[3].internally_driven = true;
+		this.pins[4].internally_driven = true;
+	}
+	init_view(parent_rect: Rect, grid_size: SimpleSignal<number>): void {
+		parent_rect.add(<Rect
+			ref={this.rect_ref}
+			position={() => this.position_px(grid_size)}
+		>
+			<Line
+				points={[
+					() => new Vector2(-3, -3).scale(grid_size()),
+					() => new Vector2(3, -3).scale(grid_size()),
+					() => new Vector2(3, 3).scale(grid_size()),
+					() => new Vector2(-3, 3).scale(grid_size()),
+					() => new Vector2(-3, -3).scale(grid_size())
+				]}
+				stroke={this.border_stroke}
+				lineWidth={2}
+			/>
+			<Txt
+				text={'Full Adder'}
+				fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE}
+				fill={'#FFF'}
+				alignContent={'center'}
+				position={() => new Vector2(0, -1).scale(grid_size())}
+			/>
+		</Rect>);
+		this.init_view_pins(grid_size);
+	}
+	compute_private(): void {
+		let out = (this.query_pin('A').state ? 1 : 0) + (this.query_pin('B').state ? 1 : 0) + (this.query_pin('Cin').state ? 1 : 0);
+		this.query_pin('Out').state = (out & 1) + 0;
+		this.query_pin('Cout').state = ((out >> 1) & 1) + 0;
+	}
+}*/

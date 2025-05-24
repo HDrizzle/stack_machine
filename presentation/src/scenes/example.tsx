@@ -7,6 +7,12 @@ import bin_to_dec from '../../images/bin_to_dec_gsheets.png';
 import bin_to_hex from '../../images/bin_to_hex_gsheets.png';
 import led_off from '../../images/led_off.jpeg';
 import led_on from '../../images/led_on.jpeg';
+import image_chips from '../../images/chips.png';
+import image_gpu from '../../images/gpu.jpg';
+import image_cpu from '../../images/cpu.jpg';
+import image_hard_drive from '../../images/hard_drive.jpg';
+import image_ports from '../../images/ports.jpg';
+import image_dram from '../../images/dram.png';
 import { LogicDevice, LogicCircuit, LogicCircuitToplevelWrapper, GateAnd, GateNand, GateOr, GateNor, GateXor, GateXnor, GateNot, LogicConnectionPin } from '../logic_sim';
 import { create_nor_flip_flop, create_d_level_latch, DLatchEdge, DLatchEdge8Bit } from '../derived_circuits';
 
@@ -17,7 +23,6 @@ Parts of a computer (very basic)
 Instructions, what does each line of a program do? (use C++ example)
 Assembly
 Control flow
-Memory
 -- Abstract, how to make the magic happen? --
 Binary intro
 Binary numbers, 0xNumbers
@@ -73,12 +78,23 @@ export default makeScene2D(function* (view) {
 	const slide_title_text_size = 60;
 	const paragraph_text_size = 30;
 	const citation_text_size = 15;
+	const generic_slide_top_left_pos = new Vector2(-half_width*0.9, -half_height*0.7);
 	view.fill('#000');// Background
+	// Slide template
+	/*current_slide_title('Slide Name');
+	slide_ref = createRef<Rect>();
+	view.add(
+		<Rect ref={slide_ref}>
+			
+		</Rect>
+	);
+	yield* beginSlide(current_slide_title());
+	slide_ref().remove();*/
 	// Starting slides
 	// -- Title --
-	const title_ref = createRef<Rect>();
+	let slide_ref = createRef<Rect>();
 	view.add(
-		<Rect ref={title_ref}>
+		<Rect ref={slide_ref}>
 			<Img src={title_slide_background} />
 			<Rect layout direction={'column'}>
 				<Txt textAlign={'center'} fontSize={80} fill={'#fff'}>Computer Design</Txt>
@@ -87,9 +103,10 @@ export default makeScene2D(function* (view) {
 		</Rect>
 	);
 	yield* beginSlide('Title');
-	title_ref().remove();
+	slide_ref().remove();
+	// Text in top-left corner
 	let slide_title_ref = createRef<Txt>();
-	let current_slide_title = createSignal('Goals');
+	let current_slide_title = createSignal('');
 	view.add(<Txt
 		ref={slide_title_ref}
 		text={current_slide_title}
@@ -101,23 +118,56 @@ export default makeScene2D(function* (view) {
 		fill={'#FFF'}
 	/>);
 	// Goals
-	// TODO
+	current_slide_title('Goals for this project');
+	slide_ref = createRef<Rect>();
+	view.add(
+		<Rect ref={slide_ref} layout alignContent={'space-around'} topLeft={generic_slide_top_left_pos} width={half_width*2} height={half_height*2}>
+			<Rect layout direction={'column'} grow={1}>
+				<Txt fontSize={slide_title_text_size} fill={'#FFF'} paddingBottom={100}>• Tetris</Txt>
+				<Txt fontSize={slide_title_text_size} fill={'#FFF'} paddingBottom={100}>• Built with basic chips</Txt>
+				<Txt fontSize={slide_title_text_size} fill={'#FFF'} paddingBottom={100}>• (relatively) Simple</Txt>
+			</Rect>
+			<Rect layout grow={1} direction={'column'}>
+				<Rect layout alignItems={'center'} paddingBottom={30}>
+					<Txt fontSize={slide_title_text_size} fill={'#FFF'} paddingRight={10}>✅</Txt>
+					<Img src={image_chips} maxWidth={half_width*0.7} maxHeight={half_height*0.8} />
+				</Rect>
+				<Rect layout alignItems={'center'}>
+					<Txt fontSize={slide_title_text_size} fill={'#FFF'} paddingRight={10}>❌</Txt>
+					<Img src={image_gpu} maxWidth={half_width*0.7} maxHeight={half_height*0.8} />
+				</Rect>
+			</Rect>
+		</Rect>
+	);
+	yield* beginSlide(current_slide_title());
+	slide_ref().remove();
 	// Parts of a computer (very basic)
 	// TODO
+	// Images needed: Hard drive, CPU, Ports, DRAM stick
+	current_slide_title('Parts of a Computer');
+	slide_ref = createRef<Rect>();
+	view.add(
+		<Rect ref={slide_ref} layout topLeft={generic_slide_top_left_pos} width={half_width*2} height={half_height*2}>
+			<Rect layout direction={'column'} alignItems={'center'} justifyContent={'center'}>
+				<Txt fontSize={slide_title_text_size} fill={'#FFF'}>Storage</Txt>
+				<Img src={image_hard_drive} scale={0.2} />
+			</Rect>
+		</Rect>
+	);
+	yield* beginSlide(current_slide_title());
+	slide_ref().remove();
 	// Instructions, what does each line of a program do? (use C++ example)
 	// TODO
 	// Assembly
 	// TODO
 	// Control flow
 	// TODO
-	// Memory
-	// TODO
 	// -- Abstract, how to make the magic happen? --
 	// Bits intro
-	const bin_intro_ref = createRef<Rect>();
+	current_slide_title('Bits (Binary Digits)');
+	slide_ref = createRef<Rect>();
 	view.add(
-		<Rect ref={bin_intro_ref} layout direction={'column'} width={half_width*2} height={half_height*2}>
-			<Txt fontSize={slide_title_text_size} fill={'#fff'} textAlign={'center'}>Bits (Binary Digits)</Txt>
+		<Rect ref={slide_ref} layout direction={'column'} width={half_width*2} height={half_height*2}>
 			<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'center'}>Also called Boolean values, most basic unit of information</Txt>
 			<Rect layout grow={1} justifyContent={'space-around'}>
 				<Rect layout direction={'column'} justifyContent={'space-around'}>
@@ -135,8 +185,8 @@ export default makeScene2D(function* (view) {
 			</Rect>
 		</Rect>
 	);
-	yield* beginSlide('Bits & bytes');
-	bin_intro_ref().remove();
+	yield* beginSlide(current_slide_title());
+	slide_ref().remove();
 	// Binary numbers, 0xNumbers
 	const bin_ref = createRef<Rect>();
 	view.add(
@@ -149,7 +199,7 @@ export default makeScene2D(function* (view) {
 				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
 					A String of bits can be interpreted as a number. Instead of each place value being a power of 10, they are powers of 2.
 				</Txt>
-				<Img src={binary_decimal}  width={half_width*0.8} alignSelf={'center'}></Img>
+				<Img src={binary_decimal} width={half_width*0.8} alignSelf={'center'}></Img>
 				<Txt fontSize={citation_text_size} fill={'#fff'} textAlign={'center'} textWrap>
 					learningc.org/chapters/chapter01-computers/main-memory.html
 				</Txt>
@@ -264,81 +314,84 @@ export default makeScene2D(function* (view) {
 	logic_circuit.remove();
 	// Adder
 	// TODO
-	// Sequential logic, Flip Flop
-	let ff = new LogicCircuitToplevelWrapper(create_nor_flip_flop(createSignal(40)));
-	ff.init_view(view);
-	//ff.set_pin_state("In-0", false);
-	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
+	// Sequential logic, Flip Flop, Epic animation sequence
+	let sequencial_logic_wrapper = new LogicCircuitToplevelWrapper(create_nor_flip_flop(createSignal(40)));
+	sequencial_logic_wrapper.init_view(view);
+	//sequencial_logic_wrapper.set_pin_state("In-0", false);
+	yield* all(...sequencial_logic_wrapper.compute_and_animate_until_done(0.2, 2));
 	yield* waitFor(2);
-	ff.set_pin_state("In-0", false);
-	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
+	sequencial_logic_wrapper.set_pin_state("In-0", false);
+	yield* all(...sequencial_logic_wrapper.compute_and_animate_until_done(0.2, 2));
 	yield* waitFor(1);
-	ff.set_pin_state("In-1", true);
-	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
-	ff.set_pin_state("In-1", false);
-	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
+	sequencial_logic_wrapper.set_pin_state("In-1", true);
+	yield* all(...sequencial_logic_wrapper.compute_and_animate_until_done(0.2, 2));
+	sequencial_logic_wrapper.set_pin_state("In-1", false);
+	yield* all(...sequencial_logic_wrapper.compute_and_animate_until_done(0.2, 2));
 	yield* waitFor(2);
-	ff.set_pin_state("In-0", true);
-	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
-	ff.set_pin_state("In-0", false);
-	yield* all(...ff.compute_and_animate_until_done(0.2, 2));
+	sequencial_logic_wrapper.set_pin_state("In-0", true);
+	yield* all(...sequencial_logic_wrapper.compute_and_animate_until_done(0.2, 2));
+	sequencial_logic_wrapper.set_pin_state("In-0", false);
+	yield* all(...sequencial_logic_wrapper.compute_and_animate_until_done(0.2, 2));
 	yield* waitFor(2);
-	yield* beginSlide('Flip Flops');
-	ff.remove();
-	// 8 Bit latch
-	let byte_latch_grid_signal = createSignal(18);
-	let byte_latch = new LogicCircuitToplevelWrapper(DLatchEdge8Bit.create_internal_circuit(byte_latch_grid_signal));
-	byte_latch.init_view(view);
-	yield* byte_latch.animate_changes([[`OE`, true]], 0.2, 5);
-	yield* waitFor(0.5);
-	// Demo
-	for(let i = 0; i < 8; i++) {
-		yield* byte_latch.animate_changes([[`D${i}`, true]], 0.1, 5);
-		yield* waitFor(0.5);
-		yield* byte_latch.animate_changes([[`CLK`, true]], 0.1, 5);
-		yield* waitFor(0.5);
-		yield* byte_latch.animate_changes([[`CLK`, false]], 0.1, 5);
-		yield* waitFor(0.5);
-	}
-	yield* byte_latch.animate_changes([[`OE`, false]], 0.1, 5);
-	yield* waitFor(0.5);
-	yield* byte_latch.animate_changes([[`OE`, true]], 0.1, 5);
-	yield* waitFor(0.5);
-	let new_byte_latch_circuit = LogicDevice.create_circuit(new DLatchEdge8Bit(createSignal(new Vector2(0, 0)), 'latch-8-bit'), byte_latch_grid_signal);
-	yield* byte_latch.animate_swap_in_new_circuit(view, new_byte_latch_circuit, 2);
-	yield* waitFor(2);
-	yield* all(...byte_latch.compute_and_animate_until_done(0.1, 5));
-	yield* beginSlide('Byte Latch');
-	byte_latch.remove();
+	//yield* beginSlide('Flip Flops');
+	//sequencial_logic_wrapper.remove();
 	// D latch TEST
-	let d_latch = new LogicCircuitToplevelWrapper(DLatchEdge.create_internal_circuit(createSignal(40)));
-	d_latch.init_view(view);
-	yield* all(...d_latch.compute_and_animate_until_done(0.1, 5));
-	//yield* d_latch.circuit.rect_ref().scale(0.5, 1).to(1, 1);
-	yield* d_latch.animate_changes([["CLK", false], ['D', false]], 0.1, 5);
+	let d_latch = DLatchEdge.create_internal_circuit(createSignal(40));
+	yield* sequencial_logic_wrapper.animate_form_part_of_larger_circuit(d_latch, 'ff', 2);
+	yield* waitFor(2);
+	//sequencial_logic_wrapper.init_view(view);
+	yield* all(...sequencial_logic_wrapper.compute_and_animate_until_done(0.1, 5));
+	//yield* sequencial_logic_wrapper.circuit.rect_ref().scale(0.5, 1).to(1, 1);
+	yield* sequencial_logic_wrapper.animate_changes([["CLK", false], ['D', false]], 0.1, 5);
 	yield* waitFor(0.5);
-	yield* d_latch.animate_changes([['D', true]], 0.1, 5);
+	yield* sequencial_logic_wrapper.animate_changes([['D', true]], 0.1, 5);
 	yield* waitFor(0.5);
-	yield* d_latch.animate_changes([['CLK', true]], 0.1, 5);
+	yield* sequencial_logic_wrapper.animate_changes([['CLK', true]], 0.1, 5);
 	yield* waitFor(0.3);
-	yield* d_latch.animate_changes([['CLK', false]], 0.1, 5);
+	yield* sequencial_logic_wrapper.animate_changes([['CLK', false]], 0.1, 5);
 	yield* waitFor(0.5);
-	yield* d_latch.animate_changes([['D', false]], 0.1, 5);
+	yield* sequencial_logic_wrapper.animate_changes([['D', false]], 0.1, 5);
 	yield* waitFor(0.5);
-	yield* d_latch.animate_changes([['CLK', true]], 0.1, 5);
+	yield* sequencial_logic_wrapper.animate_changes([['CLK', true]], 0.1, 5);
 	yield* waitFor(0.5);
-	yield* d_latch.animate_changes([['D', true]], 0.1, 5);
+	yield* sequencial_logic_wrapper.animate_changes([['D', true]], 0.1, 5);
 	yield* waitFor(0.5);
-	yield* d_latch.animate_changes([['CLK', false]], 0.1, 5);
+	yield* sequencial_logic_wrapper.animate_changes([['CLK', false]], 0.1, 5);
 	yield* waitFor(0.5);
-	yield* d_latch.animate_changes([['CLK', true]], 0.1, 5);
+	yield* sequencial_logic_wrapper.animate_changes([['CLK', true]], 0.1, 5);
 	yield* waitFor(0.3);
 	// Swap with other latch graphic
 	let new_latch_circuit = LogicDevice.create_circuit(new DLatchEdge(createSignal(new Vector2(0, 0)), 'latch'), createSignal(40));
-	yield* d_latch.animate_swap_in_new_circuit(view, new_latch_circuit, 2);
+	yield* sequencial_logic_wrapper.animate_swap_in_new_circuit(view, new_latch_circuit, 2);
 	yield* waitFor(2);
-	yield* beginSlide('D Latch');
-	d_latch.remove();
+	//yield* beginSlide('D Latch');
+	//sequencial_logic_wrapper.remove();
+	// 8 Bit latch
+	let byte_latch_grid_signal = createSignal(18);
+	let byte_latch = DLatchEdge8Bit.create_internal_circuit(byte_latch_grid_signal);
+	yield* sequencial_logic_wrapper.animate_form_part_of_larger_circuit(byte_latch, 'latch-0', 2);
+	yield* waitFor(2);
+	yield* sequencial_logic_wrapper.animate_changes([[`OE`, true]], 0.2, 5);
+	yield* waitFor(0.5);
+	// Demo
+	for(let i = 0; i < 8; i++) {
+		yield* sequencial_logic_wrapper.animate_changes([[`D${i}`, true]], 0.1, 5);
+		yield* waitFor(0.5);
+		yield* sequencial_logic_wrapper.animate_changes([[`CLK`, true]], 0.1, 5);
+		yield* waitFor(0.5);
+		yield* sequencial_logic_wrapper.animate_changes([[`CLK`, false]], 0.1, 5);
+		yield* waitFor(0.5);
+	}
+	yield* sequencial_logic_wrapper.animate_changes([[`OE`, false]], 0.1, 5);
+	yield* waitFor(0.5);
+	yield* sequencial_logic_wrapper.animate_changes([[`OE`, true], [`CLK`, true]], 0.1, 5);
+	yield* waitFor(0.5);
+	let new_byte_latch_circuit = LogicDevice.create_circuit(new DLatchEdge8Bit(createSignal(new Vector2(0, 0)), 'latch-8-bit'), byte_latch_grid_signal);
+	yield* sequencial_logic_wrapper.animate_swap_in_new_circuit(view, new_byte_latch_circuit, 2);
+	yield* waitFor(2);
+	yield* all(...sequencial_logic_wrapper.compute_and_animate_until_done(0.1, 5));
+	yield* beginSlide('Byte Latch');
+	sequencial_logic_wrapper.remove();
 	// Clock
 	// TODO
 	// C++ to Assembly, what do programs do?
