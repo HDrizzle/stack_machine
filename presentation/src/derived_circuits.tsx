@@ -39,6 +39,7 @@ export function create_nor_flip_flop(grid_size: SimpleSignal<number>, unique_nam
 		grid_size,
 		createSignal(new Vector2(0, 0)),
 		unique_name,
+		[],
 		2
 	);
 	out.set_pin_state("In-0", true);
@@ -161,35 +162,35 @@ export class LayoutQuadAnd extends LogicCircuit {
 					[[new Vector2(8, 4), [[2, 0], [0, 4]]]], []
 				],
 				[
-					['8', ['and-2', 'a']],
-					[[new Vector2(15, -8), [[0, 5], [-3, 0]]]], []
+					['8', ['and-2', 'q']],
+					[[new Vector2(5, -8), [[0, 5], [3, 0]]]], []
 				],
 				[
 					['9', ['and-2', 'b']],
-					[[new Vector2(10, -8), [[0, 1], [3, 0], [0, 2]]]], []
+					[[new Vector2(10, -8), [[0, 1], [-3, 0], [0, 2]]]], []
 				],
 				[
-					['10', ['and-2', 'q']],
-					[[new Vector2(7, -4), [[-2, 0], [0, -4]]]], []
+					['10', ['and-2', 'a']],
+					[[new Vector2(13, -4), [[2, 0], [0, -4]]]], []
 				],
 				[
-					['11', ['and-3', 'a']],
-					[[new Vector2(0, -8), [[0, 5], [-3, 0]]]], []
+					['11', ['and-3', 'q']],
+					[[new Vector2(-10, -8), [[0, 5], [3, 0]]]], []
 				],
 				[
 					['12', ['and-3', 'b']],
-					[[new Vector2(-5, -8), [[0, 1], [3, 0], [0, 2]]]], []
+					[[new Vector2(-5, -8), [[0, 1], [-3, 0], [0, 2]]]], []
 				],
 				[
-					['13', ['and-3', 'q']],
-					[[new Vector2(-8, -4), [[-2, 0], [0, -4]]]], []
+					['13', ['and-3', 'a']],
+					[[new Vector2(-2, -4), [[2, 0], [0, -4]]]], []
 				],
 			],
 			grid_size,
 			position_grid,
 			'quad-and-layout'
 		);
-		let pins_to_set_high = ['1', '2', '4', '5', '8', '9', '11', '12'];
+		let pins_to_set_high = ['1', '2', '4', '5', '9', '10', '12', '13'];
 		for(let i = 0; i < pins_to_set_high.length; i++) {
 			this.set_pin_state(pins_to_set_high[i], true);
 		}
@@ -219,8 +220,6 @@ export class LayoutQuadAnd extends LogicCircuit {
 		/>);
 		this.rect_ref().add(<Txt fontSize={() => this.grid_size()*FONT_GRID_SIZE_SCALE} position={() => new Vector2(-15, -7).scale(this.grid_size())} fill={'#FFF'}>POWER</Txt>);
 		this.rect_ref().add(<Txt fontSize={() => this.grid_size()*FONT_GRID_SIZE_SCALE} position={() => new Vector2(15, 7).scale(this.grid_size())} fill={'#FFF'}>GND</Txt>);
-		this.components[2].rect_ref().rotation(180);
-		this.components[3].rect_ref().rotation(180);
 	}
 }
 
@@ -455,13 +454,17 @@ export class DLatchEdge8Bit extends LogicDevice {
 		this.init_view_pins(grid_size);
 	}
 	compute_private(): void {
+		let n = 0;
 		if(this.pins[16].state && !this.prev_clock_state) {
 			for(let i = 0; i < 8; i++) {
-				this.query_pin(`Q${i}`).state = this.query_pin(`D${i}`).state;
+				let pin_state = this.query_pin(`D${i}`).state;
+				this.query_pin(`Q${i}`).state = pin_state;
+				n += (pin_state ? 1 : 0) * (1 << i);
 			}
 		}
 		this.prev_clock_state = this.query_pin('CLK').state;
 		this.set_output_enable_state(this.query_pin('OE').state);
+		this.state(n);
 	}
 	set_output_enable_state(state: boolean): void {
 		for(let i = 0; i < 8; i++) {
@@ -668,29 +671,30 @@ export class MemoryBlock256 extends LogicDevice {
 	}
 }
 
-/*export class FullAdder extends LogicDevice {
-	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
+export class FullAdder extends LogicDevice {
+	constructor(position: SimpleSignal<Vector2>, unique_name: string = 'adder-1-bit') {
 		super(
 			[
-				new LogicConnectionPin(new Vector2(0, -3), 'n', "Cin"),
-				new LogicConnectionPin(new Vector2(-3, -2), 'w', "A"),
-				new LogicConnectionPin(new Vector2(-3, 2), 'w', "B"),
-				new LogicConnectionPin(new Vector2(3, 2), 'e', "Out"),
-				new LogicConnectionPin(new Vector2(0, 3), 's', "Cout")
+				new LogicConnectionPin(new Vector2(3, 0), 'e', "Cin"),
+				new LogicConnectionPin(new Vector2(-2, -3), 'n', "A"),
+				new LogicConnectionPin(new Vector2(2, -3), 'n', "B"),
+				new LogicConnectionPin(new Vector2(0, 3), 's', "Out"),
+				new LogicConnectionPin(new Vector2(-3, 0), 'w', "Cout")
 			],
 			position,
 			unique_name
 		);
-		this.pins[0].internally_driven = false;
-		this.pins[1].internally_driven = false;
-		this.pins[2].internally_driven = false;
-		this.pins[3].internally_driven = true;
-		this.pins[4].internally_driven = true;
+		this.set_pin_state('Cin', false);
+		this.set_pin_state('A', false);
+		this.set_pin_state('B', false);
+		this.query_pin('Out').internally_driven = true;
+		this.query_pin('Cout').internally_driven = true;
 	}
 	init_view(parent_rect: Rect, grid_size: SimpleSignal<number>): void {
 		parent_rect.add(<Rect
 			ref={this.rect_ref}
 			position={() => this.position_px(grid_size)}
+			rotation={this.rotation}
 		>
 			<Line
 				points={[
@@ -703,19 +707,348 @@ export class MemoryBlock256 extends LogicDevice {
 				stroke={this.border_stroke}
 				lineWidth={2}
 			/>
+			<Line
+				points={[
+					() => new Vector2(-0.9, 1.55).scale(grid_size()),
+					() => new Vector2(0.3, 1.55).scale(grid_size())
+				]}
+				stroke={this.border_stroke}
+				lineWidth={2}
+			/>
 			<Txt
 				text={'Full Adder'}
 				fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE}
 				fill={'#FFF'}
 				alignContent={'center'}
-				position={() => new Vector2(0, -1).scale(grid_size())}
+				position={() => new Vector2(0, -2).scale(grid_size())}
+			/>
+			<Txt
+				text={() => this.get_pin_string('Cin')/* Carry line */}
+				fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE*0.7}
+				fill={'#FFF'}
+				position={() => new Vector2(0, -0.7).scale(grid_size())}
+			/>
+			<Txt
+				text={() => this.get_pin_string('A')/* A in */}
+				fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE*0.7}
+				fill={'#FFF'}
+				position={() => new Vector2(0, 0.2).scale(grid_size())}
+			/>
+			<Txt
+				text={() => `+ ${this.get_pin_string('B')}`/* B in */}
+				fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE*0.7}
+				fill={'#FFF'}
+				position={() => new Vector2(-0.3, 1.1).scale(grid_size())}
+			/>
+			<Txt
+				text={() => `${this.get_pin_string('Cout')} ${this.get_pin_string('Out')}`/* Result & carry out line */}
+				fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE*0.7}
+				fill={'#FFF'}
+				position={() => new Vector2(-0.3, 2).scale(grid_size())}
 			/>
 		</Rect>);
 		this.init_view_pins(grid_size);
 	}
+	get_pin_string(name: string): string {
+		return this.query_pin(name).state_for_animations() ? '1': '0';
+	}
 	compute_private(): void {
 		let out = (this.query_pin('A').state ? 1 : 0) + (this.query_pin('B').state ? 1 : 0) + (this.query_pin('Cin').state ? 1 : 0);
-		this.query_pin('Out').state = (out & 1) + 0;
-		this.query_pin('Cout').state = ((out >> 1) & 1) + 0;
+		this.query_pin('Out').state = (out & 1) ? true : false;
+		this.query_pin('Cout').state = ((out >> 1) & 1) ? true : false;
+	}
+	static create_internal_circuit(grid_size: SimpleSignal<number>, unique_name: string | null = null): LogicCircuit {
+		let out = new LogicCircuit(
+			[
+				new GateXor(createSignal(new Vector2(3, -4)), 'xor-a-b', 's'),
+				new GateAnd(createSignal(new Vector2(-3, -4)), 'and-a-b', 's'),
+				new GateXor(createSignal(new Vector2(3, 4)), 'xor-cin', 's'),
+				new GateAnd(createSignal(new Vector2(-3, 4)), 'and-cin', 's'),
+				new GateOr(createSignal(new Vector2(-9, 0)), 'or-cout', 'e')
+			],
+			[
+				new LogicConnectionPin(new Vector2(5, 0), 'e', 'Cin'),
+				new LogicConnectionPin(new Vector2(-5, -8), 'n', 'A'),
+				new LogicConnectionPin(new Vector2(5, -8), 'n', 'B'),
+				new LogicConnectionPin(new Vector2(0, 8), 's', 'Out'),
+				new LogicConnectionPin(new Vector2(-12, 0), 'w', 'Cout'),
+			],
+			[
+				[
+					['Cin', ['xor-cin', 'a'], ['and-cin', 'a']],
+					[[new Vector2(5, 0), [[-7, 0], [0, 1]]], [new Vector2(4, 0), [[0, 1]]]],
+					[new Vector2(4, 0)]
+				],
+				[
+					[['xor-a-b', 'q'], ['xor-cin', 'b'], ['and-cin', 'b']],
+					[[new Vector2(3, -1), [[0, 2], [-7, 0]]]],
+					[new Vector2(2, 1)]
+				],
+				[
+					['A', ['and-a-b', 'b'], ['xor-a-b', 'b']],
+					[[new Vector2(-5, -8), [[0, 1], [7, 0]]]],
+					[new Vector2(-4, -7)]
+				],
+				[
+					['B', ['and-a-b', 'a'], ['xor-a-b', 'a']],
+					[[new Vector2(5, -8), [[-7, 0], [0, 1]]], [new Vector2(4, -8), [[0, 1]]]],
+					[new Vector2(4, -8)]
+				],
+				[
+					[['xor-cin', 'q'], 'Out'],
+					[[new Vector2(3, 7), [[0, 1], [-3, 0]]]],
+					[]
+				],
+				[
+					[['and-cin', 'q'], ['or-cout', 'a']],
+					[[new Vector2(-3, 7), [[-3, 0], [0, -6]]]],
+					[]
+				],
+				[
+					[['and-a-b', 'q'], ['or-cout', 'b']],
+					[[new Vector2(-3, -1), [[-3, 0]]]],
+					[]
+				],
+				[
+					[['or-cout', 'q'], 'Cout'],
+					[],
+					[]
+				]
+			],
+			grid_size,
+			createSignal(new Vector2(0, 0)),
+			unique_name
+		);
+		out.set_pin_state('Cin', false);
+		out.set_pin_state('A', false);
+		out.set_pin_state('B', false);
+		out.compute();
+		return out;
+	}
+}
+
+export abstract class ParameterizedAdder extends LogicDevice {
+	n: number;
+	half_width: number;
+	half_height: number;
+	constructor(
+		n: number,
+		half_width: number,
+		half_height: number,
+		pins: Array<LogicConnectionPin>,
+		position: SimpleSignal<Vector2>,
+		unique_name: string = 'parameterized-adder'
+	) {
+		if(n < 1) {
+			throw new Error(`ParameterizedAdder bitwidth must be >= 1, not ${n}`);
+		}
+		super(
+			pins,
+			position,
+			unique_name
+		)
+		this.n = n;
+		this.half_width = half_width;
+		this.half_height = half_height;
+		for(let i = 0; i < n; i++) {
+			this.set_pin_state(`A-${i}`, false);
+			this.set_pin_state(`B-${i}`, false);
+		}
+		this.compute();
+		this.animate(0);
+	}
+	abstract init_view(parent_rect: View2D | Rect, grid_size: SimpleSignal<number>): void;
+	compute_private(): void {
+		// TODO
+	}
+	static create_internal_circuit(n: number, grid_size: SimpleSignal<number>, unique_name: string = 'parameterized-adder'): LogicCircuit {
+		// Spacing parameters
+		let x_increment = 8;
+		let adders_x_start = -n * x_increment / 2;// X increment is an even number so the 1/2 factor is fine
+		let a_x_start = adders_x_start - 2;
+		let b_x_start = adders_x_start + 2;
+		let inputs_y = -4;
+		let outputs_y = 4;
+		// Components (only adders), External connections, & Nets
+		let components: Array<LogicDevice> = [];
+		let ext_conns: Array<LogicConnectionPin> = [
+			new LogicConnectionPin(new Vector2(adders_x_start + (n-1)*x_increment + 4, 0), 'e', 'Cin'),
+			new LogicConnectionPin(new Vector2(adders_x_start - 4, 0), 'w', 'Cout')
+		];
+		let nets: Array<[
+			Array<[string, string] | string>,// Components are referenced by their name and a pin name, an external connection is referenced by its name
+			Array<[Vector2, Array<[number, number]>]>,// Wires (just for graphics)
+			Array<Vector2> | null// Connection dots (just for graphics)
+		]> = [// Start of with carry in and out
+			[
+				['Cin', ['adder-0', 'Cin']], [], []
+			],
+			[
+				[[`adder-${n-1}`, 'Cout'], 'Cout'], [], []
+			]
+		];
+		for(let i = 0; i < n; i++) {
+			let scaled_i = i*x_increment;
+			let bit_i = n - 1 - i;// MSB at the left
+			components.push(new FullAdder(createSignal(new Vector2(adders_x_start + scaled_i, 0)), `adder-${bit_i}`));
+			ext_conns.push(new LogicConnectionPin(new Vector2(a_x_start + scaled_i, inputs_y), 'n', `A-${bit_i}`));
+			ext_conns.push(new LogicConnectionPin(new Vector2(b_x_start + scaled_i, inputs_y), 'n', `B-${bit_i}`));
+			ext_conns.push(new LogicConnectionPin(new Vector2(adders_x_start + scaled_i, outputs_y), 's', `Out-${bit_i}`));
+			nets.push([
+				[`A-${bit_i}`, [`adder-${bit_i}`, 'A']], [], []
+			]);
+			nets.push([
+				[`B-${bit_i}`, [`adder-${bit_i}`, 'B']], [], []
+			]);
+			nets.push([
+				[[`adder-${bit_i}`, 'Out'], `Out-${bit_i}`], [], []
+			]);
+			if(i >= 1) {// Carry connection between adders
+				nets.push([
+					[[`adder-${bit_i+1}`, 'Cin'], [`adder-${bit_i}`, 'Cout']], [], []
+				]);
+			}
+		}
+		let out = new LogicCircuit(
+			components,
+			ext_conns,
+			nets,
+			grid_size,
+			createSignal(new Vector2(0, 0)),
+			unique_name
+		);
+		for(let i = 0; i < n; i++) {
+			out.set_pin_state(`A-${i}`, false);
+			out.set_pin_state(`B-${i}`, false);
+		}
+		out.set_pin_state('Cin', false);
+		out.compute();
+		out.animate(0);
+		return out;
+	}
+}
+
+export class ParameterizedAdderHorizontal extends ParameterizedAdder {
+	constructor(n: number, position: SimpleSignal<Vector2>, unique_name: string = 'parameterized-adder') {
+		// Input numbers will be seperated with A on the left and B on the right, each number will be from MSB to LSB
+		let half_width = n+1;
+		let half_height = 3;
+		// Build pins
+		let pins: Array<LogicConnectionPin> = [
+			new LogicConnectionPin(new Vector2(half_width, 0), 'e', 'Cin'),
+			new LogicConnectionPin(new Vector2(-half_width, 0), 'w', 'Cout')
+		];
+		for(let i = 0; i < n; i++) {
+			let a_and_out_x = i - n;
+			let b_x = i + 1;
+			let bit_i = n - 1 - i;// MSB at the left
+			pins.push(new LogicConnectionPin(new Vector2(a_and_out_x, -half_height), 'n', `A-${bit_i}`));
+			pins.push(new LogicConnectionPin(new Vector2(b_x, -half_height), 'n', `B-${bit_i}`));
+			pins.push(new LogicConnectionPin(new Vector2(a_and_out_x, half_height), 's', `Out-${bit_i}`));
+		}
+		super(
+			n,
+			half_width,
+			half_height,
+			pins,
+			position,
+			unique_name
+		)
+	}
+	init_view(parent_rect: View2D | Rect, grid_size: SimpleSignal<number>): void {
+		parent_rect.add(<Rect
+			ref={this.rect_ref}
+			position={() => this.position_px(grid_size)}
+			rotation={this.rotation}
+		>
+			<Line
+				points={[
+					() => new Vector2(-this.half_width, -this.half_height).scale(grid_size()),
+					() => new Vector2(this.half_width, -this.half_height).scale(grid_size()),
+					() => new Vector2(this.half_width, this.half_height).scale(grid_size()),
+					() => new Vector2(-this.half_width, this.half_height).scale(grid_size()),
+					() => new Vector2(-this.half_width, -this.half_height).scale(grid_size())
+				]}
+				stroke={this.border_stroke}
+				lineWidth={2}
+			/>
+			<Txt
+				text={`${this.n}-Bit Adder`}
+				fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE}
+				fill={'#FFF'}
+				alignContent={'center'}
+				position={() => new Vector2(0, -2).scale(grid_size())}
+			/>
+			<Line
+				points={[
+					() => new Vector2(-0.9, 1.55).scale(grid_size()),
+					() => new Vector2(0.3, 1.55).scale(grid_size())
+				]}
+				stroke={this.border_stroke}
+				lineWidth={2}
+			/>
+		</Rect>);
+		this.init_view_pins(grid_size);
+	}
+}
+
+export class ParameterizedAdderVertical extends ParameterizedAdder {
+	constructor(n: number, position: SimpleSignal<Vector2>, unique_name: string = 'parameterized-adder') {
+		// Input numbers will be seperated with A on the left and B on the right, each number will be from MSB to LSB
+		let half_width = 3;
+		let half_height = n+1;
+		// Build pins
+		let pins: Array<LogicConnectionPin> = [
+			new LogicConnectionPin(new Vector2(0, -half_height), 'n', 'Cin'),
+			new LogicConnectionPin(new Vector2(0, half_height), 's', 'Cout')
+		];
+		for(let i = 0; i < n; i++) {
+			let a_and_out_y = i - n;
+			let b_y = i + 1;
+			pins.push(new LogicConnectionPin(new Vector2(-half_width, a_and_out_y), 'w', `A-${i}`));
+			pins.push(new LogicConnectionPin(new Vector2(-half_width, b_y), 'w', `B-${i}`));
+			pins.push(new LogicConnectionPin(new Vector2(half_width, a_and_out_y), 'e', `Out-${i}`));
+		}
+		super(
+			n,
+			half_width,
+			half_height,
+			pins,
+			position,
+			unique_name
+		)
+	}
+	init_view(parent_rect: View2D | Rect, grid_size: SimpleSignal<number>): void {
+		parent_rect.add(<Rect
+			ref={this.rect_ref}
+			position={() => this.position_px(grid_size)}
+			rotation={this.rotation}
+		>
+			<Line
+				points={[
+					() => new Vector2(-this.half_width, -this.half_height).scale(grid_size()),
+					() => new Vector2(this.half_width, -this.half_height).scale(grid_size()),
+					() => new Vector2(this.half_width, this.half_height).scale(grid_size()),
+					() => new Vector2(-this.half_width, this.half_height).scale(grid_size()),
+					() => new Vector2(-this.half_width, -this.half_height).scale(grid_size())
+				]}
+				stroke={this.border_stroke}
+				lineWidth={2}
+			/>
+			<Txt
+				text={`${this.n}-Bit Adder`}
+				fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE}
+				fill={'#FFF'}
+				alignContent={'center'}
+				position={() => new Vector2(0, -2).scale(grid_size())}
+			/>
+		</Rect>);
+		this.init_view_pins(grid_size);
+	}
+}
+
+/*export class ParameterizedDecoder extends LogicDevice {
+	constructor(position: SimpleSignal<Vector2>, unique_name: string = 'decoder') {
+		// TODO
 	}
 }*/

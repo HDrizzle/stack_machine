@@ -38,22 +38,65 @@ export function direction_to_unit_vec(dir: string): Vector2 {
 	}
 }
 
+export function direction_and_rel_turn_to_unit_vec(dir: string, turn_left: boolean): Vector2 {
+	if(turn_left) {
+		switch(dir.toLowerCase()) {
+			case "n":
+				return new Vector2(-1, 0);
+			case "s":
+				return new Vector2(1, 0);
+			case "e":
+				return new Vector2(0, -1);
+			case "w":
+				return new Vector2(0, 1);
+		}
+	}
+	else {
+		switch(dir.toLowerCase()) {
+			case "s":
+				return new Vector2(-1, 0);
+			case "n":
+				return new Vector2(1, 0);
+			case "w":
+				return new Vector2(0, -1);
+			case "e":
+				return new Vector2(0, 1);
+		}
+	}
+}
+
+export function direction_to_rotation(dir: string): number {
+	switch(dir.toLowerCase()) {
+		case "n":
+			return -90;
+		case "s":
+			return 90;
+		case "e":
+			return 180;
+		case "w":
+			return 0;
+	}
+}
+
 // Could be a simple gate, or something more complicated like an adder, or maybe even the whole computer
 export abstract class LogicDevice {
 	pins: Array<LogicConnectionPin>;
 	rect_ref: Reference<Rect>;
 	position_grid: SimpleSignal<Vector2> | (() => Vector2);
 	border_stroke: SimpleSignal<Color>;
-	unique_name: string | null;
+	unique_name: string;
 	pin_name_lookup: {[unique_name: string]: number};
 	sub_compute_cycles: number;
 	logger: Logger | Console;
+	rotation: SimpleSignal<number>;
 	constructor(
 		pins: Array<LogicConnectionPin>,// [Position, Outgoing direction, Name], or with the length specified as something other than 1
 		position_grid: SimpleSignal<Vector2> | (() => Vector2),
-		unique_name: string | null = null,
-		sub_compute_cycles: number = 1// If this device (or circuit) needs extra cycles for the output to propogate correctly
+		unique_name: string,
+		sub_compute_cycles: number = 1,// If this device (or circuit) needs extra cycles for the output to propogate correctly
+		orientation: string = 'w'
 	) {
+		this.rotation = createSignal(direction_to_rotation(orientation));
 		this.position_grid = position_grid;
 		this.border_stroke = createSignal(new Color('#FFF'));
 		this.unique_name = unique_name
@@ -187,7 +230,13 @@ export abstract class LogicDevice {
 		let nets: Array<[Array<[string, string] | string>, [], []]> = [];
 		for(let i = 0; i < device.pins.length; i++) {
 			let device_pin = device.pins[i];
-			ext_conn_pins.push(new LogicConnectionPin(device_pin.relative_start_grid, device_pin.direction, device_pin.name, device_pin.length));
+			let new_ext_conn = new LogicConnectionPin(device_pin.relative_start_grid, device_pin.direction, device_pin.name, device_pin.length);
+			// If device's pin is set to a default value, copy it to this new circuit's external connections
+			if(device_pin.externally_driven) {
+				new_ext_conn.externally_driven = true;
+				new_ext_conn.state = device_pin.state;
+			}
+			ext_conn_pins.push(new_ext_conn);
 			// assign net
 			nets.push([
 				[[device.unique_name, device_pin.name], device_pin.name],
@@ -200,8 +249,7 @@ export abstract class LogicDevice {
 			nets,
 			grid_size,
 			createSignal(new Vector2(0, 0)),
-			device.unique_name,
-			1
+			device.unique_name
 		)
 	}
 }
@@ -221,6 +269,7 @@ export class LogicCircuit extends LogicDevice {
 	rect_ref: Reference<Rect>;
 	position_grid: SimpleSignal<Vector2>;
 	component_name_lookup: {[unique_name: string]: number};
+	graphic_buses: Array<GraphicBus>;
 	//external_connections_name_lookup: {[unique_name: string]: number};
 	constructor(
 		components: Array<LogicDevice>,
@@ -232,7 +281,8 @@ export class LogicCircuit extends LogicDevice {
 		]>,
 		grid_size: SimpleSignal<number>,
 		position_grid: SimpleSignal<Vector2> | (() => Vector2) = createSignal(new Vector2(0, 0)),
-		unique_name: string | null = null,
+		unique_name: string,
+		graphic_buses: Array<GraphicBus> = [],
 		sub_compute_cycles: number = 1
 	) {
 		/*let pin_locations: Array<[Vector2, string]> = [];
@@ -242,6 +292,7 @@ export class LogicCircuit extends LogicDevice {
 		super(external_connections, position_grid, unique_name, sub_compute_cycles);
 		this.components = components;
 		this.grid_size = grid_size;
+		this.graphic_buses = graphic_buses;
 		// Find component names
 		this.component_name_lookup = {};
 		for(let component_i = 0; component_i < this.components.length; component_i++) {
@@ -359,7 +410,7 @@ export class LogicCircuit extends LogicDevice {
 		this.rect_ref = createRef<Rect>();
 	}
 	init_view(view: View2D | Rect) {
-		view.add(<Rect ref={this.rect_ref} position={() => this.position_grid().scale(this.grid_size())}/>);
+		view.add(<Rect rotation={this.rotation} ref={this.rect_ref} position={() => this.position_grid().scale(this.grid_size())}/>);
 		for(let i = 0; i < this.components.length; i++) {
 			this.components[i].init_view(this.rect_ref(), this.grid_size);
 		}
@@ -367,18 +418,7 @@ export class LogicCircuit extends LogicDevice {
 		for(let net_i = 0; net_i < this.nets.length; net_i++) {
 			let net = this.nets[net_i];
 			for(let wire_i = 0; wire_i < net.wires.length; wire_i++) {
-				let starting_pos: Vector2 = net.wires[wire_i][0];
-				let points_grid: Array<Vector2> = [starting_pos];
-				for(let seg_i = 0; seg_i < net.wires[wire_i][1].length; seg_i++) {
-					let displacement_grid = net.wires[wire_i][1][seg_i];
-					let total_displacement = displacement_grid.add(points_grid[seg_i]);
-					points_grid.push(total_displacement);
-				}
-				this.rect_ref().add(<Line
-					stroke={net.color}
-					lineWidth={2}
-					points={() => points_grid.map((grid_pos) => grid_pos.scale(this.grid_size()))}
-				/>);
+				net.wires[wire_i].init_view(this.rect_ref(), net.color, this.grid_size);
 			}
 			for(let dot_i = 0; dot_i < net.connection_dots.length; dot_i++) {
 				this.rect_ref().add(<Circle
@@ -388,6 +428,10 @@ export class LogicCircuit extends LogicDevice {
 					fill={net.color}
 				/>);
 			}
+		}
+		// Buses
+		for(let bus_i = 0; bus_i < this.graphic_buses.length; bus_i++) {
+			this.graphic_buses[bus_i].init_view(this.rect_ref(), this.grid_size);
 		}
 		this.init_view_pins(this.grid_size);
 	}
@@ -650,6 +694,10 @@ export class LogicCircuitToplevelWrapper {
 	animate_swap_in_new_circuit(parent_rect: View2D | Rect, new_circuit: LogicCircuit, t: number) {
 		// All external connection names have to match perfectly
 		let tweens: Array<any> = [];
+		// Save new circuit's grid size
+		let new_circuit_og_grid_size: number = new_circuit.grid_size();
+		new_circuit.grid_size(this.circuit.grid_size());
+		tweens.push(new_circuit.grid_size(new_circuit_og_grid_size, t));
 		// Old circuit fade out
 		tweens.push(this.circuit.rect_ref().opacity(0, t));
 		// New circuit fade in
@@ -663,8 +711,8 @@ export class LogicCircuitToplevelWrapper {
 			let old_abs_position = pin.pin.relative_start_grid().add(this.circuit.position_grid());
 			let old_state = pin.pin.state;
 			let old_ext_driven = pin.pin.externally_driven;
-			// Reassign pin
-			pin.pin = new_circuit.pins[i];
+			// Reassign pin, make sure to look up name in `new_circuit` because pin indices may not match
+			pin.pin = new_circuit.query_pin(pin.pin.name);
 			pin.pin.state = old_state;
 			pin.pin.externally_driven = old_ext_driven;
 			let new_final_rel_position = pin.pin.relative_start_grid()
@@ -739,6 +787,36 @@ export class LogicCircuitToplevelWrapper {
 	}
 }
 
+export class GraphicWire {
+	start: Vector2;
+	steps: Array<Vector2>;
+	thickness: number;
+	constructor(
+		l: [Vector2, Array<[number, number]>],
+		thickness: number
+	) {
+		this.thickness = thickness;
+		this.start = l[0];
+		this.steps = [];
+		for(let conn_i = 0; conn_i < l[1].length; conn_i++) {
+			this.steps.push(new Vector2(...l[1][conn_i]));
+		}
+	}
+	init_view(view: View2D | Rect, color_signal: SimpleSignal<Color>, grid_size: SimpleSignal<number>) {
+		let points_grid: Array<Vector2> = [this.start];
+		for(let seg_i = 0; seg_i < this.steps.length; seg_i++) {
+			let displacement_grid = this.steps[seg_i];
+			let total_displacement = displacement_grid.add(points_grid[seg_i]);
+			points_grid.push(total_displacement);
+		}
+		view.add(<Line
+			stroke={color_signal}
+			lineWidth={2}
+			points={() => points_grid.map((grid_pos) => grid_pos.scale(grid_size()))}
+		/>);
+	}
+}
+
 export class LogicNet {
 	// Color signal for animation
 	color: SimpleSignal<Color>;
@@ -748,7 +826,7 @@ export class LogicNet {
 	external_connections: Array<number>;
 	// Graphical connections (does not affect simulation)
 	// Each wire has a starting position, then a list of displacement vectors (in grid space) that are chained together
-	wires: Array<[Vector2, Array<Vector2>]>;
+	wires: Array<GraphicWire>;
 	connection_dots: Array<Vector2>;
 	constructor(component_connections: Array<[number, number]>, external_connections: Array<number>, wires: Array<[Vector2, Array<[number, number]>]>, connection_dots: Array<Vector2> | null) {
 		this.color = createSignal(logic_wire_color([false, true]));
@@ -762,18 +840,68 @@ export class LogicNet {
 			this.connection_dots = connection_dots;
 		}
 		for(let i = 0; i < wires.length; i++) {
-			let wire_connections = [];
-			for(let conn_i = 0; conn_i < wires[i][1].length; conn_i++) {
-				let [x, y] = wires[i][1][conn_i];
-				wire_connections.push(new Vector2(x, y));
+			this.wires.push(new GraphicWire(wires[i], 2));
+		}
+	}
+}
+
+export class GraphicBus {
+	static wire_thickness: number = 3;
+	// Each wire has a starting position, then a list of displacement vectors (in grid space) that are chained together
+	wires: Array<GraphicWire>;
+	fanouts: Array<[starting_pos: Vector2, direction: string, spacing: number, turn_left: boolean]>;
+	color_signal: SimpleSignal<Color>;
+	bit_width: number;
+	constructor(
+		bit_width: number,
+		wires: Array<[Vector2, Array<[number, number]>]>,
+		fanouts: Array<[starting_pos: Vector2, direction: string, spacing: number, turn_left: boolean]>
+	) {
+		this.bit_width = bit_width;
+		this.wires = [];
+		for(let i = 0; i < wires.length; i++) {
+			this.wires.push(new GraphicWire(wires[i], GraphicBus.wire_thickness));
+		}
+		this.fanouts = fanouts;
+		this.color_signal = createSignal(new Color('#00F'));
+	}
+	init_view(view: View2D | Rect, grid_size: SimpleSignal<number>) {
+		// Wires
+		for(let wire_i = 0; wire_i < this.wires.length; wire_i++) {
+			this.wires[wire_i].init_view(view, this.color_signal, grid_size);
+		}
+		// Fanouts
+		for(let fan_i = 0; fan_i < this.fanouts.length; fan_i++) {
+			let [starting_pos, direction, spacing, turn_left] = this.fanouts[fan_i];
+			let base_line_len = 2 + (this.bit_width - 1)*spacing;
+			let direction_unit = direction_to_unit_vec(direction);
+			let direction_bevel = direction_and_rel_turn_to_unit_vec(direction, turn_left);
+			let end = starting_pos.add(direction_unit.scale(base_line_len));
+			view.add(<Line
+				points={[
+					() => starting_pos.scale(grid_size()),
+					() => end.scale(grid_size())
+				]}
+				stroke={this.color_signal}
+				lineWidth={GraphicBus.wire_thickness}
+			/>);
+			for(let i = 0; i < this.bit_width; i++) {
+				let start = starting_pos.add(direction_unit.scale(2 + i*this.bit_width));
+				view.add(<Line
+					points={[
+						() => start.scale(grid_size()),
+						() => start.add(direction_bevel).scale(grid_size())
+					]}
+					stroke={this.color_signal}
+					lineWidth={GraphicBus.wire_thickness}
+				/>);
 			}
-			this.wires.push([wires[i][0], wire_connections]);
 		}
 	}
 }
 
 export class LogicConnectionPin {
-	state: boolean;
+	state_logic: boolean;
 	state_for_animations: SimpleSignal<boolean>;
 	internally_driven: boolean;
 	externally_driven: boolean;
@@ -784,8 +912,8 @@ export class LogicConnectionPin {
 	name: string;
 	line_ref: Reference<Line>;
 	constructor(relative_start_grid: Vector2 | SimpleSignal<Vector2>, direction: string, name: string, length: number = 1) {
-		this.state = false;
 		this.state_for_animations = createSignal(false);
+		this.state = false;
 		this.internally_driven = false;
 		this.externally_driven = false;
 		this.color = createSignal(logic_wire_color([false, true]));
@@ -813,19 +941,24 @@ export class LogicConnectionPin {
 			/>
 		)
 	}
+	set state(state: boolean) {
+		this.state_logic = state;
+		this.state_for_animations(state);
+	}
+	get state(): boolean {
+		return this.state_logic;
+	}
 }
 
 // Only 1 bit, may also make more general class
 // JUST FOR GRAPHICAL PURPOSES, NOT USED FOR SIMULATION OR INTERACTING W/ THE SIMULATION
 export class LogicSingleIO {
 	rect_ref: Reference<Rect>;
-	state: SimpleSignal<boolean>;
 	pin: LogicConnectionPin;
 	static half_extent: number = 0.5;
 	constructor(pin: LogicConnectionPin) {
 		this.rect_ref = createRef<Rect>();
 		this.pin = pin;
-		this.state = createSignal(pin.state);
 	}
 	init_view(parent_rect: Rect, grid_size: SimpleSignal<number>) {
 		let points_centered = [
@@ -835,17 +968,22 @@ export class LogicSingleIO {
 			new Vector2(-LogicSingleIO.half_extent, LogicSingleIO.half_extent),
 			new Vector2(-LogicSingleIO.half_extent, -LogicSingleIO.half_extent)
 		];
-		let text_align: string;
-		switch(this.pin.direction.toLowerCase()) {
-			case 'w':
-				text_align = 'end';
-				break;
-			case 'e':
-				text_align = 'start';
-				break;
-			default:
-				text_align = 'center';// N and S treated the same
-				break;
+		let text_rotation: number;
+		if(this.pin.name.length > 2) {
+			switch(this.pin.direction.toLowerCase()) {
+				case 'n':
+					text_rotation = 90;
+					break;
+				case 's':
+					text_rotation = 90;
+					break;
+				default:
+					text_rotation = 0;
+					break;
+			}
+		}
+		else {
+			text_rotation = 0;
 		}
 		// Adjust them by the direction of the pin
 		let points = [];
@@ -863,24 +1001,25 @@ export class LogicSingleIO {
 				stroke={this.pin.color}
 				lineWidth={2}
 			/>
-			<Txt text={() => this.state() ? "1" : "0"} fill={"FFF"} position={() => direction_to_unit_vec(this.pin.direction).scale(grid_size()*1.5)} fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE*0.7} />
+			<Txt text={() => this.pin.state_for_animations() ? "1" : "0"} fill={"FFF"} position={() => direction_to_unit_vec(this.pin.direction).scale(grid_size()*1.5)} fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE*0.7} />
 			<Txt
 				text={this.pin.name}
 				fill={"#FFF"}
 				stroke={"FFF"}
 				position={() => direction_to_unit_vec(this.pin.direction).scale(grid_size()*3)}
 				fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE*0.7}
+				rotation={text_rotation}
 			/>
 		</Rect>);
 		//this.pin.init_view(parent_rect, grid_size);
 	}
 	set_state(state: boolean) {
-		this.state(state);
+		this.pin.state = state;
 	}
 }
 
 export class GateAnd extends LogicDevice {
-	constructor(position: SimpleSignal<Vector2> | (() => Vector2), unique_name: string | null = null) {
+	constructor(position: SimpleSignal<Vector2> | (() => Vector2), unique_name: string | null = null, orientation: string = 'w') {
 		super(
 			[
 				new LogicConnectionPin(new Vector2(-2, -1), 'w', 'a'),
@@ -888,7 +1027,9 @@ export class GateAnd extends LogicDevice {
 				new LogicConnectionPin(new Vector2(2, 0), 'e', 'q')
 			],
 			position,
-			unique_name
+			unique_name,
+			1,
+			orientation
 		);
 		this.pins[0].internally_driven = false;
 		this.pins[1].internally_driven = false;
@@ -900,6 +1041,7 @@ export class GateAnd extends LogicDevice {
 			width={() => grid_size() * 8}
 			height={() => grid_size() * 4}
 			position={() => this.position_px(grid_size)}
+			rotation={this.rotation}
 		>
 			<Line
 				points={[
@@ -930,7 +1072,7 @@ export class GateAnd extends LogicDevice {
 }
 
 export class GateOr extends LogicDevice {
-	constructor(position: SimpleSignal<Vector2> | (() => Vector2), unique_name: string | null = null) {
+	constructor(position: SimpleSignal<Vector2> | (() => Vector2), unique_name: string | null = null, orientation: string = 'w') {
 		super(
 			[
 				new LogicConnectionPin(new Vector2(-2, -1), 'w', 'a'),
@@ -938,7 +1080,9 @@ export class GateOr extends LogicDevice {
 				new LogicConnectionPin(new Vector2(2, 0), 'e', 'q')
 			],
 			position,
-			unique_name
+			unique_name,
+			1,
+			orientation
 		);
 		this.pins[0].internally_driven = false;
 		this.pins[1].internally_driven = false;
@@ -950,6 +1094,7 @@ export class GateOr extends LogicDevice {
 			width={() => grid_size() * 8}
 			height={() => grid_size() * 4}
 			position={() => this.position_px(grid_size)}
+			rotation={this.rotation}
 		>
 			<Line
 				points={[
@@ -1004,7 +1149,7 @@ export class GateOr extends LogicDevice {
 }
 
 export class GateXor extends LogicDevice {
-	constructor(position: SimpleSignal<Vector2> | (() => Vector2), unique_name: string | null = null) {
+	constructor(position: SimpleSignal<Vector2> | (() => Vector2), unique_name: string | null = null, orientation: string = 'w') {
 		super(
 			[
 				new LogicConnectionPin(new Vector2(-2.3, -1), 'w', 'a', 0.7),
@@ -1012,7 +1157,9 @@ export class GateXor extends LogicDevice {
 				new LogicConnectionPin(new Vector2(2, 0), 'e', 'q')
 			],
 			position,
-			unique_name
+			unique_name,
+			1,
+			orientation
 		);
 		this.pins[0].internally_driven = false;
 		this.pins[1].internally_driven = false;
@@ -1024,6 +1171,7 @@ export class GateXor extends LogicDevice {
 			width={() => grid_size() * 8}
 			height={() => grid_size() * 4}
 			position={() => this.position_px(grid_size)}
+			rotation={this.rotation}
 		>
 			<Line
 				points={[
@@ -1087,7 +1235,7 @@ export class GateXor extends LogicDevice {
 }
 
 export class GateNand extends LogicDevice {
-	constructor(position: SimpleSignal<Vector2> | (() => Vector2), unique_name: string | null = null) {
+	constructor(position: SimpleSignal<Vector2> | (() => Vector2), unique_name: string | null = null, orientation: string = 'w') {
 		super(
 			[
 				new LogicConnectionPin(new Vector2(-2, -1), 'w', 'a'),
@@ -1095,7 +1243,9 @@ export class GateNand extends LogicDevice {
 				new LogicConnectionPin(new Vector2(3, 0), 'e', 'q')
 			],
 			position,
-			unique_name
+			unique_name,
+			1,
+			orientation
 		);
 		this.pins[0].internally_driven = false;
 		this.pins[1].internally_driven = false;
@@ -1107,6 +1257,7 @@ export class GateNand extends LogicDevice {
 			width={() => grid_size() * 8}
 			height={() => grid_size() * 4}
 			position={() => this.position_px(grid_size)}
+			rotation={this.rotation}
 		>
 			<Line
 				points={[
@@ -1144,7 +1295,7 @@ export class GateNand extends LogicDevice {
 }
 
 export class GateNor extends LogicDevice {
-	constructor(position: SimpleSignal<Vector2> | (() => Vector2), unique_name: string | null = null) {
+	constructor(position: SimpleSignal<Vector2> | (() => Vector2), unique_name: string | null = null, orientation: string = 'w') {
 		super(
 			[
 				new LogicConnectionPin(new Vector2(-2, -1), 'w', 'a'),
@@ -1152,7 +1303,9 @@ export class GateNor extends LogicDevice {
 				new LogicConnectionPin(new Vector2(3, 0), 'e', 'q')
 			],
 			position,
-			unique_name
+			unique_name,
+			1,
+			orientation
 		);
 		this.pins[0].internally_driven = false;
 		this.pins[1].internally_driven = false;
@@ -1164,6 +1317,7 @@ export class GateNor extends LogicDevice {
 			width={() => grid_size() * 8}
 			height={() => grid_size() * 4}
 			position={() => this.position_px(grid_size)}
+			rotation={this.rotation}
 		>
 			<Line
 				points={[
@@ -1225,7 +1379,7 @@ export class GateNor extends LogicDevice {
 }
 
 export class GateXnor extends LogicDevice {
-	constructor(position: SimpleSignal<Vector2> | (() => Vector2), unique_name: string | null = null) {
+	constructor(position: SimpleSignal<Vector2> | (() => Vector2), unique_name: string | null = null, orientation: string = 'w') {
 		super(
 			[
 				new LogicConnectionPin(new Vector2(-2.3, -1), 'w', 'a', 0.7),
@@ -1233,7 +1387,9 @@ export class GateXnor extends LogicDevice {
 				new LogicConnectionPin(new Vector2(3, 0), 'e', 'q')
 			],
 			position,
-			unique_name
+			unique_name,
+			1,
+			orientation
 		);
 		this.pins[0].internally_driven = false;
 		this.pins[1].internally_driven = false;
@@ -1245,6 +1401,7 @@ export class GateXnor extends LogicDevice {
 			width={() => grid_size() * 8}
 			height={() => grid_size() * 4}
 			position={() => this.position_px(grid_size)}
+			rotation={this.rotation}
 		>
 			<Line
 				points={[
@@ -1315,14 +1472,16 @@ export class GateXnor extends LogicDevice {
 }
 
 export class GateNot extends LogicDevice {
-	constructor(position: SimpleSignal<Vector2> | (() => Vector2), unique_name: string | null = null) {
+	constructor(position: SimpleSignal<Vector2> | (() => Vector2), unique_name: string | null = null, orientation: string = 'w') {
 		super(
 			[
 				new LogicConnectionPin(new Vector2(-2, 0), 'w', 'a'),
 				new LogicConnectionPin(new Vector2(3, 0), 'e', 'q')
 			],
 			position,
-			unique_name
+			unique_name,
+			1,
+			orientation
 		);
 		this.pins[0].internally_driven = false;
 		this.pins[1].internally_driven = true;
@@ -1333,6 +1492,7 @@ export class GateNot extends LogicDevice {
 			width={() => grid_size() * 8}
 			height={() => grid_size() * 4}
 			position={() => this.position_px(grid_size)}
+			rotation={this.rotation}
 		>
 			<Line
 				points={[
@@ -1361,7 +1521,7 @@ export class GateNot extends LogicDevice {
 }
 
 export class TriBuffer extends LogicDevice {
-	constructor(position: SimpleSignal<Vector2> | (() => Vector2), unique_name: string | null = null) {
+	constructor(position: SimpleSignal<Vector2> | (() => Vector2), unique_name: string | null = null, orientation: string = 'w') {
 		super(
 			[
 				new LogicConnectionPin(new Vector2(-2, 0), 'w', 'A'),
@@ -1369,7 +1529,9 @@ export class TriBuffer extends LogicDevice {
 				new LogicConnectionPin(new Vector2(0, -1), 'n', 'OE')
 			],
 			position,
-			unique_name
+			unique_name,
+			1,
+			orientation
 		);
 		this.pins[0].internally_driven = false;
 		this.pins[1].internally_driven = false;
@@ -1381,6 +1543,7 @@ export class TriBuffer extends LogicDevice {
 			width={() => grid_size() * 8}
 			height={() => grid_size() * 4}
 			position={() => this.position_px(grid_size)}
+			rotation={this.rotation}
 		>
 			<Line
 				points={[

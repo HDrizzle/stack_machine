@@ -15,7 +15,7 @@ import image_ports from '../../images/ports.jpg';
 import image_dram from '../../images/dram.png';
 import image_quad_and from '../../images/photo_quad_and.jpeg';
 import { LogicDevice, LogicCircuit, LogicCircuitToplevelWrapper, GateAnd, GateNand, GateOr, GateNor, GateXor, GateXnor, GateNot, LogicConnectionPin } from '../logic_sim';
-import { create_nor_flip_flop, create_d_level_latch, DLatchEdge, DLatchEdge8Bit, LayoutQuadAnd } from '../derived_circuits';
+import { create_nor_flip_flop, create_d_level_latch, DLatchEdge, DLatchEdge8Bit, LayoutQuadAnd, FullAdder, ParameterizedAdder, ParameterizedAdderHorizontal, ParameterizedAdderVertical } from '../derived_circuits';
 
 /* Slides
 -- Title --
@@ -287,7 +287,8 @@ export default makeScene2D(function* (view) {
 			]
 		],
 		createSignal(40),
-		createSignal(new Vector2(0, 5))
+		createSignal(new Vector2(0, 5)),
+		'components-demo'
 	));
 	logic_circuit.init_view(view);
 	yield* all(...logic_circuit.animate_changes([["A", true], ["B", false]], 0.2, 2));
@@ -304,7 +305,7 @@ export default makeScene2D(function* (view) {
 	gates_ref().remove();
 	logic_circuit.remove();
 	// Chip layout circuit alongside actual photo
-	current_slide_title('What they actually look like');
+	current_slide_title('What do they actually look like? Example quad AND gate chip');
 	slide_ref = createRef<Rect>();
 	let circuit_container = createRef<Rect>();
 	view.add(
@@ -315,13 +316,42 @@ export default makeScene2D(function* (view) {
 	);
 	let quad_and_circuit = new LogicCircuitToplevelWrapper(new LayoutQuadAnd(createSignal(20), createSignal(new Vector2(0, 0))));
 	quad_and_circuit.init_view(circuit_container());
-	yield* quad_and_circuit.animate_changes([], 0.1, 5);
-	yield* waitFor(0.5);
+	yield* quad_and_circuit.animate_changes([], 0, 5);
 	yield* beginSlide(current_slide_title());
 	circuit_container().remove();
 	slide_ref().remove();
 	// Adder
-	// TODO
+	current_slide_title('Math (gross) with binary!');
+	slide_ref = createRef<Rect>();
+	circuit_container = createRef<Rect>();
+	view.add(
+		<Rect ref={slide_ref} topLeft={generic_slide_top_left_pos} width={half_width*2} height={half_height*2}>
+			<Rect ref={circuit_container} position={new Vector2(0, half_height*-0.2)} />
+		</Rect>
+	);
+	let adder_circuit = new LogicCircuitToplevelWrapper(FullAdder.create_internal_circuit(createSignal(20)));
+	adder_circuit.init_view(circuit_container());
+	yield* adder_circuit.animate_changes([], 0, 5);
+	yield* adder_circuit.animate_changes([['A', true]], 0.2, 5);
+	yield* waitFor(1);
+	yield* adder_circuit.animate_changes([['B', true]], 0.2, 5);
+	yield* waitFor(1);
+	yield* adder_circuit.animate_changes([['Cin', true]], 0.2, 5);
+	yield* waitFor(1);
+	let new_adder = LogicDevice.create_circuit(new FullAdder(createSignal(new Vector2(0, 0))), createSignal(60));
+	yield* adder_circuit.animate_swap_in_new_circuit(circuit_container(), new_adder, 2);
+	yield* waitFor(2.5);
+	let parameterized_adder_internal = ParameterizedAdder.create_internal_circuit(8, createSignal(25));
+	yield* adder_circuit.animate_form_part_of_larger_circuit(parameterized_adder_internal, 'adder-0', 2);
+	yield* adder_circuit.animate_changes([], 0, 10);
+	yield* waitFor(2.5);
+	yield* adder_circuit.animate_changes([['A-0', true], ['B-0', true], ['A-1', true]], 0.2, 10);
+	yield* waitFor(2.5);
+	yield* adder_circuit.animate_swap_in_new_circuit(circuit_container(), LogicDevice.create_circuit(new ParameterizedAdderVertical(8, createSignal(new Vector2(0, 0))), createSignal(40)), 2);
+	yield* waitFor(2.5);
+	yield* beginSlide(current_slide_title());
+	circuit_container().remove();
+	slide_ref().remove();
 	// Sequential logic, Flip Flop, Epic animation sequence
 	let sequencial_logic_wrapper = new LogicCircuitToplevelWrapper(create_nor_flip_flop(createSignal(40)));
 	sequencial_logic_wrapper.init_view(view);
@@ -394,10 +424,10 @@ export default makeScene2D(function* (view) {
 	yield* waitFor(0.5);
 	yield* sequencial_logic_wrapper.animate_changes([[`OE`, true], [`CLK`, true]], 0.1, 5);
 	yield* waitFor(0.5);
-	let new_byte_latch_circuit = LogicDevice.create_circuit(new DLatchEdge8Bit(createSignal(new Vector2(0, 0)), 'latch-8-bit'), byte_latch_grid_signal);
+	let new_byte_latch_circuit = LogicDevice.create_circuit(new DLatchEdge8Bit(createSignal(new Vector2(0, 0)), 'latch-8-bit'), createSignal(40));
 	yield* sequencial_logic_wrapper.animate_swap_in_new_circuit(view, new_byte_latch_circuit, 2);
+	yield* sequencial_logic_wrapper.animate_changes([], 0, 5);
 	yield* waitFor(2);
-	yield* all(...sequencial_logic_wrapper.compute_and_animate_until_done(0.1, 5));
 	yield* beginSlide('Byte Latch');
 	sequencial_logic_wrapper.remove();
 	// Clock
