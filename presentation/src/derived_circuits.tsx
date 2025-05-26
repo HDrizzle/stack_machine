@@ -240,6 +240,7 @@ export class DLatchEdge extends LogicDevice {
 		this.pins[0].internally_driven = false;
 		this.pins[1].internally_driven = false;
 		this.pins[2].internally_driven = true;
+		this.pins[2].state = true;
 		this.pins[3].internally_driven = true;
 		this.state = createSignal(false);
 	}
@@ -458,7 +459,7 @@ export class DLatchEdge8Bit extends LogicDevice {
 		if(this.pins[16].state && !this.prev_clock_state) {
 			for(let i = 0; i < 8; i++) {
 				let pin_state = this.query_pin(`D${i}`).state;
-				this.query_pin(`Q${i}`).state = pin_state;
+				this.query_pin(`Q${i}`).state = pin_state;// TODO: Update better
 				n += (pin_state ? 1 : 0) * (1 << i);
 			}
 		}
@@ -553,12 +554,14 @@ export class DLatchEdge8Bit extends LogicDevice {
 			createSignal(new Vector2(10, 0)),
 			unique_name
 		);
+		// Init inputs
+		// TODO
 		out.compute();
 		return out;
 	}
 }
 
-export class MemoryBlock256 extends LogicDevice {
+export class MemoryBlock16 extends LogicDevice {
 	prev_write_clock_state: boolean;
 	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
 		super(
@@ -716,7 +719,7 @@ export class FullAdder extends LogicDevice {
 				lineWidth={2}
 			/>
 			<Txt
-				text={'Full Adder'}
+				text={'1-Bit Adder'}
 				fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE}
 				fill={'#FFF'}
 				alignContent={'center'}

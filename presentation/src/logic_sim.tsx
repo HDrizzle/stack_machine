@@ -626,6 +626,13 @@ export class LogicCircuit extends LogicDevice {
 		let pin = this.pins[n];
 		return [pin.state, !pin.internally_driven];
 	}
+	animate_highlight_components(components: Array<string>, t: number, color: Color) {
+		let tweens: Array<any> = [];
+		for(let i = 0; i < components.length; i++) {
+			tweens.push(this.components[this.component_name_lookup[components[i]]].border_stroke(color, t));
+		}
+		return tweens;
+	}
 }
 
 export class LogicCircuitToplevelWrapper {
@@ -783,6 +790,13 @@ export class LogicCircuitToplevelWrapper {
 		let tweens: Array<any> = [];
 		tweens.push(this.circuit.grid_size(old_grid_size, t));
 		tweens.push(this.circuit.position_grid(old_position, t));
+		return tweens;
+	}
+	animate_highlight_components(components: Array<string>, t: number = 0.2, color: Color = new Color('#F00')) {
+		let tweens: Array<any> = [];
+		for(let i = 0; i < components.length; i++) {
+			tweens.push(this.circuit.components[this.circuit.component_name_lookup[components[i]]].border_stroke(color, t));
+		}
 		return tweens;
 	}
 }
