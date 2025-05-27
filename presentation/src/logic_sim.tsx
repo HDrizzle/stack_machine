@@ -243,12 +243,15 @@ export abstract class LogicDevice {
 				[], []
 			]);
 		}
+		// Set device's position to (0, 0) and assign its old position to the entire circuit
+		let position = device.position_grid();
+		device.position_grid(new Vector2(0, 0));
 		return new LogicCircuit(
 			[device],
 			ext_conn_pins,
 			nets,
 			grid_size,
-			createSignal(new Vector2(0, 0)),
+			createSignal(position),
 			device.unique_name
 		)
 	}
@@ -699,6 +702,7 @@ export class LogicCircuitToplevelWrapper {
 		return this.compute_and_animate_until_done(t_step, max_cycles);
 	}
 	animate_swap_in_new_circuit(parent_rect: View2D | Rect, new_circuit: LogicCircuit, t: number) {
+		// `new_circuit` must have a position of 0
 		// All external connection names have to match perfectly
 		let tweens: Array<any> = [];
 		// Save new circuit's grid size
@@ -722,10 +726,11 @@ export class LogicCircuitToplevelWrapper {
 			pin.pin = new_circuit.query_pin(pin.pin.name);
 			pin.pin.state = old_state;
 			pin.pin.externally_driven = old_ext_driven;
-			let new_final_rel_position = pin.pin.relative_start_grid()
+			let new_final_position_rel_this_rect = pin.pin.relative_start_grid();
+			let new_final_rel_position = new_final_position_rel_this_rect.sub(new_circuit.position_grid());
 			pin.pin.relative_start_grid(old_abs_position);
 			tweens.push(pin.pin.relative_start_grid(new_final_rel_position.add(new_circuit.position_grid()), t));
-			pin.init_view(parent_rect, new_circuit.grid_size);
+			pin.init_view(this.rect_ref(), new_circuit.grid_size);
 			// When the animation is done, transfer the pin to the circuit's rect so it can be correctly removed with the circuit
 			tweens.push(delay(t, () => {
 				pin.pin.line_ref().remove();
@@ -734,6 +739,17 @@ export class LogicCircuitToplevelWrapper {
 				pin.init_view(new_circuit.rect_ref(), new_circuit.grid_size);
 			}));
 		}
+		// problem: A graphic bit relies on its underlying pin for relative position. If the underlying pin is displayed under a seperate node than the graphic bit then they will not lign up. This will happen if the new circuit's position is not (0,0) while the graphic bit is displayed under this rect_ref, not that of the new circuit
+		// Solution: Set the new_circuit's relative position to (0,0) and animate this.rect_ref().position and then set it back afterwards
+		let new_circuit_og_position = new_circuit.position_grid().scale(new_circuit_og_grid_size);
+		new_circuit.position_grid(new Vector2(0,0));
+		let this_rect_og_position = this.rect_ref().position();
+		tweens.push(this.rect_ref().position(new_circuit_og_position, t));
+		// When animation is done, set this.rect_ref().position back to the original
+		tweens.push(delay(t, () => {
+			//new_circuit.position_grid(new_circuit_og_position);
+			this.rect_ref().position(this_rect_og_position);
+		}));
 		// Assign new circuit
 		this.circuit = new_circuit;
 		// Propagate & set states correctly

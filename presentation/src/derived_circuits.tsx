@@ -1,6 +1,9 @@
 import { Line, Rect, Txt, View2D, Circle } from '@motion-canvas/2d';
 import { LogicDevice, LogicCircuit, LogicCircuitToplevelWrapper, GateAnd, GateNand, GateOr, GateNor, GateXor, GateXnor, GateNot, LogicConnectionPin, FONT_GRID_SIZE_SCALE, TriBuffer, LogicNet } from './logic_sim';
-import { Vector2, createSignal, SimpleSignal } from '@motion-canvas/core';
+import { Vector2, createSignal, SimpleSignal, Reference, Color, createRef, easeInOutCubic } from '@motion-canvas/core';
+
+const written_to_color = new Color('#FF0000');
+const read_from_color = new Color('#00FF00');
 
 export function create_nor_flip_flop(grid_size: SimpleSignal<number>, unique_name: string | null = null): LogicCircuit {
 	let out = new LogicCircuit(
@@ -106,6 +109,89 @@ export function create_d_level_latch(grid_size: SimpleSignal<number>, unique_nam
 	out.set_pin_state("D", false);
 	out.set_pin_state("CLK", true);
 	out.compute();// Make sure it is in a stable state
+	out.compute();
+	return out;
+}
+
+export function create_sequencer_6(grid_size: SimpleSignal<number>, unique_name: string = 'sequencer'): LogicCircuit {
+	let out_y: number = -5;
+	let out = new LogicCircuit(
+		[
+			new DLatchEdge(createSignal(new Vector2(-20, 0)), 'latch-0'),
+			new DLatchEdge(createSignal(new Vector2(-10, 0)), 'latch-1'),
+			new DLatchEdge(createSignal(new Vector2(0, 0)), 'latch-2'),
+			new DLatchEdge(createSignal(new Vector2(10, 0)), 'latch-3'),
+			new DLatchEdge(createSignal(new Vector2(20, 0)), 'latch-4'),
+			new DLatchEdge(createSignal(new Vector2(30, 0)), 'latch-5'),
+			new GateOr(createSignal(new Vector2(-27, -2)), 'or'),
+			new GateNot(createSignal(new Vector2(-21, 7)), 'clk-not')
+		],
+		[
+			new LogicConnectionPin(new Vector2(-30, -1), 'w', 'Start'),
+			new LogicConnectionPin(new Vector2(-30, 4), 'w', 'CLK'),
+			new LogicConnectionPin(new Vector2(-16, out_y), 'n', 'Out-0'),
+			new LogicConnectionPin(new Vector2(-6, out_y), 'n', 'Out-1'),
+			new LogicConnectionPin(new Vector2(4, out_y), 'n', 'Out-2'),
+			new LogicConnectionPin(new Vector2(14, out_y), 'n', 'Out-3'),
+			new LogicConnectionPin(new Vector2(24, out_y), 'n', 'Out-4'),
+			new LogicConnectionPin(new Vector2(34, out_y), 'n', 'Out-5')
+		],
+		[
+			[
+				['Start', ['or', 'b']], [], []
+			],
+			[
+				[['or', 'q'], ['latch-0', 'D']], [], []
+			],
+			[
+				[['latch-0', 'Q'], ['latch-1', 'D'], 'Out-0'],
+				[[new Vector2(-16, -2), [[2, 0], [-2, 0], [0, -3]]]], [new Vector2(-16, -2)]
+			],
+			[
+				[['latch-1', 'Q'], ['latch-2', 'D'], 'Out-1'],
+				[[new Vector2(-6, -2), [[2, 0], [-2, 0], [0, -3]]]], [new Vector2(-6, -2)]
+			],
+			[
+				[['latch-2', 'Q'], ['latch-3', 'D'], 'Out-2'],
+				[[new Vector2(4, -2), [[2, 0], [-2, 0], [0, -3]]]], [new Vector2(4, -2)]
+			],
+			[
+				[['latch-3', 'Q'], ['latch-4', 'D'], 'Out-3'],
+				[[new Vector2(14, -2), [[2, 0], [-2, 0], [0, -3]]]], [new Vector2(14, -2)]
+			],
+			[
+				[['latch-4', 'Q'], ['latch-5', 'D'], 'Out-4'],
+				[[new Vector2(24, -2), [[2, 0], [-2, 0], [0, -3]]]], [new Vector2(24, -2)]
+			],
+			[
+				[['latch-5', 'Q'], ['or', 'a'], 'Out-5'],
+				[[new Vector2(34, -2), [[0, -3], [-64, 0], [0, 2]]]], [new Vector2(34, -5)]
+			],
+			[
+				['CLK', ['clk-not', 'a'], ['latch-0', 'CLK'], ['latch-2', 'CLK'], ['latch-4', 'CLK']],
+				[
+					[new Vector2(-30, 4), [[46, 0], [0, -2]]],
+					[new Vector2(-4, 4), [[0, -2]]],
+					[new Vector2(-24, 2), [[0, 5]]]
+				],
+				[new Vector2(-4, 4), new Vector2(-24, 4)]
+			],
+			[
+				[['clk-not', 'q'], ['latch-1', 'CLK'], ['latch-3', 'CLK'], ['latch-5', 'CLK']],
+				[
+					[new Vector2(-17, 7), [[43, 0], [0, -5]]],
+					[new Vector2(6, 7), [[0, -5]]],
+					[new Vector2(-14, 7), [[0, -5]]]
+				],
+				[new Vector2(6, 7), new Vector2(-14, 7)]
+			]
+		],
+		grid_size,
+		createSignal(new Vector2(0, 0)),
+		unique_name
+	)
+	out.set_pin_state('Start', false);
+	out.set_pin_state('CLK', false);
 	out.compute();
 	return out;
 }
@@ -456,12 +542,13 @@ export class DLatchEdge8Bit extends LogicDevice {
 	}
 	compute_private(): void {
 		let n = 0;
-		if(this.pins[16].state && !this.prev_clock_state) {
-			for(let i = 0; i < 8; i++) {
-				let pin_state = this.query_pin(`D${i}`).state;
-				this.query_pin(`Q${i}`).state = pin_state;// TODO: Update better
-				n += (pin_state ? 1 : 0) * (1 << i);
+		let clock_rising = this.pins[16].state && !this.prev_clock_state;
+		for(let i = 0; i < 8; i++) {
+			let pin_state = this.query_pin(`D${i}`).state;
+			if(clock_rising) {
+				this.query_pin(`Q${i}`).state = pin_state;
 			}
+			n += (pin_state ? 1 : 0) * (1 << i);
 		}
 		this.prev_clock_state = this.query_pin('CLK').state;
 		this.set_output_enable_state(this.query_pin('OE').state);
@@ -555,120 +642,11 @@ export class DLatchEdge8Bit extends LogicDevice {
 			unique_name
 		);
 		// Init inputs
-		// TODO
-		out.compute();
-		return out;
-	}
-}
-
-export class MemoryBlock16 extends LogicDevice {
-	prev_write_clock_state: boolean;
-	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
-		super(
-			DLatchEdge8Bit.create_logic_connection_pins(-3, 3, -5, 1),
-			position,
-			unique_name
-		);
 		for(let i = 0; i < 8; i++) {
-			this.query_pin(`D${i}`).internally_driven = false;
-			this.query_pin(`Q${i}`).internally_driven = true;
+			out.set_pin_state(`D${i}`, false);
 		}
-		this.query_pin('CLK').internally_driven = false;
-		this.query_pin('OE').internally_driven = false;
-		this.prev_write_clock_state = false;
-	}
-	static create_logic_connection_pins(start_x: number, end_x: number, start_y: number, y_inc: number): Array<LogicConnectionPin> {
-		let out: Array<LogicConnectionPin> = [];
-		for(let i = 0; i < 8; i++) {
-			let y = start_y + y_inc*i;
-			out.push(new LogicConnectionPin(new Vector2(start_x, y), 'w', `D${i}`));
-			out.push(new LogicConnectionPin(new Vector2(end_x, y), 'e', `Q${i}`));
-		}
-		out.push(new LogicConnectionPin(new Vector2(start_x, start_y + 2 + y_inc*7), 'w', "CLK"));
-		out.push(new LogicConnectionPin(new Vector2(start_x, start_y + 3 + y_inc*7), 'w', "OE"));
-		return out;
-	}
-	init_view(parent_rect: View2D | Rect, grid_size: SimpleSignal<number>): void {
-		// TODO
-		parent_rect.add(<Rect
-			ref={this.rect_ref}
-			position={() => this.position_px(grid_size)}
-		>
-			
-		</Rect>);
-		this.init_view_pins(grid_size);
-	}
-	compute_private(): void {
-		// TODO
-	}
-	set_output_enable_state(state: boolean): void {
-		for(let i = 0; i < 8; i++) {
-			this.query_pin(`Q${i}`).internally_driven = state;
-		}
-	}
-	static create_internal_circuit(grid_size: SimpleSignal<number>, unique_name: string | null = null): LogicCircuit {
-		// TODO
-		let latches_x: number = -5;
-		let buffers_x: number = 2;
-		let latches_y_start: number = -24;
-		let buffers_y_start: number = -26;
-		let pins_y_start: number = -26;
-		let y_increment: number = 7;
-		let pin_input_x: number = -10;
-		let pin_output_x: number = 5;
-		// Create components
-		let components: Array<LogicDevice> = [];
-		// Latches
-		for(let i = 0; i < 8; i++) {
-			components.push(new DLatchEdge(createSignal(new Vector2(latches_x, latches_y_start + y_increment*i)), `latch-${i}`));
-		}
-		// OE buffers
-		for(let i = 0; i < 8; i++) {
-			components.push(new TriBuffer(createSignal(new Vector2(buffers_x, buffers_y_start + y_increment*i)), `buffer-${i}`));
-		}
-		// Create nets
-		let nets: Array<[
-			Array<[string, string] | string>,// Components are referenced by their name and a pin name, an external connection is referenced by its name
-			Array<[Vector2, Array<[number, number]>]>,// Wires (just for graphics)
-			Array<Vector2> | null// Connection dots (just for graphics)
-		]> = [];
-		for(let i = 0; i < 8; i++) {
-			// Data input
-			nets.push([
-				[`D${i}`, [`latch-${i}`, 'D']], [[new Vector2(pin_input_x, pins_y_start + i*y_increment), [[1, 0]]]], []
-			]);
-			// latch -> buffer
-			nets.push([
-				[[`latch-${i}`, 'Q'], [`buffer-${i}`, 'A']], [], []
-			]);
-			// buffer -> output
-			nets.push([
-				[[`buffer-${i}`, 'Q'], `Q${i}`], [], []
-			]);
-		}
-		// CLK & OE
-		let clock_dests: Array<[string, string] | string> = ['CLK']
-		let oe_dests: Array<[string, string] | string> = ['OE']
-		for(let i = 0; i < 8; i++) {
-			clock_dests.push([`latch-${i}`, 'CLK']);
-			oe_dests.push([`buffer-${i}`, 'OE']);
-		}
-		nets.push([
-			clock_dests, [], []
-		]);
-		nets.push([
-			oe_dests, [], []
-		]);
-		// Create ext connections
-		let ext_conns: Array<LogicConnectionPin> = DLatchEdge8Bit.create_logic_connection_pins(pin_input_x, pin_output_x, pins_y_start, y_increment);
-		let out = new LogicCircuit(
-			components,
-			ext_conns,
-			nets,
-			grid_size,
-			createSignal(new Vector2(10, 0)),
-			unique_name
-		);
+		out.set_pin_state('OE', true);
+		out.set_pin_state('CLK', false);
 		out.compute();
 		return out;
 	}
@@ -856,13 +834,23 @@ export abstract class ParameterizedAdder extends LogicDevice {
 		for(let i = 0; i < n; i++) {
 			this.set_pin_state(`A-${i}`, false);
 			this.set_pin_state(`B-${i}`, false);
+			this.query_pin(`Out-${i}`).internally_driven = true;
 		}
+		this.query_pin('Cout').internally_driven = true;
 		this.compute();
 		this.animate(0);
 	}
 	abstract init_view(parent_rect: View2D | Rect, grid_size: SimpleSignal<number>): void;
 	compute_private(): void {
-		// TODO
+		let sum = this.query_pin('Cin').state ? 1 : 0;
+		for(let i = 0; i < this.n; i++) {
+			sum += (this.query_pin(`A-${i}`).state ? 1 : 0) * Math.pow(2, i);
+			sum += (this.query_pin(`B-${i}`).state ? 1 : 0) * Math.pow(2, i);
+		}
+		for(let i = 0; i < this.n; i++) {
+			this.query_pin(`Out-${i}`).state = (sum >> i) & 1 ? true : false;
+		}
+		this.query_pin('Cout').state = (sum >> this.n) & 1 ? true : false;
 	}
 	static create_internal_circuit(n: number, grid_size: SimpleSignal<number>, unique_name: string = 'parameterized-adder'): LogicCircuit {
 		// Spacing parameters
@@ -1050,8 +1038,433 @@ export class ParameterizedAdderVertical extends ParameterizedAdder {
 	}
 }
 
-/*export class ParameterizedDecoder extends LogicDevice {
+export class Decoder16 extends LogicDevice {
+	half_width: number;
+	half_height: number;
+	address_for_animation: SimpleSignal<number>;
 	constructor(position: SimpleSignal<Vector2>, unique_name: string = 'decoder') {
-		// TODO
+		let connections: Array<LogicConnectionPin> = [
+			new LogicConnectionPin(new Vector2(-3, -3), 'w', 'A-0'),
+			new LogicConnectionPin(new Vector2(-3, -2), 'w', 'A-1'),
+			new LogicConnectionPin(new Vector2(-3, -1), 'w', 'A-2'),
+			new LogicConnectionPin(new Vector2(-3, 0), 'w', 'A-3'),
+			new LogicConnectionPin(new Vector2(-3, 2), 'w', 'Enable'),
+		];
+		for(let i = 0; i < 16; i++) {
+			connections.push(new LogicConnectionPin(new Vector2(3, -8 + i), 'e', `Q-${i}`));
+		}
+		super(
+			connections,
+			position,
+			unique_name
+		)
+		this.set_pin_state('A-0', false);
+		this.set_pin_state('A-1', false);
+		this.set_pin_state('A-2', false);
+		this.set_pin_state('A-3', false);
+		this.set_pin_state('En', false);
+		for(let i = 0; i < 16; i++) {
+			this.query_pin(`Q-${i}`).internally_driven = true;
+		}
+		this.half_height = 3;
+		this.half_height = 9;
+		this.address_for_animation(0);
 	}
-}*/
+	init_view(parent_rect: View2D | Rect, grid_size: SimpleSignal<number>): void {
+		parent_rect.add(<Rect
+			ref={this.rect_ref}
+			position={() => this.position_px(grid_size)}
+			rotation={this.rotation}
+		>
+			<Line
+				points={[
+					() => new Vector2(-this.half_width, -this.half_height).scale(grid_size()),
+					() => new Vector2(this.half_width, -this.half_height).scale(grid_size()),
+					() => new Vector2(this.half_width, this.half_height).scale(grid_size()),
+					() => new Vector2(-this.half_width, this.half_height).scale(grid_size()),
+					() => new Vector2(-this.half_width, -this.half_height).scale(grid_size())
+				]}
+				stroke={this.border_stroke}
+				lineWidth={2}
+			/>
+			<Txt
+				text={'4 to 16 Decoder'}
+				fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE}
+				fill={'#FFF'}
+				alignContent={'center'}
+				position={() => new Vector2(0, -2).scale(grid_size())}
+			/>
+			<Txt
+				text={() => `${this.address_for_animation}`}
+				fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE}
+				fill={'#FFF'}
+				alignContent={'center'}
+				position={() => new Vector2(0, 0)}
+			/>
+		</Rect>);
+		this.init_view_pins(grid_size);
+	}
+	compute_private(): void {
+		for(let i = 0; i < 16; i++) {
+			this.query_pin(`Q-${i}`).state = false;
+		}
+		let address = this.get_address();
+		if(this.query_pin('En').state) {
+			this.query_pin(`Q-${address}`).state = true;
+		}
+		this.address_for_animation(address);
+	}
+	get_address(): number {
+		let sum = 0;
+		for(let i = 0; i < 4; i++) {
+			sum += (this.query_pin(`A-${i}`).state ? 1 : 0) * Math.pow(2, i)
+		}
+		return sum;
+	}
+}
+
+// TODO
+export class MemoryBlock16 extends LogicDevice {
+	prev_write_clock_state: boolean;
+	address_for_animation: SimpleSignal<number>;
+	constructor(position: SimpleSignal<Vector2>, unique_name: string | null = null) {
+		super(
+			MemoryBlock16.create_logic_connection_pins(-3),
+			position,
+			unique_name
+		);
+		for(let i = 0; i < 8; i++) {
+			this.query_pin(`D${i}`).internally_driven = false;
+			this.query_pin(`Q${i}`).internally_driven = true;
+		}
+		this.query_pin('CLK').internally_driven = false;
+		this.query_pin('OE').internally_driven = false;
+		this.prev_write_clock_state = false;
+	}
+	static create_logic_connection_pins(x: number): Array<LogicConnectionPin> {
+		let out: Array<LogicConnectionPin> = [
+			new LogicConnectionPin(new Vector2(x, 2), 'w', 'A-0'),
+			new LogicConnectionPin(new Vector2(x, 3), 'w', 'A-1'),
+			new LogicConnectionPin(new Vector2(x, 4), 'w', 'A-2'),
+			new LogicConnectionPin(new Vector2(x, 5), 'w', 'A-3'),
+			new LogicConnectionPin(new Vector2(x, 7), 'w', 'Read'),
+			new LogicConnectionPin(new Vector2(x, 8), 'w', 'Write')
+		];
+		for(let i = 0; i < 8; i++) {
+			let y = i - 7;
+			out.push(new LogicConnectionPin(new Vector2(x, y), 'w', `D-${i}`));
+		}
+		return out;
+	}
+	init_view(parent_rect: View2D | Rect, grid_size: SimpleSignal<number>): void {
+		// TODO
+		parent_rect.add(<Rect
+			ref={this.rect_ref}
+			position={() => this.position_px(grid_size)}
+		>
+			<Txt
+				text={() => `${this.address_for_animation}`}
+				fontSize={() => grid_size()*FONT_GRID_SIZE_SCALE}
+				fill={'#FFF'}
+				alignContent={'center'}
+				position={() => new Vector2(0, 0)}
+			/>
+		</Rect>);
+		this.init_view_pins(grid_size);
+	}
+	compute_private(): void {
+		// TODO
+		this.address_for_animation(this.get_address());
+	}
+	get_address(): number {
+		let sum = 0;
+		for(let i = 0; i < 4; i++) {
+			sum += (this.query_pin(`A-${i}`).state ? 1 : 0) * Math.pow(2, i)
+		}
+		return sum;
+	}
+	static create_internal_circuit(grid_size: SimpleSignal<number>, unique_name: string | null = null): LogicCircuit {
+		// TODO
+		let x_increment: number = 10;
+		let latches_x_start = -75;
+		let pins_x: number = -80;
+		// Create components
+		let components: Array<LogicDevice> = [
+			new Decoder16(createSignal(new Vector2(-50, 20)), 'read-decoder'),
+			new Decoder16(createSignal(new Vector2(-50, 20)), 'write-decoder')
+		];
+		// 8-bit latches
+		for(let i = 0; i < 8; i++) {
+			let x = latches_x_start + i*x_increment;
+			components.push(new DLatchEdge8Bit(createSignal(new Vector2(x, 0)), `latch-${i}`));
+		}
+		// Create nets
+		let nets: Array<[
+			Array<[string, string] | string>,// Components are referenced by their name and a pin name, an external connection is referenced by its name
+			Array<[Vector2, Array<[number, number]>]>,// Wires (just for graphics)
+			Array<Vector2> | null// Connection dots (just for graphics)
+		]> = [];
+		for(let i = 0; i < 8; i++) {
+			// Data input
+			/*nets.push([
+				[`D${i}`, [`latch-${i}`, 'D']], [[new Vector2(pin_input_x, pins_y_start + i*y_increment), [[1, 0]]]], []
+			]);*/
+			// latch -> buffer
+			nets.push([
+				[[`latch-${i}`, 'Q'], [`buffer-${i}`, 'A']], [], []
+			]);
+			// buffer -> output
+			nets.push([
+				[[`buffer-${i}`, 'Q'], `Q${i}`], [], []
+			]);
+		}
+		// CLK & OE
+		let clock_dests: Array<[string, string] | string> = ['CLK']
+		let oe_dests: Array<[string, string] | string> = ['OE']
+		for(let i = 0; i < 8; i++) {
+			clock_dests.push([`latch-${i}`, 'CLK']);
+			oe_dests.push([`buffer-${i}`, 'OE']);
+		}
+		nets.push([
+			clock_dests, [], []
+		]);
+		nets.push([
+			oe_dests, [], []
+		]);
+		// Create ext connections
+		let ext_conns: Array<LogicConnectionPin> = MemoryBlock16.create_logic_connection_pins(pins_x);
+		let out = new LogicCircuit(
+			components,
+			ext_conns,
+			nets,
+			grid_size,
+			createSignal(new Vector2(10, 0)),
+			unique_name
+		);
+		out.compute();
+		return out;
+	}
+}
+
+export class MemoryValue {
+	n: SimpleSignal<number>;
+	index: number;
+	n_size_hex_digits: number;
+	index_size_hex_digits: number;
+	rect_ref: Reference<Rect>;
+	txt_ref: Reference<Txt>;
+	value_font_size: number;
+	title_font_size: number;
+	y_offset: SimpleSignal<number>;// For animating scrolling memory
+	value_color: SimpleSignal<Color>;
+	base_topleft_pos: () => Vector2;
+	constructor(n: number, index: number, n_size_hex_digits: number, index_size_hex_digits: number, value_font_size: number, title_font_size: number, top_y_pos: number) {
+		this.value_font_size = value_font_size;
+		this.title_font_size = title_font_size;
+		this.n_size_hex_digits = n_size_hex_digits;
+		this.index_size_hex_digits = index_size_hex_digits;
+		this.rect_ref = createRef<Rect>();
+		this.txt_ref = createRef<Txt>();
+		this.n = createSignal(n);
+		this.index = index;
+		this.y_offset = createSignal(top_y_pos);
+		this.value_color = createSignal(new Color('FFF'));
+		this.base_topleft_pos = () => {return new Vector2(0, 0);};
+	}
+	init_rect(n_display_values: number) {
+		// base_pos_callback is the position of the top-left corner of the `MemoryContainer`s `items_rect` placeholder
+		return <Rect
+			layout
+			ref={this.rect_ref}
+			topLeft={() => {return this.base_topleft_pos().add(new Vector2(15, this.y_offset()+5));}}
+			fill={'#000'}
+			radius={2}
+			margin={2}
+			padding={5}
+			zIndex={2}// Bigger number in front
+			opacity={() => {// Calculate opacity from Y offset
+				let y_offset_scaled = this.y_offset() / MemoryValue.anticipate_height(this.value_font_size);
+				if(y_offset_scaled > -1) {
+					if(y_offset_scaled < 0) {
+						return easeInOutCubic(y_offset_scaled + 1);
+					}
+					else {
+						if(y_offset_scaled >= n_display_values - 1) {
+							if(y_offset_scaled < n_display_values) {
+								return easeInOutCubic(y_offset_scaled + 1 - n_display_values, 1, 0);
+							}
+							else {
+								return 0;
+							}
+						}
+						else {
+							return 1;
+						}
+					}
+				}
+				else {
+					return 0;
+				}
+			}}
+		>
+			<Txt
+				text={() => `0x${this.index.toString(16).padStart(this.index_size_hex_digits, '0')}:`}
+				fill={'#FFFFFF'}
+				fontFamily={'Vera Mono'}
+				fontSize={this.value_font_size}
+			/>
+			<Rect
+				layout
+				fill={'#000'}
+				radius={2}
+				stroke={'#fff'}
+				lineWidth={1}
+				margin={1}
+				padding={2}
+			>
+				<Txt
+					ref={this.txt_ref}
+					text={() => `0x${this.n().toString(16).padStart(this.n_size_hex_digits, '0')}`}
+					fontFamily={'Vera Mono'}
+					fontSize={this.value_font_size}
+					stroke={() => {return this.value_color();}}
+					fill={() => {return this.value_color();}}
+					lineWidth={1}
+				/>
+			</Rect>
+		</Rect>;
+	}
+	static anticipate_height(value_font_size: number) {
+		// Total width = 44 @ font = 20, diff = 24
+		// Total width = 32 @ font = 10, diff = 22
+		return value_font_size + 18;// TODO
+	}
+}
+
+// Graphical representation of memory
+export class MemoryContainer {
+	address: SimpleSignal<number>;
+	data_display: Array<MemoryValue>;// Not used to actually address memory, only for animation
+	items_rect: Reference<Rect>;
+	size: number;
+	data: Uint16Array<ArrayBufferLike>;// Source of the memory's contents
+	data_size_hex_digits: number;
+	address_size_hex_digits: number;
+	value_font_size: number;
+	title_font_size: number;
+	n_display_values: number
+	item_height: number;
+	height_items_placeholder: number;
+	height: number;
+	width: SimpleSignal<number>;
+	constructor(value_font_size: number, title_font_size: number, data_size_hex_digits: number, address_size_hex_digits: number) {
+		this.address = createSignal(0);
+		this.data_display = [];
+		this.items_rect = createRef<Rect>();
+		this.size = Math.pow(16, address_size_hex_digits);
+		this.data = new Uint16Array(this.size);
+		this.data_size_hex_digits = data_size_hex_digits;
+		this.address_size_hex_digits = address_size_hex_digits;
+		this.value_font_size = value_font_size;
+		this.title_font_size = title_font_size;
+		this.n_display_values = 10;
+		this.item_height = MemoryValue.anticipate_height(value_font_size);
+		this.height_items_placeholder = this.item_height * this.n_display_values;
+		this.height = this.item_height * (this.n_display_values + 2);
+		this.width = createSignal(0);
+	}
+	init_rect(view: View2D) {
+		let return_rect = <Rect
+			layout
+			height={this.height}
+			grow={1}
+			fill={'#000'}
+			margin={0}
+			padding={5}
+			direction={'column'}
+		>
+			<Txt
+				text='⋮'
+				fill={'#FFFFFF'}
+				fontFamily={'Vera Mono'}
+				fontSize={this.value_font_size}
+				textAlign={'center'}
+				grow={1}
+			/>
+			<Rect
+				ref={this.items_rect}
+				height={this.height_items_placeholder}
+				width={() => {return this.width();}}
+			/>
+			<Txt
+				text='⋮'
+				fill={'#FFFFFF'}
+				fontFamily={'Vera Mono'}
+				fontSize={this.value_font_size}
+				textAlign={'center'}
+				grow={1}
+			/>
+		</Rect>;
+		// Add initial values
+		for(let i = 0; i < this.n_display_values; i++) {
+			let address = (this.size-i) % this.size;
+			let new_stack_value = new MemoryValue(0, address, this.data_size_hex_digits, this.address_size_hex_digits, this.value_font_size, this.title_font_size, this.memory_address_to_display_rel_y(address, 0));
+			this.data_display.push(new_stack_value);
+			//view.add(() => {return new Vector2(0, 0);});
+			view.add(new_stack_value.init_rect(this.n_display_values));
+		}
+		this.width(this.data_display[0].rect_ref().width());
+		return return_rect;
+	}
+	private memory_address_to_display_rel_y(address: number, shift: number) {
+		// If `shift` != 0 then it is assumed that the shift takes place after this.address is updated
+		let address_diff_up = (((this.size*1.5) + (this.address() + shift - address)) % this.size) - (this.size/2);
+		return address_diff_up * this.item_height;// TODO
+	}
+	animate_address_shift(view: View2D, new_address: number, t: number) {
+		let diff;// Direction the animation will show the memory "tape" "moving", for example if its going from 0x00 to 0xFF it shouldn't scroll across the whole thing but loop around and just go down 1 step
+		let diff_raw = new_address - this.address();
+		let diff_raw_abs = Math.abs(diff_raw);
+		if(diff_raw_abs < this.size / 2) {
+			diff = diff_raw;
+		}
+		else {
+			diff = diff_raw - this.size;// Don't touch, it works
+		}
+		let tweens = [];
+		// TODO: Delete hidden items from possible previous shifts
+		// Create new items
+		for(let i_raw = 0; i_raw < Math.abs(diff); i_raw++) {
+			let i;// Memory index
+			if(diff > 0) {
+				i = this.address() + i_raw + 1;// Scrolling down, new items shown on top
+			}
+			else {
+				i = ((this.address() - i_raw - this.n_display_values) + this.size) % this.size;// Scrolling up, new values on bottom
+			}
+			let new_stack_value = new MemoryValue(this.data[i], i, this.data_size_hex_digits, this.address_size_hex_digits, this.value_font_size, this.title_font_size, this.memory_address_to_display_rel_y(i, 0));
+			new_stack_value.base_topleft_pos = () => {return this.items_rect().topLeft()};
+			this.data_display.push(new_stack_value);
+			view.add(new_stack_value.init_rect(this.n_display_values));
+		}
+		// Apply Y position animations to all of them
+		for(let i = 0; i < this.data_display.length; i++) {
+			tweens.push(this.data_display[i].y_offset(this.memory_address_to_display_rel_y(this.data_display[i].index, diff), t));
+		}
+		// Update address
+		this.address(new_address);
+		return tweens;
+	}
+	animate_write_value(value: number, t: number) {
+		this.data[this.address()] = value;
+		// The display value for the current address is at the top, so at index = 0
+		this.data_display[0].n(value);
+		this.data_display[0].value_color(written_to_color);
+		return this.data_display[0].value_color(new Color('FFF'), t);
+	}
+	set_value_base_position() {
+		for(let i = 0; i < this.data_display.length; i++) {
+			this.data_display[i].base_topleft_pos = () => {return this.items_rect().topLeft()};
+		}
+	}
+}

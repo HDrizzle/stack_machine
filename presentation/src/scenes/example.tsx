@@ -14,8 +14,11 @@ import image_hard_drive from '../../images/hard_drive.jpg';
 import image_ports from '../../images/ports.jpg';
 import image_dram from '../../images/dram.png';
 import image_quad_and from '../../images/photo_quad_and.jpeg';
+import image_8_bit_latch from '../../images/photo_8_bit_latch.jpeg';
+import image_starter from '../../images/photo_starter.jpeg';
+import image_main_block_diagram from '../../images/main_block_diagram.png';
 import { LogicDevice, LogicCircuit, LogicCircuitToplevelWrapper, GateAnd, GateNand, GateOr, GateNor, GateXor, GateXnor, GateNot, LogicConnectionPin } from '../logic_sim';
-import { create_nor_flip_flop, create_d_level_latch, DLatchEdge, DLatchEdge8Bit, LayoutQuadAnd, FullAdder, ParameterizedAdder, ParameterizedAdderHorizontal, ParameterizedAdderVertical } from '../derived_circuits';
+import { create_nor_flip_flop, create_d_level_latch, DLatchEdge, DLatchEdge8Bit, LayoutQuadAnd, FullAdder, ParameterizedAdder, ParameterizedAdderHorizontal, ParameterizedAdderVertical, MemoryValue, MemoryContainer, create_sequencer_6 } from '../derived_circuits';
 
 /* Slides
 -- Title --
@@ -27,9 +30,9 @@ Chip layout circuit alongside actual photo
 Binary numbers
 Adder animation sequence
 Sequential logic, D latches, edge triggering
-SRAM, use photo of actual chip, explain how DRAM is different
-Fetch, Decode, Execute
+SRAM, use photo of actual chip, explain how DRAM and flash are different
 Clock
+Fetch, Decode, Execute
 -- My specific design --
 Instructions
 What does the hardware have to do?
@@ -54,8 +57,6 @@ What I would improve
 Acknowledgements
 */
 
-const written_to_color = new Color('#FF0000');
-const read_from_color = new Color('#00FF00');
 
 function logic_wire_color(in_: [state: boolean, valid: boolean]): Color {
 	if(in_[1]) {
@@ -361,6 +362,7 @@ export default makeScene2D(function* (view) {
 	yield* beginSlide('Adder animate 8-bit block');
 	current_slide_title('Better drawing');
 	yield* adder_circuit.animate_swap_in_new_circuit(circuit_container(), LogicDevice.create_circuit(new ParameterizedAdderVertical(8, createSignal(new Vector2(0, 0))), createSignal(35)), 2);
+	yield* adder_circuit.animate_changes([], 0, 10);
 	yield* waitFor(2.5);
 	yield* beginSlide('Sequential Logic');
 	current_slide_title('Sequential Logic, NOR Flip Flop');
@@ -380,7 +382,7 @@ export default makeScene2D(function* (view) {
 	yield* waitFor(0.6);
 	yield* beginSlide('Powering on the flip flop');
 	bottom_text('*Almost physically accurate');
-	current_slide_title('What if its not in either state? (Not physically accurate)');
+	current_slide_title('What if its not in either state?');
 	yield* sequencial_logic_wrapper.animate_changes([['In-0', true], ['In-1', true]], 0.2, 10);
 	yield* waitFor(2);
 	yield* sequencial_logic_wrapper.animate_changes([['In-0', false], ['In-1', false]], 0.2, 75);
@@ -467,106 +469,145 @@ export default makeScene2D(function* (view) {
 	yield* waitFor(0.5);
 	// Demo
 	for(let i = 0; i < 8; i++) {
-		yield* sequencial_logic_wrapper.animate_changes([[`D${i}`, true]], 0.1, 5);
-		yield* waitFor(0.5);
-		yield* sequencial_logic_wrapper.animate_changes([[`CLK`, true]], 0.1, 5);
-		yield* waitFor(0.5);
-		yield* sequencial_logic_wrapper.animate_changes([[`CLK`, false]], 0.1, 5);
-		yield* waitFor(0.5);
+		yield* sequencial_logic_wrapper.animate_changes([[`D${i}`, true]], 0, 5);
+		yield* waitFor(0.2);
+		yield* sequencial_logic_wrapper.animate_changes([[`CLK`, true]], 0, 5);
+		yield* waitFor(0.2);
+		yield* sequencial_logic_wrapper.animate_changes([[`CLK`, false]], 0, 5);
+		yield* waitFor(0.2);
 	}
 	yield* sequencial_logic_wrapper.animate_changes([[`OE`, false]], 0.1, 5);
-	yield* waitFor(0.5);
+	yield* waitFor(1);
 	yield* sequencial_logic_wrapper.animate_changes([[`OE`, true], [`CLK`, true]], 0.1, 5);
 	yield* waitFor(0.5);
-	let new_byte_latch_circuit = LogicDevice.create_circuit(new DLatchEdge8Bit(createSignal(new Vector2(0, 0)), 'latch-8-bit'), createSignal(40));
+	let new_byte_latch_circuit = LogicDevice.create_circuit(new DLatchEdge8Bit(createSignal(new Vector2(-7, 0)), 'latch-8-bit'), createSignal(50));
 	yield* sequencial_logic_wrapper.animate_swap_in_new_circuit(view, new_byte_latch_circuit, 2);
-	yield* waitFor(2.5);
 	yield* sequencial_logic_wrapper.animate_changes([], 0, 5);
+	let ref_8_bit_latch = createRef<Img>();
+	view.add(<Img ref={ref_8_bit_latch} src={image_8_bit_latch} position={new Vector2(half_width*1.5, 0)} width={half_height*1.3} height={half_width*0.32} rotation={90}/>);
+	yield* ref_8_bit_latch().position.x(half_width*0.3, 2);
+	bottom_text('I used 51 of these in the computer');
+	yield* waitFor(2);
 	yield* beginSlide('Byte Latch');
+	bottom_text('');
+	ref_8_bit_latch().remove();
 	sequencial_logic_wrapper.remove();
-	// Clock
-	// TODO
-	// C++ to Assembly, what do programs do?
-	// TODO
-	// Hardware
-	// TODO
-	// Stack Intro
-	const stack_intro_ref = createRef<Rect>();
+	// Clock & sequencers
+	current_slide_title('Clock Signal & Timing');
+	let sequencer = new LogicCircuitToplevelWrapper(create_sequencer_6(createSignal(25)));
+	sequencer.init_view(view);
+	yield* sequencer.animate_changes([], 0, 10);
+	for(let i = 0; i < 8; i++) {
+		yield* sequencer.animate_changes([['CLK', true]], 0.1, 5);
+		yield* waitFor(0.5);
+		yield* sequencer.animate_changes([['CLK', false]], 0.1, 5);
+		yield* waitFor(0.5);
+	}
+	yield* beginSlide('Timing, show photo of actual starter');
+	let ref_starter_photo = createRef<Img>();
+	view.add(<Img ref={ref_starter_photo} src={image_starter} position={new Vector2(-half_width*0.7, -half_height*1.5)} width={half_width*0.3} height={half_height*0.84}/>);
+	yield* all(ref_starter_photo().position.y(-half_height*0.3, 1), sequencer.rect_ref().position.y(half_height*0.4, 1));
+	yield* waitFor(1);
+	yield* beginSlide('Timing, run sequencer correctly');
+	yield* all(ref_starter_photo().position.y(-half_height*1.5, 1), sequencer.rect_ref().position.y(DEFAULT, 1));
+	yield* waitFor(1);
+	ref_starter_photo().remove();
+	yield* sequencer.animate_changes([['Start', true]], 0.2, 5);
+	yield* waitFor(0.5);
+	yield* sequencer.animate_changes([['CLK', true]], 0.2, 5);
+	yield* waitFor(0.5);
+	yield* sequencer.animate_changes([['Start', false]], 0.2, 5);
+	yield* waitFor(0.5);
+	yield* sequencer.animate_changes([['CLK', false]], 0.2, 5);
+	yield* waitFor(0.5);
+	for(let i = 0; i < 18; i++) {
+		yield* sequencer.animate_changes([['CLK', true]], 0.1, 5);
+		yield* waitFor(0.5);
+		yield* sequencer.animate_changes([['CLK', false]], 0.1, 5);
+		yield* waitFor(0.5);
+	}
+	// ------ Design & Build ------
+	yield* beginSlide('Design & build');
+	sequencer.remove();
+	current_slide_title('My actual design (Lucidchart screenshot from ~1 Year ago)');
+	let highlight_rectangle = createRef<Rect>();
+	slide_ref = createRef<Rect>();
 	view.add(
-		<Rect ref={stack_intro_ref} layout>
-			<Rect layout direction={'column'} width={half_width*1.3333}>
-				<Txt fontSize={slide_title_text_size} fill={'#fff'} textAlign={'center'}>Reverse Polish Notation</Txt>
-				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
-					In the 1920s, Polish mathematician Jan Lucasiewicz proposed a new way to write math expressions, where the operator came before the operands instead of between them. This became known as Polish notation or Prefix notation.
-				</Txt>
-				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
-					However, the limitation is that a computer evaluating prefix notation has to look ahead to determine what has to be evaluated first. In the 1950s, Charles L. Hamblin created what is now called Reverse polish notation (RPN) or Postfix notation, where the operator comes after the operands.
-				</Txt>
-				<Txt fontSize={citation_text_size} fill={'#fff'} textAlign={'left'} textWrap>mathworld.wolfram.com/ReversePolishNotation.html</Txt>
-			</Rect>
-			<Rect layout direction={'column'} width={half_width*0.6666}>
-				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
-					Polish notation:
-				</Txt>
-				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
-					1 + 2 becomes +, 1, 2
-				</Txt>
-				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap marginBottom={20}>
-					3 / (1 + 2) becomes /, 3, +, 1, 2
-				</Txt>
-				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
-					Reverse polish notation (RPN):
-				</Txt>
-				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
-					1 + 2 becomes 1, 2, +
-				</Txt>
-				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
-					6 / (1 + 2) becomes 6, 1, 2, +, /
-				</Txt>
-			</Rect>
+		<Rect ref={slide_ref} topLeft={generic_slide_top_left_pos} width={half_width*1.8} height={half_height*1.7}>
+			<Img src={image_main_block_diagram} width={half_width*2} height={half_height*0.9} />
+			<Rect ref={highlight_rectangle} stroke={'#F00'} lineWidth={3} opacity={0} />
 		</Rect>
 	);
-	yield* beginSlide('Stack Intro');
-	stack_intro_ref().remove();
-	// RPN Intro
-	const rpn_intro_ref = createRef<Rect>();
-	view.add(
-		<Rect ref={rpn_intro_ref} layout>
-			<Rect layout direction={'column'} width={half_width*1.3333}>
-				<Txt fontSize={slide_title_text_size} fill={'#fff'} textAlign={'center'}>Reverse Polish Notation</Txt>
-				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
-					In the 1920s, Polish mathematician Jan Lucasiewicz proposed a new way to write math expressions, where the operator came before the operands instead of between them. This became known as Polish notation or Prefix notation.
-				</Txt>
-				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
-					However, the limitation is that a computer evaluating prefix notation has to look ahead to determine what has to be evaluated first. In the 1950s, Charles L. Hamblin created what is now called Reverse polish notation (RPN) or Postfix notation, where the operator comes after the operands.
-				</Txt>
-				<Txt fontSize={citation_text_size} fill={'#fff'} textAlign={'left'} textWrap>mathworld.wolfram.com/ReversePolishNotation.html</Txt>
-			</Rect>
-			<Rect layout direction={'column'} width={half_width*0.6666}>
-				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
-					Polish notation:
-				</Txt>
-				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
-					1 + 2 becomes +, 1, 2
-				</Txt>
-				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap marginBottom={20}>
-					3 / (1 + 2) becomes /, 3, +, 1, 2
-				</Txt>
-				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
-					Reverse polish notation (RPN):
-				</Txt>
-				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
-					1 + 2 becomes 1, 2, +
-				</Txt>
-				<Txt fontSize={paragraph_text_size} fill={'#fff'} textAlign={'left'} textWrap>
-					6 / (1 + 2) becomes 6, 1, 2, +, /
-				</Txt>
-			</Rect>
-		</Rect>
+	yield* beginSlide('Show bus');
+	bottom_text('Main bus - group of 8 wires that connects everything')
+	yield* all(
+		highlight_rectangle().opacity(1, 1),
+		highlight_rectangle().width(half_width*1.7, 1),
+		highlight_rectangle().height(half_height*0.07, 1),
+		highlight_rectangle().position(new Vector2(half_width*0.15, -half_height*0.41), 1)
 	);
-	yield* beginSlide('RPN Intro');
-	rpn_intro_ref().remove();
+	yield* beginSlide('Show I/O');
+	bottom_text('Input & Output - Similar to Arduino pins, eventually used for display');
+	yield* all(
+		highlight_rectangle().width(half_width*0.25, 1),
+		highlight_rectangle().height(half_height*0.18, 1),
+		highlight_rectangle().position(new Vector2(half_width*0.9, -half_height*0.23), 1)
+	);
+	yield* beginSlide('Show GPRAM');
+	bottom_text('General Purpose Memory, 64 kB');
+	yield* all(
+		highlight_rectangle().width(half_width*0.25, 1),
+		highlight_rectangle().height(half_height*0.18, 1),
+		highlight_rectangle().position(new Vector2(half_width*0.6, -half_height*0.23), 1)
+	);
+	yield* beginSlide('Show ALU');
+	bottom_text('ALU - Arithmetic Logic Unit (does math)');
+	yield* all(
+		highlight_rectangle().width(half_width*0.25, 1),
+		highlight_rectangle().height(half_height*0.18, 1),
+		highlight_rectangle().position(new Vector2(half_width*0.3, -half_height*0.23), 1)
+	);
+	yield* beginSlide('Show Stack');
+	bottom_text('Stack - Special piece of memory');
+	yield* all(
+		highlight_rectangle().width(half_width*0.25, 1),
+		highlight_rectangle().height(half_height*0.18, 1),
+		highlight_rectangle().position(new Vector2(0, -half_height*0.23), 1)
+	);
+	yield* beginSlide('Show Clock');
+	bottom_text('Clock - Generates the clock signal and has a counter');
+	yield* all(
+		highlight_rectangle().width(half_width*0.25, 1),
+		highlight_rectangle().height(half_height*0.18, 1),
+		highlight_rectangle().position(new Vector2(-half_width*0.29, -half_height*0.23), 1)
+	);
+	yield* beginSlide('Show Ctrl unit');
+	bottom_text('Control unit - Decodes instructions, Responsible for most timing');
+	yield* all(
+		highlight_rectangle().width(half_width*0.25, 1),
+		highlight_rectangle().height(half_height*0.18, 1),
+		highlight_rectangle().position(new Vector2(-half_width*0.59, -half_height*0.23), 1)
+	);
+	yield* beginSlide('Show call stack');
+	bottom_text('Call Stack - More memory - Returning from function calls');
+	yield* all(
+		highlight_rectangle().width(half_width*0.25, 1),
+		highlight_rectangle().height(half_height*0.18, 1),
+		highlight_rectangle().position(new Vector2(-half_width*0.89, -half_height*0.23), 1)
+	);
+	yield* beginSlide('Show bus addressing');
+	bottom_text('Bus Read/Write addressing - Controls what sets the bus state and when');
+	yield* all(// TODO
+		highlight_rectangle().width(half_width*0.25, 1),
+		highlight_rectangle().height(half_height*0.18, 1),
+		highlight_rectangle().position(new Vector2(-half_width*0.89, -half_height*0.23), 1)
+	);
+	yield* beginSlide('Block diagram end placeholder');
+	slide_ref().remove();
+	// Instruction format graphic
+	// Screenshot of actual CircuitVerse sequencer, explain how its like a baton in a relay race
 	// Computer animation
+	yield* beginSlide('Computer animation');
 	const machine = new Emulator(new Uint16Array([0,0,0,0,0,0]), view);
 	yield* machine.test_animation_1();
 	yield* machine.test_animation_2(view);
@@ -708,229 +749,6 @@ class ALU {
 				fontSize={this.value_font_size}
 			/>
 		</Rect>;
-	}
-}
-
-class MemoryValue {
-	n: SimpleSignal<number>;
-	index: number;
-	n_size_hex_digits: number;
-	index_size_hex_digits: number;
-	rect_ref: Reference<Rect>;
-	txt_ref: Reference<Txt>;
-	value_font_size: number;
-	title_font_size: number;
-	y_offset: SimpleSignal<number>;// For animating scrolling memory
-	value_color: SimpleSignal<Color>;
-	base_topleft_pos: () => Vector2;
-	constructor(n: number, index: number, n_size_hex_digits: number, index_size_hex_digits: number, value_font_size: number, title_font_size: number, top_y_pos: number) {
-		this.value_font_size = value_font_size;
-		this.title_font_size = title_font_size;
-		this.n_size_hex_digits = n_size_hex_digits;
-		this.index_size_hex_digits = index_size_hex_digits;
-		this.rect_ref = createRef<Rect>();
-		this.txt_ref = createRef<Txt>();
-		this.n = createSignal(n);
-		this.index = index;
-		this.y_offset = createSignal(top_y_pos);
-		this.value_color = createSignal(new Color('FFF'));
-		this.base_topleft_pos = () => {return new Vector2(0, 0);};
-	}
-	init_rect(n_display_values: number) {
-		// base_pos_callback is the position of the top-left corner of the `MemoryContainer`s `items_rect` placeholder
-		return <Rect
-			layout
-			ref={this.rect_ref}
-			topLeft={() => {return this.base_topleft_pos().add(new Vector2(15, this.y_offset()+5));}}
-			fill={'#000'}
-			radius={2}
-			margin={2}
-			padding={5}
-			zIndex={2}// Bigger number in front
-			opacity={() => {// Calculate opacity from Y offset
-				let y_offset_scaled = this.y_offset() / MemoryValue.anticipate_height(this.value_font_size);
-				if(y_offset_scaled > -1) {
-					if(y_offset_scaled < 0) {
-						return easeInOutCubic(y_offset_scaled + 1);
-					}
-					else {
-						if(y_offset_scaled >= n_display_values - 1) {
-							if(y_offset_scaled < n_display_values) {
-								return easeInOutCubic(y_offset_scaled + 1 - n_display_values, 1, 0);
-							}
-							else {
-								return 0;
-							}
-						}
-						else {
-							return 1;
-						}
-					}
-				}
-				else {
-					return 0;
-				}
-			}}
-		>
-			<Txt
-				text={() => `0x${this.index.toString(16).padStart(this.index_size_hex_digits, '0')}:`}
-				fill={'#FFFFFF'}
-				fontFamily={'Vera Mono'}
-				fontSize={this.value_font_size}
-			/>
-			<Rect
-				layout
-				fill={'#000'}
-				radius={2}
-				stroke={'#fff'}
-				lineWidth={1}
-				margin={1}
-				padding={2}
-			>
-				<Txt
-					ref={this.txt_ref}
-					text={() => `0x${this.n().toString(16).padStart(this.n_size_hex_digits, '0')}`}
-					fontFamily={'Vera Mono'}
-					fontSize={this.value_font_size}
-					stroke={() => {return this.value_color();}}
-					fill={() => {return this.value_color();}}
-					lineWidth={1}
-				/>
-			</Rect>
-		</Rect>;
-	}
-	static anticipate_height(value_font_size: number) {
-		// Total width = 44 @ font = 20, diff = 24
-		// Total width = 32 @ font = 10, diff = 22
-		return value_font_size + 18;// TODO
-	}
-}
-
-// Graphical representation of memory
-class MemoryContainer {
-	address: SimpleSignal<number>;
-	data_display: Array<MemoryValue>;// Not used to actually address memory, only for animation
-	items_rect: Reference<Rect>;
-	size: number;
-	data: Uint16Array<ArrayBufferLike>;// Source of the memory's contents
-	data_size_hex_digits: number;
-	address_size_hex_digits: number;
-	value_font_size: number;
-	title_font_size: number;
-	n_display_values: number
-	item_height: number;
-	height_items_placeholder: number;
-	height: number;
-	width: SimpleSignal<number>;
-	constructor(value_font_size: number, title_font_size: number, data_size_hex_digits: number, address_size_hex_digits: number) {
-		this.address = createSignal(0);
-		this.data_display = [];
-		this.items_rect = createRef<Rect>();
-		this.size = Math.pow(16, address_size_hex_digits);
-		this.data = new Uint16Array(this.size);
-		this.data_size_hex_digits = data_size_hex_digits;
-		this.address_size_hex_digits = address_size_hex_digits;
-		this.value_font_size = value_font_size;
-		this.title_font_size = title_font_size;
-		this.n_display_values = 10;
-		this.item_height = MemoryValue.anticipate_height(value_font_size);
-		this.height_items_placeholder = this.item_height * this.n_display_values;
-		this.height = this.item_height * (this.n_display_values + 2);
-		this.width = createSignal(0);
-	}
-	init_rect(view: View2D) {
-		let return_rect = <Rect
-			layout
-			height={this.height}
-			grow={1}
-			fill={'#000'}
-			margin={0}
-			padding={5}
-			direction={'column'}
-		>
-			<Txt
-				text='⋮'
-				fill={'#FFFFFF'}
-				fontFamily={'Vera Mono'}
-				fontSize={this.value_font_size}
-				textAlign={'center'}
-				grow={1}
-			/>
-			<Rect
-				ref={this.items_rect}
-				height={this.height_items_placeholder}
-				width={() => {return this.width();}}
-			/>
-			<Txt
-				text='⋮'
-				fill={'#FFFFFF'}
-				fontFamily={'Vera Mono'}
-				fontSize={this.value_font_size}
-				textAlign={'center'}
-				grow={1}
-			/>
-		</Rect>;
-		// Add initial values
-		for(let i = 0; i < this.n_display_values; i++) {
-			let address = (this.size-i) % this.size;
-			let new_stack_value = new MemoryValue(0, address, this.data_size_hex_digits, this.address_size_hex_digits, this.value_font_size, this.title_font_size, this.memory_address_to_display_rel_y(address, 0));
-			this.data_display.push(new_stack_value);
-			//view.add(() => {return new Vector2(0, 0);});
-			view.add(new_stack_value.init_rect(this.n_display_values));
-		}
-		this.width(this.data_display[0].rect_ref().width());
-		return return_rect;
-	}
-	private memory_address_to_display_rel_y(address: number, shift: number) {
-		// If `shift` != 0 then it is assumed that the shift takes place after this.address is updated
-		let address_diff_up = (((this.size*1.5) + (this.address() + shift - address)) % this.size) - (this.size/2);
-		return address_diff_up * this.item_height;// TODO
-	}
-	animate_address_shift(view: View2D, new_address: number, t: number) {
-		let diff;// Direction the animation will show the memory "tape" "moving", for example if its going from 0x00 to 0xFF it shouldn't scroll across the whole thing but loop around and just go down 1 step
-		let diff_raw = new_address - this.address();
-		let diff_raw_abs = Math.abs(diff_raw);
-		if(diff_raw_abs < this.size / 2) {
-			diff = diff_raw;
-		}
-		else {
-			diff = diff_raw - this.size;// Don't touch, it works
-		}
-		let tweens = [];
-		// TODO: Delete hidden items from possible previous shifts
-		// Create new items
-		for(let i_raw = 0; i_raw < Math.abs(diff); i_raw++) {
-			let i;// Memory index
-			if(diff > 0) {
-				i = this.address() + i_raw + 1;// Scrolling down, new items shown on top
-			}
-			else {
-				i = ((this.address() - i_raw - this.n_display_values) + this.size) % this.size;// Scrolling up, new values on bottom
-			}
-			let new_stack_value = new MemoryValue(this.data[i], i, this.data_size_hex_digits, this.address_size_hex_digits, this.value_font_size, this.title_font_size, this.memory_address_to_display_rel_y(i, 0));
-			new_stack_value.base_topleft_pos = () => {return this.items_rect().topLeft()};
-			this.data_display.push(new_stack_value);
-			view.add(new_stack_value.init_rect(this.n_display_values));
-		}
-		// Apply Y position animations to all of them
-		for(let i = 0; i < this.data_display.length; i++) {
-			tweens.push(this.data_display[i].y_offset(this.memory_address_to_display_rel_y(this.data_display[i].index, diff), t));
-		}
-		// Update address
-		this.address(new_address);
-		return tweens;
-	}
-	animate_write_value(value: number, t: number) {
-		this.data[this.address()] = value;
-		// The display value for the current address is at the top, so at index = 0
-		this.data_display[0].n(value);
-		this.data_display[0].value_color(written_to_color);
-		return this.data_display[0].value_color(new Color('FFF'), t);
-	}
-	set_value_base_position() {
-		for(let i = 0; i < this.data_display.length; i++) {
-			this.data_display[i].base_topleft_pos = () => {return this.items_rect().topLeft()};
-		}
 	}
 }
 
