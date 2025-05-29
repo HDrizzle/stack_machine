@@ -1,5 +1,5 @@
 import {Circle, Layout, makeScene2D, Rect, View2D, Txt, Img, Code, vector2Signal, Line, CircleSegment} from '@motion-canvas/2d';
-import {all, beginSlide, waitFor, createRef, Reference, Signal, SimpleSignal, createSignal, DEFAULT, Color, Vector2Signal, Vector2, SignalTween, SimpleVector2Signal, useLogger, easeInOutCubic, SignalGenerator, delay} from '@motion-canvas/core';
+import {all, beginSlide, waitFor, createRef, Reference, Signal, SimpleSignal, createSignal, DEFAULT, Color, Vector2Signal, Vector2, SignalTween, SimpleVector2Signal, useLogger, easeInOutCubic, SignalGenerator, delay, easeInCubic, easeOutCubic, linear} from '@motion-canvas/core';
 import title_slide_background from '../../images/title_slide_background.png';
 import bool_value_scrot from '../../images/bool_value_scrot.png';
 import binary_decimal from '../../images/binary-decimal.png';
@@ -17,8 +17,16 @@ import image_quad_and from '../../images/photo_quad_and.jpeg';
 import image_8_bit_latch from '../../images/photo_8_bit_latch.jpeg';
 import image_starter from '../../images/photo_starter.jpeg';
 import image_main_block_diagram from '../../images/main_block_diagram.png';
+import image_sram_top_down from '../../images/sram_top_down.jpeg';
+import image_bus_sources from '../../images/scrot_bus_sources.png';
+import image_bus_dests from '../../images/scrot_bus_dests.png';
+import image_cv_everything from '../../images/cv_everything.png';
+import image_cv_sequencer from '../../images/actual_sequencer_cv.png';
+import image_cv_timing_diagram from '../../images/cv_timing_diagram.png';
+import image_wavedrom_main_cycle from '../../images/wavedrom_main_cycle.png';
+import image_wavedrom_start from '../../images/wavedrom_start_timing.png';
 import { LogicDevice, LogicCircuit, LogicCircuitToplevelWrapper, GateAnd, GateNand, GateOr, GateNor, GateXor, GateXnor, GateNot, LogicConnectionPin } from '../logic_sim';
-import { create_nor_flip_flop, create_d_level_latch, DLatchEdge, DLatchEdge8Bit, LayoutQuadAnd, FullAdder, ParameterizedAdder, ParameterizedAdderHorizontal, ParameterizedAdderVertical, MemoryValue, MemoryContainer, create_sequencer_6 } from '../derived_circuits';
+import { create_nor_flip_flop, create_d_level_latch, DLatchEdge, DLatchEdge8Bit, LayoutQuadAnd, FullAdder, ParameterizedAdder, ParameterizedAdderHorizontal, ParameterizedAdderVertical, create_sequencer_6 } from '../derived_circuits';
 
 /* Slides
 -- Title --
@@ -57,6 +65,8 @@ What I would improve
 Acknowledgements
 */
 
+const written_to_color = new Color('#FF0000');
+const read_from_color = new Color('#00FF00');
 
 function logic_wire_color(in_: [state: boolean, valid: boolean]): Color {
 	if(in_[1]) {
@@ -117,10 +127,11 @@ export default makeScene2D(function* (view) {
 		textAlign={'left'}
 		stroke={'#FFF'}
 		fill={'#FFF'}
+		zIndex={5}
 	/>);
 	let bottom_text_ref = createRef<Txt>();
 	let bottom_text: SimpleSignal<string> = createSignal('');
-	view.add(<Txt text={bottom_text} ref={bottom_text_ref} fontSize={slide_title_text_size} fill={'#FFF'} textAlign={'center'} position={new Vector2(0, half_height*0.85)} />);
+	view.add(<Txt text={bottom_text} ref={bottom_text_ref} fontSize={slide_title_text_size} fill={'#FFF'} textAlign={'center'} position={new Vector2(0, half_height*0.85)} zIndex={5} />);
 	// Goals
 	current_slide_title('Goals for this project');
 	slide_ref = createRef<Rect>();
@@ -140,21 +151,6 @@ export default makeScene2D(function* (view) {
 					<Txt fontSize={slide_title_text_size} fill={'#FFF'} paddingRight={10}>❌</Txt>
 					<Img src={image_gpu} maxWidth={half_width*0.7} maxHeight={half_height*0.8} />
 				</Rect>
-			</Rect>
-		</Rect>
-	);
-	yield* beginSlide(current_slide_title());
-	slide_ref().remove();
-	// Parts of a computer (very basic)
-	// Images needed: Hard drive, CPU, Ports, DRAM stick
-	current_slide_title('Parts of a Computer');
-	slide_ref = createRef<Rect>();
-	// TODO
-	view.add(
-		<Rect ref={slide_ref} layout topLeft={generic_slide_top_left_pos} width={half_width*1.8} height={half_height*1.7}>
-			<Rect layout direction={'column'} alignItems={'center'} justifyContent={'center'}>
-				<Txt fontSize={slide_title_text_size} fill={'#FFF'}>Storage</Txt>
-				<Img src={image_hard_drive} scale={0.2} />
 			</Rect>
 		</Rect>
 	);
@@ -371,6 +367,7 @@ export default makeScene2D(function* (view) {
 	// Sequential logic, Flip Flop, Epic animation sequence
 	let sequencial_logic_wrapper = new LogicCircuitToplevelWrapper(create_nor_flip_flop(createSignal(60)));
 	sequencial_logic_wrapper.init_view(view);
+	sequencial_logic_wrapper.rect_ref().zIndex(2);
 	yield* sequencial_logic_wrapper.animate_changes([['In-0', true]], 0.2, 3);
 	yield* waitFor(2);
 	yield* sequencial_logic_wrapper.animate_changes([['In-0', false]], 0.2, 3);
@@ -488,9 +485,26 @@ export default makeScene2D(function* (view) {
 	yield* ref_8_bit_latch().position.x(half_width*0.3, 2);
 	bottom_text('I used 51 of these in the computer');
 	yield* waitFor(2);
-	yield* beginSlide('Byte Latch');
+	yield* beginSlide('Byte Latch zoom out & replace with memory');
+	yield* all(
+		ref_8_bit_latch().position.x(half_width*1.5, 0.5),
+		sequencial_logic_wrapper.rect_ref().position.x(0, 0.5)
+	);
+	yield* waitFor(0.5);
+	bottom_text('x32,768');
+	current_slide_title('Static Random Access Memory (SRAM), 32 kB');
+	let ref_mem_photo = createRef<Img>();
+	view.add(<Img ref={ref_mem_photo} src={image_sram_top_down} position={new Vector2(0, 0)} width={half_width*1.7} height={half_height*1.3} opacity={0} scale={10}/>);
+	yield* all(
+		ref_mem_photo().opacity(1, 2),
+		ref_mem_photo().scale(1, 2, easeOutCubic),
+		sequencial_logic_wrapper.rect_ref().scale(0, 2, easeOutCubic)
+	);
+	yield* waitFor(2);
+	yield* beginSlide('End of latch & memory');
 	bottom_text('');
 	ref_8_bit_latch().remove();
+	ref_mem_photo().remove();
 	sequencial_logic_wrapper.remove();
 	// Clock & sequencers
 	current_slide_title('Clock Signal & Timing');
@@ -597,52 +611,205 @@ export default makeScene2D(function* (view) {
 	);
 	yield* beginSlide('Show bus addressing');
 	bottom_text('Bus Read/Write addressing - Controls what sets the bus state and when');
-	yield* all(// TODO
-		highlight_rectangle().width(half_width*0.25, 1),
-		highlight_rectangle().height(half_height*0.18, 1),
-		highlight_rectangle().position(new Vector2(-half_width*0.89, -half_height*0.23), 1)
+	yield* all(
+		highlight_rectangle().width(half_width*1.5, 1),
+		highlight_rectangle().height(half_height*0.5, 1),
+		highlight_rectangle().position(new Vector2(-half_width*0, half_height*0.2), 1)
 	);
-	yield* beginSlide('Block diagram end placeholder');
-	slide_ref().remove();
 	// Instruction format graphic
+	yield* beginSlide('Block diagram end, show instruction format graphic, MOVE');
+	slide_ref().remove();
+	bottom_text('');
+	current_slide_title('Instruction format, 16 bits');
+	let instruction_demo = new InstructionFormatDemo(createSignal(20), createSignal(new Vector2(0, -half_height*0.5)), view);
+	let move_addresses_ref = createRef<Rect>();
+	view.add(<Rect
+		ref={move_addresses_ref}
+		position={new Vector2(0, half_height*0.3)}
+	>
+		<Img src={image_bus_sources} height={half_height*0.81} width={half_width*0.7} position={new Vector2(-half_width*0.6, 0)} />
+		<Img src={image_bus_dests} height={half_height*1.08} width={half_width} position={new Vector2(half_width*0.4, 0)} />
+	</Rect>);
+	yield* beginSlide('Instruction WRITE');
+	instruction_demo.set_instruction(1);
+	yield* beginSlide('Instruction GOTO');
+	instruction_demo.set_instruction(2);
+	yield* all(
+		move_addresses_ref().position.y(half_height*2, 1),
+		instruction_demo.position_px(new Vector2(0, 0), 1)
+	);
+	yield* beginSlide('Instruction GOTO-IF');
+	instruction_demo.set_instruction(3);
+	yield* beginSlide('Instruction HALT');
+	instruction_demo.set_instruction(4);
+	yield* beginSlide('Instruction CALL');
+	instruction_demo.set_instruction(5);
+	yield* beginSlide('Instruction RETURN');
+	instruction_demo.set_instruction(6);
+	yield* beginSlide('End');
+	/*instruction_demo.rect_ref().remove();
+	current_slide_title('Designing it in CircuitVerse');
+	slide_ref = createRef<Rect>();
+	view.add(
+		<Rect ref={slide_ref} topLeft={generic_slide_top_left_pos} width={half_width*1.8} height={half_height*1.7}>
+			<Img src={image_cv_everything} width={half_width*2} height={half_height*1.4} position={new Vector2(0, 0)} />
+		</Rect>
+	);
+	yield* beginSlide(current_slide_title());
+	slide_ref().remove();
+	current_slide_title('Timing');
+	slide_ref = createRef<Rect>();
+	view.add(
+		<Rect ref={slide_ref} topLeft={generic_slide_top_left_pos} width={half_width*1.8} height={half_height*1.7}>
+			<Img src={image_cv_sequencer} width={half_width*1.8} height={half_height*1.3} position={new Vector2(-half_width*0.1, half_height*0.2)} />
+			<Img src={image_wavedrom_main_cycle} width={half_width*0.8} height={half_height*0.9} position={new Vector2(half_width*0.5, -half_height*0.6)} />
+		</Rect>
+	);
+	yield* beginSlide(current_slide_title());
+	slide_ref().remove();
+	yield* beginSlide('End placeholder');
 	// Screenshot of actual CircuitVerse sequencer, explain how its like a baton in a relay race
 	// Computer animation
 	yield* beginSlide('Computer animation');
-	const machine = new Emulator(new Uint16Array([0,0,0,0,0,0]), view);
-	yield* machine.test_animation_1();
-	yield* machine.test_animation_2(view);
-	// Testing
-	/*const myCircle = createRef<Circle>();
-	view.add(
-		<Rect>
-			<Circle
-				ref={myCircle}
-				// try changing these properties:
-				x={-960}
-				y={-540}
-				width={140}
-				height={140}
-				fill="#e13238"
-			/>
-		</Rect>
+	const machine = new Emulator(
+		[0,1,2,3,4,5,6],
+		createSignal(20),
+		createSignal(new Vector2(0, 0)),
+		view
 	);
-
-	yield* all(
-		myCircle().position.x(960, 1).to(-960, 1),
-		myCircle().fill('#e6a700', 1).to('#e13238', 1),
-	);*/
-
+	yield* beginSlide('Computer initiated');
+	yield* machine.test_animation_1();
+	yield* machine.test_animation_2(view);*/
+	// Testing
 });
+
+class InstructionFormatDemo {
+	instruction: SimpleSignal<number>;
+	rect_ref: Reference<Rect>;
+	instruction_ref: Reference<Txt>;
+	segment_explainers: Array<[Reference<Txt>, Reference<Line>]>;
+	grid_size: SimpleSignal<number>;
+	position_px: SimpleSignal<Vector2>;
+	explanation: SimpleSignal<string>;
+	constructor(grid_size: SimpleSignal<number>, position_px: SimpleSignal<Vector2>, parent_rect: View2D | Rect) {
+		this.instruction = createSignal(0);
+		this.rect_ref = createRef<Rect>();
+		this.instruction_ref = createRef<Txt>();
+		this.segment_explainers = [];
+		this.grid_size = grid_size;
+		this.position_px = position_px;
+		this.explanation = createSignal('');
+		// Init view
+		parent_rect.add(<Rect
+			ref={this.rect_ref}
+			position={this.position_px}
+		>
+			<Code
+				ref={this.instruction_ref}
+				position={() => new Vector2(0, -4).scale(this.grid_size())}
+				fontSize={() => this.grid_size()*3}
+				fill={'#FFF'}
+				code={() => `${this.instruction().toString(2).padStart(16, '0')}`}
+			/>
+			<Txt
+				text={this.explanation}
+				position={() => new Vector2(0, 4).scale(this.grid_size())}
+				fill={'#FFF'}
+				fontSize={() => this.grid_size()*2}
+			/>
+		</Rect>);
+		// Set instruction
+		this.set_instruction(0);
+	}
+	set_instruction(instruction: number) {
+		this.instruction(instruction);
+		// Remove old explainers
+		for(let i = 0; i < this.segment_explainers.length; i++) {
+			this.segment_explainers[i][0]().remove();
+			this.segment_explainers[i][1]().remove();
+		}
+		this.segment_explainers = [];
+		let opcode = instruction & 0xF;
+		let opcode_str: string;
+		let description: string;
+		// Add new ones
+		switch(opcode) {
+			case 0:
+				opcode_str = 'MOVE';
+				description = 'Moves a byte on the bus from given source to destination';
+				this.add_segment_explainer(4, 4, 'ALU OPCODE');
+				this.add_segment_explainer(8, 4, 'SOURCE');
+				this.add_segment_explainer(12, 4, 'DESTINATION');
+				break;
+			case 1:
+				opcode_str = 'WRITE';
+				description = 'Moves a byte from the same program instruction to something else on the bus';
+				this.add_segment_explainer(4, 8, 'BYTE TO BE WRITTEN');
+				this.add_segment_explainer(12, 4, 'DESTINATION');
+				break;
+			case 2:
+				opcode_str = 'GOTO';
+				description = 'Sets the Program Counter based on the values in the GOTO latches';
+				this.add_segment_explainer(4, 12, 'UNUSED');
+				break;
+			case 3:
+				opcode_str = 'GOTO-IF';
+				description = 'Same as GOTO but ONLY if a bit called the Goto Decider is 1';
+				this.add_segment_explainer(4, 12, 'UNUSED');
+				break;
+			case 4:
+				opcode_str = 'HALT';
+				description = 'Stops the clock';
+				this.add_segment_explainer(4, 12, 'UNUSED');
+				break;
+			case 5:
+				opcode_str = 'CALL';
+				description = 'Similar to GOTO, first saves the return address to the Call Stack';
+				this.add_segment_explainer(4, 12, 'UNUSED');
+				break;
+			case 6:
+				opcode_str = 'RETURN';
+				description = 'Opposite of CALL, sets the Program counter to the top of the Call Stack';
+				this.add_segment_explainer(4, 12, 'UNUSED');
+				break;
+		}
+		// Opcode segment explainer
+		this.add_segment_explainer(0, 4, 'OPCODE');
+		this.explanation(`Operation ${opcode} - ${opcode_str} - ${description}`);
+	}
+	add_segment_explainer(bit_start: number, len: number, text: string) {
+		let new_line_ref = createRef<Line>();
+		let new_txt_ref = createRef<Txt>();
+		let instruction_char_width = 1.8;// Grid units
+		this.rect_ref().add(<Line
+			ref={new_line_ref}
+			points={[
+				() => new Vector2(-len-bit_start, -0.5).scale(instruction_char_width*this.grid_size()).add(this.instruction_ref().bottomRight()),
+				() => new Vector2(-len-bit_start, 0).scale(instruction_char_width*this.grid_size()).add(this.instruction_ref().bottomRight()),
+				() => new Vector2(-bit_start, 0).scale(instruction_char_width*this.grid_size()).add(this.instruction_ref().bottomRight()),
+				() => new Vector2(-bit_start, -0.5).scale(instruction_char_width*this.grid_size()).add(this.instruction_ref().bottomRight())
+			]}
+			stroke={'#FFF'}
+			lineWidth={2}
+		/>);
+		this.rect_ref().add(<Txt
+			ref={new_txt_ref}
+			fontSize={() => this.grid_size()}
+			position={() => new Vector2(-bit_start-(len/2), 1).scale(instruction_char_width*this.grid_size()).add(this.instruction_ref().bottomRight())}
+			text={text}
+			fill={'#FFF'}
+		/>);
+		this.segment_explainers.push([new_txt_ref, new_line_ref]);
+	}
+}
 
 class Emulator {
 	// Object refernces
-	prog: Uint16Array<ArrayBufferLike>;
-	layout: Reference<Layout>;
-	test_circle: Reference<Circle>;
-	// Signals
-	program_counter: Signal<number, 0>;
-	test_signal: SimpleSignal<number>;
+	rect_ref: Reference<Rect>;
+	grid_size: SimpleSignal<number>;
+	position_px: SimpleSignal<Vector2>;
 	// Sub components
+	prog: ProgramBox;
 	alu: ALU;
 	stack: Stack;
 	gpram: GPRAM;
@@ -651,42 +818,28 @@ class Emulator {
 	value_font_size: number;
 	title_font_size: number;
 	// Methods
-	constructor(prog: Uint16Array, view: View2D) {
+	constructor(prog: Array<number>, grid_size: SimpleSignal<number>, position_px: SimpleSignal<Vector2>, parent_rect: View2D | Rect) {
 		this.value_font_size = 20;
 		this.title_font_size = 30;
-		this.prog = prog;
-		this.layout = createRef<Layout>();
-		this.test_circle = createRef<Circle>();
-		this.test_signal = createSignal(50);
+		this.rect_ref = createRef<Rect>();
+		this.grid_size = grid_size;
+		this.position_px = position_px;
 		// Init sub-components
-		this.alu = new ALU(this.value_font_size, this.title_font_size);
-		this.stack = new Stack(this.value_font_size, this.title_font_size);
-		this.gpram = new GPRAM(this.value_font_size, this.title_font_size);
-		this.call_stack = new CallStack(this.value_font_size, this.title_font_size);
+		this.prog = new ProgramBox(prog, grid_size, createSignal(new Vector2(-35, 0)));
+		this.alu = new ALU(grid_size, createSignal(new Vector2(-10, -20)));
+		this.stack = new Stack(grid_size, createSignal(new Vector2(-10, 10)));
+		this.gpram = new GPRAM(grid_size, createSignal(new Vector2(20, -20)));
+		this.call_stack = new CallStack(grid_size, createSignal(new Vector2(20, 10)));
 		// Add graphics
-		view.add(
-			<Rect
-				layout
-				ref={this.layout}
-				grow={1}
-				fill={'#000'}
-				radius={2}
-				stroke={'#fff'}
-				lineWidth={2}
-				margin={2}
-				padding={10}
-				zIndex={1}
-			>
-				{/*this.call_stack.init_rect(view)*/}
-				{this.gpram.init_rect(view)}
-				{this.stack.init_rect(view)}
-				{this.alu.init_rect()}
-			</Rect>
-		);
-		// Secondary things that require the layout to be done first
-		//this.call_stack.memory_container.set_value_base_position();
-		this.gpram.memory_container.set_value_base_position();
-		this.stack.memory_container.set_value_base_position();
+		parent_rect.add(<Rect
+			ref={this.rect_ref}
+			position={this.position_px}
+		/>);
+		this.prog.init_view(this.rect_ref());
+		this.alu.init_rect(this.rect_ref());
+		this.stack.init_rect(this.rect_ref());
+		this.gpram.init_rect(this.rect_ref());
+		this.call_stack.init_rect(this.rect_ref());
 	}
 	test_animation_1() {
 		return this.stack.memory_container.animate_write_value(42, 1);
@@ -698,170 +851,312 @@ class Emulator {
 	}
 }
 
+class ProgramBox {
+	static width_grid: number = 20;
+	static height_grid: number = 40;
+	prog_binary: Array<number>;
+	prog_source: Array<string>;
+	pc: SimpleSignal<number>;
+	// Copy these three
+	rect_ref: Reference<Rect>;
+	grid_size: SimpleSignal<number>;
+	position_grid: SimpleSignal<Vector2>;
+	constructor(prog_binary: Array<number>, grid_size: SimpleSignal<number>, position_grid: SimpleSignal<Vector2>) {
+		this.prog_binary = prog_binary;
+		this.prog_source = [];
+		// Decompile binary to source
+		for(let i = 0; i < prog_binary.length; i++) {
+			let keywords: Array<string> = [];
+			let instruction = prog_binary[i];
+			let opcode = instruction & 0xF;
+			keywords.push(ProgramBox.decode_opcode(opcode));
+			if(opcode == 0 || opcode == 1) {// MOVE or WRITE
+				if(opcode == 0) {
+					let source = (instruction >> 8) & 0xF;
+					if(source == 2) {// ALU
+						let alu_opcode = (instruction >> 4) & 0xF;
+						keywords.push(ProgramBox.decode_alu_opcode(alu_opcode));
+					}
+					keywords.push(ProgramBox.decode_bus_source_address(source));
+				}
+				else {// WRITE
+					let literal = (instruction >> 4) & 0xFF;
+					keywords.push(`0x${literal.toString(16).padStart(2, '0')}`);
+				}
+				let dest = (instruction >> 12) & 0xF;
+				keywords.push(ProgramBox.decode_bus_dest_address(dest));
+			}
+			this.prog_source.push(`${i}`.padStart(4, ' ') + ': ' + keywords.join(' ') + ';');
+		}
+		this.pc = createSignal(0);
+		this.rect_ref = createRef<Rect>();
+		this.grid_size = grid_size;
+		this.position_grid = position_grid;
+	}
+	init_view(parent_rect: View2D | Rect) {
+		parent_rect.add(
+			<Rect
+				position={this.position_grid().scale(this.grid_size())}
+				width={() => this.grid_size() * ProgramBox.width_grid}
+				height={() => this.grid_size() * ProgramBox.height_grid}
+				radius={2}
+				stroke={'#fff'}
+				lineWidth={2}
+				ref={this.rect_ref}
+			>
+				<Code
+					fontSize={() => this.grid_size()}
+					code={this.prog_source.join('\n')}
+					topLeft={() => new Vector2(-11.5, -18).scale(this.grid_size())}
+				/>
+			</Rect>
+		);
+	}
+	static decode_opcode(opcode: number): string {
+		let codes = [
+			'MOVE',
+			'WRITE',
+			'GOTO',
+			'GOTO-IF',
+			'HALT',
+			'CALL',
+			'RETURN'
+		]
+		if(opcode < codes.length) {
+			return codes[opcode];
+		}
+		else {throw new Error(`Opcode ${opcode} is invalid`);}
+	}
+	static decode_bus_source_address(source: number): string {
+		let sources = [
+			'STACK-POP',
+			'OFFSET-READ',
+			'ALU',
+			'',
+			'GPRAM',
+			'GPRAM-INC-ADDR',
+			'GPRAM-ADDR-A',
+			'GPRAM-ADDR-B',
+			'GPIO-READ-A',
+			'CLK-COUNTER-A',
+			'CLK-COUNTER-B',
+			'GPIO-READ-B'
+		];
+		if(source < sources.length) {
+			if(source == 3) {
+				throw new Error(`A MOVE must not use the program as a source, that is what WRITE is for`);
+			}
+			return sources[source];
+		}
+		else {throw new Error(`Bus write (source) address ${source} is invalid`);}
+	}
+	static decode_bus_dest_address(source: number): string {
+		const sources = [
+			'NONE',                // 0
+			'STACK-PUSH',          // 1
+			'ALU-A',               // 2
+			'ALU-B',               // 3
+			'GOTO-A',              // 4
+			'GOTO-B',              // 5
+			'GOTO-DECIDER',        // 6
+			'GPRAM',               // 7
+			'GPRAM-INC-ADDR',      // 8
+			'GPRAM-ADDR-A',        // 9
+			'GPRAM-ADDR-B',        // 10
+			'GPIO-WRITE-A',        // 11
+			'OFFSET-WRITE',        // 12
+			'SET-STACK-OFFSET',    // 13
+			'ALU-C-IN',            // 14
+			'GPIO-WRITE-B'         // 15
+		];
+		if(source < sources.length) {
+			return sources[source];
+		}
+		else {throw new Error(`Bus read (destination) address ${source} is invalid`);}
+	}
+	static decode_alu_opcode(source: number): string {
+		const sources = [
+			'ADD',
+			'ADD-C',
+			'NOT',
+			'OR',
+			'AND',
+			'XNOR',
+			'SHIFT',
+			'EQ',
+			'A',
+			'B'
+		];
+		if(source < sources.length) {
+			return sources[source];
+		}
+		else {throw new Error(`ALU opcode ${source} is invalid`);}
+	}
+}
+
 class ALU {
+	static width_grid: number = 10;
+	static height_grid: number = 24;
 	a: SimpleSignal<number>;
 	b: SimpleSignal<number>;
 	c: SimpleSignal<number>;
-	value_font_size: number;
-	title_font_size: number;
-	constructor(value_font_size: number, title_font_size: number) {
-		this.value_font_size = value_font_size;
-		this.title_font_size = title_font_size;
+	opcode: SimpleSignal<number>;
+	rect_ref: Reference<Rect>;
+	grid_size: SimpleSignal<number>;
+	position_grid: SimpleSignal<Vector2>;
+	constructor(grid_size: SimpleSignal<number>, position_grid: SimpleSignal<Vector2>) {
 		this.a = createSignal(0);
 		this.b = createSignal(0);
 		this.c = createSignal(0);
+		this.opcode = createSignal(0);
+		this.rect_ref = createRef<Rect>();
+		this.rect_ref = createRef<Rect>();
+		this.grid_size = grid_size;
+		this.position_grid = position_grid;
 	}
-	init_rect() {
-		return <Rect
-			layout
-			grow={1}
-			fill={'#000'}
+	init_rect(parent_rect: View2D | Rect) {
+		parent_rect.add(<Rect
+			ref={this.rect_ref}
 			radius={2}
 			stroke={'#fff'}
 			lineWidth={2}
-			margin={2}
-			padding={10}
-			direction={'column'}
+			position={this.position_grid().scale(this.grid_size())}
+			width={() => this.grid_size() * ALU.width_grid}
+			height={() => this.grid_size() * ALU.height_grid}
 		>
 			<Txt
-				text={() => `ALU`}
+				text={`ALU`}
 				fill={'#FFFFFF'}
 				fontFamily={'Vera Mono'}
-				fontSize={this.title_font_size}
+				fontSize={this.grid_size}
 				textAlign={'center'}
+				position={() => new Vector2(0, -2.5*this.grid_size())}
 			/>
 			<Txt
-				text={() => `a = 0x${this.a().toString(16).padStart(2, '0')}`}
+				text={() => `a = 0x${this.a().toString().padStart(3, '0')}`}
 				fill={'#FFFFFF'}
 				fontFamily={'Vera Mono'}
-				fontSize={this.value_font_size}
+				fontSize={this.grid_size}
+				position={() => new Vector2(0, -1).scale(this.grid_size())}
 			/>
 			<Txt
-				text={() => `b = 0x${this.b().toString(16).padStart(2, '0')}`}
+				text={() => `b = 0x${this.b().toString().padStart(3, '0')}`}
 				fill={'#FFFFFF'}
 				fontFamily={'Vera Mono'}
-				fontSize={this.value_font_size}
+				fontSize={this.grid_size}
+				position={() => new Vector2(0, 0.5).scale(this.grid_size())}
 			/>
 			<Txt
-				text={() => `c = 0x${this.c().toString(16).padStart(2, '0')}`}
+				text={() => `c = 0x${this.c().toString().padStart(3, '0')}`}
 				fill={'#FFFFFF'}
 				fontFamily={'Vera Mono'}
-				fontSize={this.value_font_size}
+				fontSize={this.grid_size}
+				position={() => new Vector2(0, 2).scale(this.grid_size())}
 			/>
-		</Rect>;
+		</Rect>);
 	}
 }
 
 class Stack {
+	static width_grid: number = 10;
+	static height_grid: number = 24;
 	tos: SimpleSignal<number>;
 	offset: SimpleSignal<number>;
 	data: Array<MemoryValue>;
 	items_rect: Reference<Rect>;
-	value_font_size: number;
-	title_font_size: number;
+	rect_ref: Reference<Rect>;
+	grid_size: SimpleSignal<number>;
+	position_grid: SimpleSignal<Vector2>;
 	memory_container: MemoryContainer;
-	constructor(value_font_size: number, title_font_size: number) {
-		this.value_font_size = value_font_size;
-		this.title_font_size = title_font_size;
+	constructor(grid_size: SimpleSignal<number>, position_grid: SimpleSignal<Vector2>) {
 		this.tos = createSignal(0);
 		this.offset = createSignal(0);
 		this.items_rect = createRef<Rect>();
-		this.memory_container = new MemoryContainer(value_font_size, title_font_size, 2, 4);
+		this.rect_ref = createRef<Rect>();
+		this.grid_size = grid_size;
+		this.position_grid = position_grid;
+		this.memory_container = new MemoryContainer(2, 4, grid_size, createSignal(new Vector2(0, 0)));
 	}
-	init_rect(view: View2D) {
-		let return_rect = <Rect
-			layout
-			grow={1}
-			fill={'#000'}
+	init_rect(parent_rect: View2D | Rect) {
+		parent_rect.add(<Rect
 			radius={2}
 			stroke={'#fff'}
 			lineWidth={2}
-			margin={2}
-			padding={10}
-			direction={'column'}
+			ref={this.rect_ref}
+			position={this.position_grid().scale(this.grid_size())}
+			width={() => this.grid_size() * Stack.width_grid}
+			height={() => this.grid_size() * Stack.height_grid}
 		>
 			<Txt
 				text={() => `Stack Memory`}
 				fill={'#FFFFFF'}
 				fontFamily={'Vera Mono'}
-				fontSize={this.title_font_size}
+				fontSize={this.grid_size}
 				textAlign={'center'}
+				position={() => new Vector2(0, -11.3).scale(this.grid_size())}
 			/>
-			<Rect
-				layout
-				  grow={1}
-				fill={'#000'}
-				margin={0}
-				padding={0}
-			>
-				<Rect
-					layout
-					  grow={1}
-					fill={'#000'}
-					margin={0}
-					padding={0}
-					direction={'column'}
-				>
-					<Txt
-						text={() => `ToS = 0x${this.tos().toString(16).padStart(4, '0')}`}
-						fill={'#FFFFFF'}
-						fontFamily={'Vera Mono'}
-						fontSize={this.value_font_size}
-						textAlign={'right'}
-					/>
-					<Txt
-						text={() => `Offset = 0x${this.offset().toString(16).padStart(2, '0')}`}
-						fill={'#FFFFFF'}
-						fontFamily={'Vera Mono'}
-						fontSize={this.value_font_size}
-						textAlign={'right'}
-					/>
-				</Rect>
-				{this.memory_container.init_rect(view)}
-			</Rect>
-		</Rect>;
+			<Txt
+				text={() => `ToS = 0x${this.tos().toString(16).padStart(4, '0')}`}
+				fill={'#FFFFFF'}
+				fontFamily={'Vera Mono'}
+				fontSize={this.grid_size}
+				textAlign={'right'}
+				position={() => new Vector2(0, -10.2).scale(this.grid_size())}
+			/>
+			<Txt
+				text={() => `Offset = 0x${this.offset().toString(16).padStart(2, '0')}`}
+				fill={'#FFFFFF'}
+				fontFamily={'Vera Mono'}
+				fontSize={this.grid_size}
+				textAlign={'right'}
+				position={() => new Vector2(0, -9.1).scale(this.grid_size())}
+			/>
+		</Rect>);
 		// Add initial stack values (wrap around to 65,535)
 		/*for(let i = 0; i < 10; i++) {
 			let new_stack_value = new MemoryValue(0, 65535-i, 2, 4, this.value_font_size, this.title_font_size);
 			this.data.push(new_stack_value);
 			this.items_rect().add(new_stack_value.init_rect());
 		}*/
-		return return_rect;
+		this.memory_container.init_rect(this.rect_ref());
 	}
 }
 
 class GPRAM {
+	static width_grid: number = 10;
+	static height_grid: number = 24;
 	address: SimpleSignal<number>;
 	color_addr_a: SimpleSignal<Color>;
 	color_addr_b: SimpleSignal<Color>;
 	memory_container: MemoryContainer;
-	value_font_size: number;
-	title_font_size: number;
-	constructor(value_font_size: number, title_font_size: number) {
-		this.value_font_size = value_font_size;
-		this.title_font_size = title_font_size;
+	rect_ref: Reference<Rect>;
+	grid_size: SimpleSignal<number>;
+	position_grid: SimpleSignal<Vector2>;
+	constructor(grid_size: SimpleSignal<number>, position_grid: SimpleSignal<Vector2>) {
 		this.address = createSignal(0);
 		this.color_addr_a = createSignal(new Color('#FFF'));
 		this.color_addr_b = createSignal(new Color('#FFF'));
-		this.memory_container = new MemoryContainer(value_font_size, title_font_size, 2, 4);
+		this.rect_ref = createRef<Rect>();
+		this.grid_size = grid_size;
+		this.position_grid = position_grid;
+		this.memory_container = new MemoryContainer(2, 4, grid_size, createSignal(new Vector2(0, 0)));
 	}
-	init_rect(view: View2D) {
-		let return_rect = <Rect
-			layout
-			  grow={1}
-			fill={'#000'}
+	init_rect(parent_rect: View2D | Rect) {
+		parent_rect.add(<Rect
 			radius={2}
 			stroke={'#fff'}
 			lineWidth={2}
-			margin={2}
-			padding={10}
 			direction={'column'}
+			ref={this.rect_ref}
+			position={this.position_grid().scale(this.grid_size())}
+			width={() => this.grid_size() * GPRAM.width_grid}
+			height={() => this.grid_size() * GPRAM.height_grid}
 		>
 			<Txt
 				text={() => `General Purpose RAM`}
 				fill={'#FFFFFF'}
 				fontFamily={'Vera Mono'}
-				fontSize={this.title_font_size}
+				fontSize={this.grid_size}
 				textAlign={'center'}
 			/>
 			<Rect
@@ -882,61 +1177,64 @@ class GPRAM {
 						text={'Address = 0x'}
 						fill={'#FFFFFF'}
 						fontFamily={'Vera Mono'}
-						fontSize={this.value_font_size}
+						fontSize={this.grid_size}
 						textAlign={'right'}
 					/>
 					<Txt
 						text={this.address().toString(16).padStart(4, '0').slice(0, 2)}
 						fill={this.color_addr_b}
 						fontFamily={'Vera Mono'}
-						fontSize={this.value_font_size}
+						fontSize={this.grid_size}
 						textAlign={'right'}
 					/>
 					<Txt
 						text={this.address().toString(16).padStart(4, '0').slice(2)}
 						fill={this.color_addr_a}
 						fontFamily={'Vera Mono'}
-						fontSize={this.value_font_size}
+						fontSize={this.grid_size}
 						textAlign={'right'}
 					/>
 				</Rect>
-				{this.memory_container.init_rect(view)}
 			</Rect>
-		</Rect>;
-		return return_rect;
+		</Rect>);
+		this.memory_container.init_rect(this.rect_ref());
 	}
 }
 
 class CallStack {
+	static width_grid: number = 10;
+	static height_grid: number = 24;
 	color_tos: SimpleSignal<Color>;
 	tos: SimpleSignal<number>;
 	memory_container: MemoryContainer;
-	value_font_size: number;
-	title_font_size: number;
-	constructor(value_font_size: number, title_font_size: number) {
-		this.value_font_size = value_font_size;
-		this.title_font_size = title_font_size;
+	rect_ref: Reference<Rect>;
+	grid_size: SimpleSignal<number>;
+	position_grid: SimpleSignal<Vector2>;
+	constructor(grid_size: SimpleSignal<number>, position_grid: SimpleSignal<Vector2>) {
 		this.color_tos = createSignal(new Color('#FFF'));
 		this.tos = createSignal(0);
-		this.memory_container = new MemoryContainer(value_font_size, title_font_size, 4, 2);
+		this.rect_ref = createRef<Rect>();
+		this.grid_size = grid_size;
+		this.position_grid = position_grid;
+		this.memory_container = new MemoryContainer(4, 2, grid_size, createSignal(new Vector2(0, 0)));
 	}
-	init_rect(view: View2D) {
-		let return_rect = <Rect
-			layout
-			grow={1}
+	init_rect(parent_rect: View2D | Rect) {
+		parent_rect.add(<Rect
+			ref={this.rect_ref}
 			fill={'#000'}
 			radius={2}
 			stroke={'#fff'}
 			lineWidth={2}
-			margin={2}
-			padding={10}
 			direction={'column'}
+			position={this.position_grid().scale(this.grid_size())}
+			width={() => this.grid_size() * CallStack.width_grid}
+			height={() => this.grid_size() * CallStack.height_grid}
 		>
 			<Txt
 				text={() => `Call Stack`}
 				fill={'#FFFFFF'}
 				fontFamily={'Vera Mono'}
-				fontSize={this.title_font_size}
+				fontSize={this.grid_size}
 				textAlign={'center'}
 			/>
 			<Rect
@@ -950,19 +1248,224 @@ class CallStack {
 					text={'ToS = 0x'}
 					fill={'#FFFFFF'}
 					fontFamily={'Vera Mono'}
-					fontSize={this.value_font_size}
+					fontSize={this.grid_size}
 					textAlign={'right'}
 				/>
 				<Txt
 					text={this.tos().toString(16).padStart(2, '0')}
 					fill={this.color_tos}
 					fontFamily={'Vera Mono'}
-					fontSize={this.value_font_size}
+					fontSize={this.grid_size}
 					textAlign={'right'}
 				/>
-				{this.memory_container.init_rect(view)}
 			</Rect>
-		</Rect>;
-		return return_rect;
+		</Rect>);
+		this.memory_container.init_rect(this.rect_ref());
+	}
+}
+
+class MemoryValue {
+	static width_grid: number = 8;
+	static height_grid: number = 2;
+	n: SimpleSignal<number>;
+	index: number;
+	n_size_hex_digits: number;
+	index_size_hex_digits: number;
+	rect_ref: Reference<Rect>;
+	grid_size: SimpleSignal<number>;
+	position_px: SimpleSignal<Vector2>;
+	txt_ref: Reference<Txt>;
+	y_offset: SimpleSignal<number>;// For animating scrolling memory
+	value_color: SimpleSignal<Color>;
+	base_topleft_pos: () => Vector2;
+	constructor(n: number, index: number, n_size_hex_digits: number, index_size_hex_digits: number, top_y_pos: number, grid_size: SimpleSignal<number>) {
+		this.n_size_hex_digits = n_size_hex_digits;
+		this.index_size_hex_digits = index_size_hex_digits;
+		this.rect_ref = createRef<Rect>();
+		this.grid_size = grid_size;
+		this.txt_ref = createRef<Txt>();
+		this.n = createSignal(n);
+		this.index = index;
+		this.y_offset = createSignal(top_y_pos);
+		this.value_color = createSignal(new Color('FFF'));
+		this.base_topleft_pos = () => {return new Vector2(0, 0);};
+	}
+	init_rect(parent_rect: View2D | Rect, n_display_values: number) {
+		// base_pos_callback is the position of the top-left corner of the `MemoryContainer`s `items_rect` placeholder
+		parent_rect.add(<Rect
+			ref={this.rect_ref}
+			topLeft={() => {return this.base_topleft_pos().add(new Vector2(15, this.y_offset()+5));}}
+			zIndex={2}// Bigger number in front
+			opacity={() => {// Calculate opacity from Y offset
+				let y_offset_scaled = this.y_offset() / (MemoryValue.height_grid*this.grid_size());
+				if(y_offset_scaled > -1) {
+					if(y_offset_scaled < 0) {
+						return easeInOutCubic(y_offset_scaled + 1);
+					}
+					else {
+						if(y_offset_scaled >= n_display_values - 1) {
+							if(y_offset_scaled < n_display_values) {
+								return easeInOutCubic(y_offset_scaled + 1 - n_display_values, 1, 0);
+							}
+							else {
+								return 0;
+							}
+						}
+						else {
+							return 1;
+						}
+					}
+				}
+				else {
+					return 0;
+				}
+			}}
+		>
+			<Txt
+				text={() => `0x${this.index.toString(16).padStart(this.index_size_hex_digits, '0')}:`}
+				fontFamily={'Vera Mono'}
+				fontSize={this.grid_size}
+				fill={'#fff'}
+				position={() => new Vector2(-3, 0).scale(this.grid_size())}
+			/>
+			<Rect
+				radius={2}
+				stroke={'#fff'}
+				lineWidth={1}
+				width={() => this.grid_size()*5}
+				height={() => this.grid_size()*1.7}
+				position={() => new Vector2(2, 0).scale(this.grid_size())}
+			>
+				<Txt
+					ref={this.txt_ref}
+					text={() => `0x${this.n().toString(16).padStart(this.n_size_hex_digits, '0')}`}
+					fontFamily={'Vera Mono'}
+					fontSize={this.grid_size}
+					fill={() => this.value_color()}
+					lineWidth={1}
+				/>
+			</Rect>
+		</Rect>);
+	}
+}
+
+// Graphical representation of memory
+class MemoryContainer {
+	static width_grid: number = 10;
+	static height_grid: number = 20;
+	static n_display_values: number = 18;
+	address: SimpleSignal<number>;
+	data_display: Array<MemoryValue>;// Not used to actually address memory, only for animation
+	items_rect: Reference<Rect>;
+	size: number;
+	data: Uint16Array<ArrayBufferLike>;// Source of the memory's contents
+	data_size_hex_digits: number;
+	address_size_hex_digits: number;
+	rect_ref: Reference<Rect>;
+	grid_size: SimpleSignal<number>;
+	position_grid: SimpleSignal<Vector2>;
+	constructor(
+		data_size_hex_digits: number,
+		address_size_hex_digits: number,
+		grid_size: SimpleSignal<number>,
+		position_grid: SimpleSignal<Vector2>
+	) {
+		this.address = createSignal(0);
+		this.data_display = [];
+		this.items_rect = createRef<Rect>();
+		this.size = Math.pow(16, address_size_hex_digits);
+		this.data = new Uint16Array(this.size);
+		this.data_size_hex_digits = data_size_hex_digits;
+		this.address_size_hex_digits = address_size_hex_digits;
+		this.rect_ref = createRef<Rect>();
+		this.grid_size = grid_size;
+		this.position_grid = position_grid;
+	}
+	init_rect(parent_rect: View2D | Rect) {
+		parent_rect.add(<Rect
+			position={this.position_grid().scale(this.grid_size())}
+			width={() => this.grid_size() * MemoryContainer.width_grid}
+			height={() => this.grid_size() * MemoryContainer.height_grid}
+			ref={this.rect_ref}
+		>
+			<Txt
+				text='⋮'
+				fill={'#FFFFFF'}
+				fontFamily={'Vera Mono'}
+				fontSize={this.grid_size}
+				textAlign={'center'}
+			/>
+			<Rect
+				ref={this.items_rect}
+				height={() => MemoryContainer.n_display_values * MemoryValue.height_grid * this.grid_size()}
+				width={() => MemoryValue.width_grid * this.grid_size()}
+			/>
+			<Txt
+				text='⋮'
+				fill={'#FFFFFF'}
+				fontFamily={'Vera Mono'}
+				fontSize={this.grid_size}
+				textAlign={'center'}
+				position={() => new Vector2(2, MemoryContainer.n_display_values - 1).scale(this.grid_size())}
+			/>
+		</Rect>);
+		// Add initial values
+		for(let i = 0; i < MemoryContainer.n_display_values; i++) {
+			let address = (this.size-i) % this.size;
+			let new_value = new MemoryValue(0, address, this.data_size_hex_digits, this.address_size_hex_digits, this.memory_address_to_display_rel_y(address, 0), this.grid_size);
+			this.data_display.push(new_value);
+			new_value.init_rect(parent_rect, MemoryContainer.n_display_values);
+		}
+	}
+	private memory_address_to_display_rel_y(address: number, shift: number) {
+		// If `shift` != 0 then it is assumed that the shift takes place after this.address is updated
+		let address_diff_up = (((this.size*1.5) + (this.address() + shift - address)) % this.size) - (this.size/2);
+		return address_diff_up * MemoryValue.height_grid * this.grid_size();// TODO
+	}
+	animate_address_shift(view: View2D, new_address: number, t: number) {
+		let diff;// Direction the animation will show the memory "tape" "moving", for example if its going from 0x00 to 0xFF it shouldn't scroll across the whole thing but loop around and just go down 1 step
+		let diff_raw = new_address - this.address();
+		let diff_raw_abs = Math.abs(diff_raw);
+		if(diff_raw_abs < this.size / 2) {
+			diff = diff_raw;
+		}
+		else {
+			diff = diff_raw - this.size;// Don't touch, it works
+		}
+		let tweens = [];
+		// TODO: Delete hidden items from possible previous shifts
+		// Create new items
+		for(let i_raw = 0; i_raw < Math.abs(diff); i_raw++) {
+			let i;// Memory index
+			if(diff > 0) {
+				i = this.address() + i_raw + 1;// Scrolling down, new items shown on top
+			}
+			else {
+				i = ((this.address() - i_raw - MemoryContainer.n_display_values) + this.size) % this.size;// Scrolling up, new values on bottom
+			}
+			let new_stack_value = new MemoryValue(this.data[i], i, this.data_size_hex_digits, this.address_size_hex_digits, this.memory_address_to_display_rel_y(i, 0), this.grid_size);
+			new_stack_value.base_topleft_pos = () => {return this.items_rect().topLeft()};
+			this.data_display.push(new_stack_value);
+			new_stack_value.init_rect(this.rect_ref(), MemoryContainer.n_display_values);
+		}
+		// Apply Y position animations to all of them
+		for(let i = 0; i < this.data_display.length; i++) {
+			tweens.push(this.data_display[i].y_offset(this.memory_address_to_display_rel_y(this.data_display[i].index, diff), t));
+		}
+		// Update address
+		this.address(new_address);
+		return tweens;
+	}
+	animate_write_value(value: number, t: number) {
+		this.data[this.address()] = value;
+		// The display value for the current address is at the top, so at index = 0
+		this.data_display[0].n(value);
+		this.data_display[0].value_color(written_to_color);
+		return this.data_display[0].value_color(new Color('FFF'), t);
+	}
+	set_value_base_position() {
+		for(let i = 0; i < this.data_display.length; i++) {
+			this.data_display[i].base_topleft_pos = () => {return this.items_rect().topLeft()};
+		}
 	}
 }
