@@ -1,0 +1,143 @@
+write 0x00 gpio-write-a;
+@goto(init);# Hardware testing
+@anchor(init);
+# Write to GPRAM starting at 0x0000 then uses `update-display` (copied from tetris) to write to display
+@call(clear-display);
+@call(write-image);
+@anchor(infinite-loop);
+@call(update-display-even-odd-bytes);
+@goto(infinite-loop);
+
+@anchor(write-image);
+write 0x00 gpram-addr-a;
+write 0x00 gpram-addr-b;
+# Image
+write 0xFF gpram-inc-addr;write 0xFF gpram-inc-addr;write 0xFF gpram-inc-addr;write 0xFF gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x0F gpram-inc-addr;write 0xE1 gpram-inc-addr;write 0xFF gpram-inc-addr;write 0xF0 gpram-inc-addr;
+write 0x06 gpram-inc-addr;write 0x41 gpram-inc-addr;write 0x8C gpram-inc-addr;write 0x61 gpram-inc-addr;
+write 0x06 gpram-inc-addr;write 0x41 gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x63 gpram-inc-addr;
+write 0x8E gpram-inc-addr;write 0x63 gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x63 gpram-inc-addr;
+write 0x8C gpram-inc-addr;write 0x23 gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x63 gpram-inc-addr;
+write 0x8C gpram-inc-addr;write 0x23 gpram-inc-addr;write 0x8C gpram-inc-addr;write 0x61 gpram-inc-addr;
+
+write 0xDC gpram-inc-addr;write 0x37 gpram-inc-addr;write 0xFC gpram-inc-addr;write 0x60 gpram-inc-addr;
+write 0x58 gpram-inc-addr;write 0x16 gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x60 gpram-inc-addr;
+write 0x58 gpram-inc-addr;write 0x16 gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x60 gpram-inc-addr;
+write 0x78 gpram-inc-addr;write 0x1E gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x60 gpram-inc-addr;
+write 0x30 gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x60 gpram-inc-addr;
+write 0x30 gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x1E gpram-inc-addr;write 0xF0 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0xFF gpram-inc-addr;write 0xFF gpram-inc-addr;write 0xFF gpram-inc-addr;write 0xFF gpram-inc-addr;
+
+write 0xFF gpram-inc-addr;write 0xFF gpram-inc-addr;write 0xFF gpram-inc-addr;write 0xFF gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x0F gpram-inc-addr;write 0xE1 gpram-inc-addr;write 0xFF gpram-inc-addr;write 0xF0 gpram-inc-addr;
+write 0x06 gpram-inc-addr;write 0x41 gpram-inc-addr;write 0x8C gpram-inc-addr;write 0x61 gpram-inc-addr;
+write 0x06 gpram-inc-addr;write 0x41 gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x63 gpram-inc-addr;
+write 0x8E gpram-inc-addr;write 0x63 gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x63 gpram-inc-addr;
+write 0x8C gpram-inc-addr;write 0x23 gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x63 gpram-inc-addr;
+write 0x8C gpram-inc-addr;write 0x23 gpram-inc-addr;write 0x8C gpram-inc-addr;write 0x61 gpram-inc-addr;
+
+write 0xDC gpram-inc-addr;write 0x37 gpram-inc-addr;write 0xFC gpram-inc-addr;write 0x60 gpram-inc-addr;
+write 0x58 gpram-inc-addr;write 0x16 gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x60 gpram-inc-addr;
+write 0x58 gpram-inc-addr;write 0x16 gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x60 gpram-inc-addr;
+write 0x78 gpram-inc-addr;write 0x1E gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x60 gpram-inc-addr;
+write 0x30 gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x60 gpram-inc-addr;
+write 0x30 gpram-inc-addr;write 0x0C gpram-inc-addr;write 0x1E gpram-inc-addr;write 0xF0 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0xFF gpram-inc-addr;write 0xFF gpram-inc-addr;write 0xFF gpram-inc-addr;write 0xFF gpram-inc-addr;
+return;
+
+@anchor(update-display);
+write 0x00 gpram-addr-a;
+write 0x00 gpram-addr-b;
+# Init counter
+write 0x00 stack-push;
+write 0x00 set-stack-offset;
+# Loop
+@anchor(update-display-loop-start);
+# Write to display
+move offset-read gpio-write-a;
+#move offset-read gpio-write-b;
+move gpram-inc-addr gpio-write-b;
+#write 0xFF gpio-write-b;
+# Increment counter
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu offset-write;
+# Check if it is 128
+move offset-read alu-a;
+write 0x80 alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+move not alu none;# Throwaway instruction to see if glitch timing is different
+@goto_if(update-display-loop-start);
+# Done
+move stack-pop none;
+return;
+
+@anchor(update-display-even-odd-bytes);
+# Reason for doing this can be found in issues.md
+# Even-indexed bytes
+write 0x00 gpram-addr-a;
+write 0x00 gpram-addr-b;
+# Init counter
+write 0x00 stack-push;
+write 0x00 set-stack-offset;
+# Loop
+@anchor(update-display-even-odd-bytes-even-loop-start);
+# Write to display
+move offset-read gpio-write-a;
+move gpram-inc-addr gpio-write-b;
+move gpram-inc-addr none;# Increment GPRAM address twice to keep it synced w/ display index
+# Increment counter
+move offset-read alu-a;
+write 0x02 alu-b;
+move add alu offset-write;
+# Check if it is 128
+move offset-read alu-a;
+write 0x80 alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(update-display-even-odd-bytes-even-loop-start);
+move stack-pop none;
+# Odd-indexed bytes
+write 0x01 gpram-addr-a;
+write 0x00 gpram-addr-b;
+# Init counter
+write 0x01 stack-push;
+write 0x00 set-stack-offset;
+# Loop
+@anchor(update-display-even-odd-bytes-odd-loop-start);
+# Write to display
+move offset-read gpio-write-a;
+move gpram-inc-addr gpio-write-b;
+move gpram-inc-addr none;# Increment GPRAM address twice to keep it synced w/ display index
+# Increment counter
+move offset-read alu-a;
+write 0x02 alu-b;
+move add alu offset-write;
+# Check if it is 129
+move offset-read alu-a;
+write 0x81 alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(update-display-even-odd-bytes-odd-loop-start);
+# Done
+move stack-pop none;
+return;
+
+@anchor(clear-display);
+write 0x00 alu-a;
+@anchor(clear-display-loop-start);
+move a alu gpio-write-a;
+write 0x00 gpio-write-b;
+write 0x01 alu-b;
+move add alu alu-a;
+write 0x80 alu-b;
+move eq alu goto-decider;
+@goto_if(clear-display-loop-end);
+@goto(clear-display-loop-start);
+@anchor(clear-display-loop-end); 
+return;

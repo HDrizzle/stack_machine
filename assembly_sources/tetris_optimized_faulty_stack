@@ -367,74 +367,104 @@ move stack-pop offset-write;
 return;
 
 @anchor(update-display);
+# Reason for doing this can be found in issues.md
+# Even-indexed bytes
 write 0x00 gpram-addr-a;
 write 0x00 gpram-addr-b;
 # Init counter
 write 0x00 stack-push;
 write 0x00 set-stack-offset;
 # Loop
-@anchor(update-display-loop-start);
+@anchor(update-display-even-odd-bytes-even-loop-start);
 # Write to display
 move offset-read gpio-write-a;
 move gpram-inc-addr gpio-write-b;
+move gpram-inc-addr none;# Increment GPRAM address twice to keep it synced w/ display index
 # Increment counter
-move stack-pop alu-a;
-write 0x01 alu-b;
-move add alu stack-push;
-move add alu alu-a;
+move offset-read alu-a;
+write 0x02 alu-b;
+move add alu offset-write;
 # Check if it is 128
+move offset-read alu-a;
 write 0x80 alu-b;
 move eq alu alu-a;
 move not alu goto-decider;
-@goto_if(update-display-loop-start);
+@goto_if(update-display-even-odd-bytes-even-loop-start);
+move stack-pop none;
+# Odd-indexed bytes
+write 0x01 gpram-addr-a;
+write 0x00 gpram-addr-b;
+# Init counter
+write 0x01 stack-push;
+write 0x00 set-stack-offset;
+# Loop
+@anchor(update-display-even-odd-bytes-odd-loop-start);
+# Write to display
+move offset-read gpio-write-a;
+move gpram-inc-addr gpio-write-b;
+move gpram-inc-addr none;# Increment GPRAM address twice to keep it synced w/ display index
+# Increment counter
+move offset-read alu-a;
+write 0x02 alu-b;
+move add alu offset-write;
+# Check if it is 129
+move offset-read alu-a;
+write 0x81 alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(update-display-even-odd-bytes-odd-loop-start);
 # Done
 move stack-pop none;
 return;
 
 # Starts lower down for optimization
 @anchor(update-display-limited);
+# Reason for doing this can be found in issues.md
+# Even-indexed bytes
+write 0x28 gpram-addr-a;
 write 0x00 gpram-addr-b;
 # Init counter
 write 0x28 stack-push;
-write 0x28 gpram-addr-a;
 write 0x00 set-stack-offset;
 # Loop
-@anchor(update-display-limited-loop-start);
-# Copied 4 times
-# Write
+@anchor(update-display-limited-even-odd-bytes-even-loop-start);
+# Write to display
 move offset-read gpio-write-a;
 move gpram-inc-addr gpio-write-b;
+move gpram-inc-addr none;# Increment GPRAM address twice to keep it synced w/ display index
 # Increment counter
-move stack-pop alu-a;
-write 0x01 alu-b;
-move add alu stack-push;
-# Write
-move offset-read gpio-write-a;
-move gpram-inc-addr gpio-write-b;
-# Increment counter
-move stack-pop alu-a;
-write 0x01 alu-b;
-move add alu stack-push;
-# Write
-move offset-read gpio-write-a;
-move gpram-inc-addr gpio-write-b;
-# Increment counter
-move stack-pop alu-a;
-write 0x01 alu-b;
-move add alu stack-push;
-# Write
-move offset-read gpio-write-a;
-move gpram-inc-addr gpio-write-b;
-# Increment counter
-move stack-pop alu-a;
-write 0x01 alu-b;
-move add alu stack-push;
+move offset-read alu-a;
+write 0x02 alu-b;
+move add alu offset-write;
 # Check if it is 128
 move offset-read alu-a;
 write 0x80 alu-b;
 move eq alu alu-a;
 move not alu goto-decider;
-@goto_if(update-display-limited-loop-start);
+@goto_if(update-display-limited-even-odd-bytes-even-loop-start);
+move stack-pop none;
+# Odd-indexed bytes
+write 0x29 gpram-addr-a;
+write 0x00 gpram-addr-b;
+# Init counter
+write 0x29 stack-push;
+write 0x00 set-stack-offset;
+# Loop
+@anchor(update-display-limited-even-odd-bytes-odd-loop-start);
+# Write to display
+move offset-read gpio-write-a;
+move gpram-inc-addr gpio-write-b;
+move gpram-inc-addr none;# Increment GPRAM address twice to keep it synced w/ display index
+# Increment counter
+move offset-read alu-a;
+write 0x02 alu-b;
+move add alu offset-write;
+# Check if it is 129
+move offset-read alu-a;
+write 0x81 alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(update-display-limited-even-odd-bytes-odd-loop-start);
 # Done
 move stack-pop none;
 return;
