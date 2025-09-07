@@ -182,6 +182,23 @@ fn assemble_to_arduino(program: &Vec<u16>, offset_opt: Option<u16>, len_opt: Opt
 	out
 }
 
+fn paste_to_lower_and_upper_memory_csv(program: &Vec<u16>) {
+	println!("Lower bytes");
+	for (i, n) in program.iter().enumerate() {
+		print!("{},", (n & 0xFF));
+		if i % 20 == 0 {
+			println!("");
+		}
+	}
+	println!("\n\nUpper bytes");
+	for (i, n) in program.iter().enumerate() {
+		print!("{},", ((n >> 8) & 0xFF));
+		if i % 20 == 0 {
+			println!("");
+		}
+	}
+}
+
 fn parse_args(args: &Vec<String>) -> HashMap<String, String> {
 	let mut out = HashMap::<String, String>::new();
 	for arg in args {
@@ -313,6 +330,25 @@ pub fn ui_main() {
 						Ok(program) => {
 							let mut machine = Machine::new(program);
 							machine.run(&mut CliInterface::new()).unwrap();
+						},
+						Err(s) => println!("{}", s)
+					}
+				}
+			},
+			"-assemble-to-csv" => {
+				if args.len() < 3 {
+					println!("Plz include name of file in `{}`", resources::ASSEMBLY_SOURCES_DIR);
+				}
+				else {
+					let name = &args[2];
+					let path: String = resources::ASSEMBLY_SOURCES_DIR.to_owned() + name;
+					let file_raw = match fs::read_to_string(&path) {
+						Ok(s) => s,
+						Err(e) => panic!("Could not load test file at \"{}\" because {}", &path, e)
+					};
+					match compiler::compiler_pipeline_formated_errors(&file_raw, &assembler_config) {
+						Ok(program) => {
+							paste_to_lower_and_upper_memory_csv(&program);
 						},
 						Err(s) => println!("{}", s)
 					}

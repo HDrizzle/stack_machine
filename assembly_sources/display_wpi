@@ -1,6 +1,4 @@
 write 0x00 gpio-write-a;
-@goto(init);# Hardware testing
-@anchor(init);
 # Write to GPRAM starting at 0x0000 then uses `update-display` (copied from tetris) to write to display
 @call(clear-display);
 @call(write-image);

@@ -1,3 +1,5 @@
+write 0x00 gpio-write-a;
+write 0x00 gpio-write-b;
 @anchor(loop-begin);
 move gpio-read-a gpio-write-a;
 move gpio-read-b gpio-write-b;

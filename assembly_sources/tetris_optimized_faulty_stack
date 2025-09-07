@@ -173,7 +173,7 @@ move stack-pop alu-a;
 write 0x01 alu-b;
 move add alu stack-push;
 move add alu alu-a;
-write 0x08 alu-b;# Frames per shift down
+write 0x0A alu-b;# Frames per shift down
 move eq alu stack-push;
 move gpio-read-a alu-a;# Check gpio-a bit 5 (drop)
 write 0x03 alu-b;
