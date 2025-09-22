@@ -1,0 +1,117 @@
+# Nyan Cat animated
+# Memory layout:
+#   0x0000: Current display buffer, cleared after every frame
+#   0x0100: Cat's head, 6 complete rows
+#   0x0200: Cat's body, with parts of the path that move with the cat's body
+#.  0x0300: Parts of path that move opposite the path
+
+write 0x00 gpio-write-a;
+
+# --------------------------------- <Init> ---------------------------------
+write 0x00 alu-c-in;
+@call(clear-display-buffer);
+@call(update-display);
+@call(init-cat-head);
+# --------------------------------- </Init> ---------------------------------
+
+# --------------------------------- <Loop> ---------------------------------
+write 0x00 stack-push;
+write 0x00 stack-push;
+# Stack: Modular cycle count, Frame count
+@anchor(infinite-loop);
+# Increment frame count
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu alu-a;
+move a alu stack-push;
+write 0x0A alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(infinite-loop-skip-cycle-increment);
+# Increment cycle count, clear frame count
+move stack-pop none;
+# Stack: Modular cycle count
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+# Push zeroed frame count
+write 0x00 stack-push;
+# Stack: Modular cycle count, Frame count
+@anchor(infinite-loop-skip-cycle-increment);
+# Find display buffer starting address for cat body
+# Use 2nd LSB of cycle
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x07 alu-b;
+move shift alu goto-decider;
+@goto_if(infinite-loop-cat-body-pos-down);
+# Cat body up
+write 0x28 stack-push;
+@goto(infinite-loop-cat-body-pos-end);
+# Cat body down
+write 0x2C stack-push;
+@anchor(infinite-loop-cat-body-pos-down);
+@goto(infinite-loop-cat-body-pos-end);
+
+@goto(infinite-loop);
+# --------------------------------- </Loop> ---------------------------------
+
+# --------------------------------- <Functions> ---------------------------------
+@anchor(init-cat-head);
+write 0x00 gpram-addr-a;
+write 0x01 gpram-addr-b;
+# Image
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x81 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0xFF gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x81 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0xA5 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x99 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x7E gpram-inc-addr;
+return;
+
+@anchor(update-display);
+write 0x00 gpram-addr-a;
+write 0x00 gpram-addr-b;
+# Init counter
+write 0x00 stack-push;
+write 0x00 set-stack-offset;
+# Loop
+@anchor(update-display-loop-start);
+# Write to display
+move offset-read gpio-write-a;
+#move offset-read gpio-write-b;
+move gpram-inc-addr gpio-write-b;
+#write 0xFF gpio-write-b;
+# Increment counter
+move offset-read alu-a;
+write 0x01 alu-b;
+move add alu offset-write;
+# Check if it is 128
+move offset-read alu-a;
+write 0x80 alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(update-display-loop-start);
+# Done
+move stack-pop none;
+return;
+
+@anchor(clear-display-buffer);
+write 0x00 gpram-addr-a;
+write 0x00 gpram-addr-b;
+write 0x00 alu-b;# Once it rolls around back to 0x00 then exit
+@anchor(clear-display-loop-start);
+write 0x00 gpram-inc-addr;
+move gpram-addr-a alu-a;
+move eq alu goto-decider;
+@goto_if(clear-display-loop-end);
+@goto(clear-display-loop-start);
+@anchor(clear-display-loop-end); 
+return;
+
+@anchor(add-rows-to-display-buffer);
+# Stack args: Display start address, GPRAM B address of start
+write 0x01 set-stack-offset;
+# TODO
+return;
+# --------------------------------- </Functions> ---------------------------------

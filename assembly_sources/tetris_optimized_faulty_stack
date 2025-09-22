@@ -16,7 +16,7 @@
 #   Display buffer: 0x0000
 #     Same format that the display uses, 128 bytes.
 #   Arena: 0x0100
-#     To increae performance, each pixel in the arena will be represented as an entire byte with only the LSB used.
+#     To increase performance, each pixel in the arena will be represented as an entire byte with only the LSB used.
 #     The arena data will be stored in GPRAM as a 10 columns x 20 rows = 200 byte chunk. Each column will start at the bottom and go up, with the columns going from left to right.
 #   List of shapes: 0x0200
 #     Each shape will be represented by 2 bytes (4 rows left to right, top to bottom)

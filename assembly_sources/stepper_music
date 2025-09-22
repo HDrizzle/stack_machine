@@ -136,41 +136,34 @@ write 0x00 gpram-inc-addr;
 write 0x00 gpram-inc-addr;
 write 0x00 gpram-inc-addr;
 write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;
-write 0x00 gpram-inc-addr;
-write 0x01 gpram-inc-addr;
 write 0x05 gpram-inc-addr;
 write 0x09 gpram-inc-addr;
 write 0x0D gpram-inc-addr;
 write 0x11 gpram-inc-addr;
-write 0x14 gpram-inc-addr;
-write 0x18 gpram-inc-addr;
-write 0x1B gpram-inc-addr;
-write 0x1F gpram-inc-addr;
-write 0x22 gpram-inc-addr;
-write 0x25 gpram-inc-addr;
-write 0x29 gpram-inc-addr;
-write 0x2C gpram-inc-addr;
-write 0x2F gpram-inc-addr;
-write 0x32 gpram-inc-addr;
-write 0x35 gpram-inc-addr;
-write 0x38 gpram-inc-addr;
+write 0x15 gpram-inc-addr;
+write 0x19 gpram-inc-addr;
+write 0x1D gpram-inc-addr;
+write 0x20 gpram-inc-addr;
+write 0x24 gpram-inc-addr;
+write 0x27 gpram-inc-addr;
+write 0x2A gpram-inc-addr;
+write 0x2E gpram-inc-addr;
+write 0x31 gpram-inc-addr;
+write 0x34 gpram-inc-addr;
+write 0x37 gpram-inc-addr;
 write 0x3A gpram-inc-addr;
 write 0x3D gpram-inc-addr;
 write 0x40 gpram-inc-addr;
-write 0x42 gpram-inc-addr;
+write 0x43 gpram-inc-addr;
 write 0x45 gpram-inc-addr;
-write 0x47 gpram-inc-addr;
-write 0x4A gpram-inc-addr;
-write 0x4C gpram-inc-addr;
-write 0x4F gpram-inc-addr;
-write 0x51 gpram-inc-addr;
-write 0x53 gpram-inc-addr;
-write 0x56 gpram-inc-addr;
-write 0x58 gpram-inc-addr;
-write 0x5A gpram-inc-addr;
+write 0x48 gpram-inc-addr;
+write 0x4B gpram-inc-addr;
+write 0x4D gpram-inc-addr;
+write 0x50 gpram-inc-addr;
+write 0x52 gpram-inc-addr;
+write 0x55 gpram-inc-addr;
+write 0x57 gpram-inc-addr;
+write 0x59 gpram-inc-addr;
 write 0x5C gpram-inc-addr;
 write 0x5E gpram-inc-addr;
 write 0x60 gpram-inc-addr;
@@ -181,12 +174,11 @@ write 0x68 gpram-inc-addr;
 write 0x6A gpram-inc-addr;
 write 0x6C gpram-inc-addr;
 write 0x6E gpram-inc-addr;
-write 0x6F gpram-inc-addr;
-write 0x71 gpram-inc-addr;
-write 0x73 gpram-inc-addr;
-write 0x75 gpram-inc-addr;
+write 0x70 gpram-inc-addr;
+write 0x72 gpram-inc-addr;
+write 0x74 gpram-inc-addr;
 write 0x76 gpram-inc-addr;
-write 0x78 gpram-inc-addr;
+write 0x77 gpram-inc-addr;
 write 0x79 gpram-inc-addr;
 write 0x7B gpram-inc-addr;
 write 0x7D gpram-inc-addr;
@@ -197,11 +189,10 @@ write 0x83 gpram-inc-addr;
 write 0x84 gpram-inc-addr;
 write 0x86 gpram-inc-addr;
 write 0x87 gpram-inc-addr;
-write 0x88 gpram-inc-addr;
+write 0x89 gpram-inc-addr;
 write 0x8A gpram-inc-addr;
-write 0x8B gpram-inc-addr;
 write 0x8C gpram-inc-addr;
-write 0x8E gpram-inc-addr;
+write 0x8D gpram-inc-addr;
 write 0x8F gpram-inc-addr;
 write 0x90 gpram-inc-addr;
 write 0x91 gpram-inc-addr;
@@ -209,12 +200,11 @@ write 0x93 gpram-inc-addr;
 write 0x94 gpram-inc-addr;
 write 0x95 gpram-inc-addr;
 write 0x96 gpram-inc-addr;
-write 0x97 gpram-inc-addr;
+write 0x98 gpram-inc-addr;
 write 0x99 gpram-inc-addr;
 write 0x9A gpram-inc-addr;
 write 0x9B gpram-inc-addr;
 write 0x9C gpram-inc-addr;
-write 0x9D gpram-inc-addr;
 write 0x9E gpram-inc-addr;
 write 0x9F gpram-inc-addr;
 write 0xA0 gpram-inc-addr;
@@ -232,7 +222,6 @@ write 0xAB gpram-inc-addr;
 write 0xAC gpram-inc-addr;
 write 0xAD gpram-inc-addr;
 write 0xAE gpram-inc-addr;
-write 0xAE gpram-inc-addr;
 write 0xAF gpram-inc-addr;
 write 0xB0 gpram-inc-addr;
 write 0xB1 gpram-inc-addr;
@@ -243,14 +232,13 @@ write 0xB4 gpram-inc-addr;
 write 0xB5 gpram-inc-addr;
 write 0xB6 gpram-inc-addr;
 write 0xB7 gpram-inc-addr;
-write 0xB7 gpram-inc-addr;
+write 0xB8 gpram-inc-addr;
 write 0xB8 gpram-inc-addr;
 write 0xB9 gpram-inc-addr;
 write 0xBA gpram-inc-addr;
-write 0xBA gpram-inc-addr;
 write 0xBB gpram-inc-addr;
 write 0xBC gpram-inc-addr;
-write 0xBD gpram-inc-addr;
+write 0xBC gpram-inc-addr;
 write 0xBD gpram-inc-addr;
 write 0xBE gpram-inc-addr;
 write 0xBF gpram-inc-addr;
@@ -265,21 +253,19 @@ write 0xC4 gpram-inc-addr;
 write 0xC5 gpram-inc-addr;
 write 0xC5 gpram-inc-addr;
 write 0xC6 gpram-inc-addr;
-write 0xC6 gpram-inc-addr;
+write 0xC7 gpram-inc-addr;
 write 0xC7 gpram-inc-addr;
 write 0xC8 gpram-inc-addr;
-write 0xC8 gpram-inc-addr;
 write 0xC9 gpram-inc-addr;
 write 0xC9 gpram-inc-addr;
 write 0xCA gpram-inc-addr;
-write 0xCA gpram-inc-addr;
+write 0xCB gpram-inc-addr;
 write 0xCB gpram-inc-addr;
 write 0xCC gpram-inc-addr;
 write 0xCC gpram-inc-addr;
 write 0xCD gpram-inc-addr;
 write 0xCD gpram-inc-addr;
 write 0xCE gpram-inc-addr;
-write 0xCE gpram-inc-addr;
 write 0xCF gpram-inc-addr;
 write 0xCF gpram-inc-addr;
 write 0xD0 gpram-inc-addr;
@@ -300,17 +286,15 @@ write 0xD7 gpram-inc-addr;
 write 0xD7 gpram-inc-addr;
 write 0xD8 gpram-inc-addr;
 write 0xD8 gpram-inc-addr;
-write 0xD8 gpram-inc-addr;
 write 0xD9 gpram-inc-addr;
 write 0xD9 gpram-inc-addr;
 write 0xDA gpram-inc-addr;
 write 0xDA gpram-inc-addr;
 write 0xDB gpram-inc-addr;
 write 0xDB gpram-inc-addr;
-write 0xDB gpram-inc-addr;
 write 0xDC gpram-inc-addr;
 write 0xDC gpram-inc-addr;
-write 0xDD gpram-inc-addr;
+write 0xDC gpram-inc-addr;
 write 0xDD gpram-inc-addr;
 write 0xDD gpram-inc-addr;
 write 0xDE gpram-inc-addr;
@@ -318,6 +302,22 @@ write 0xDE gpram-inc-addr;
 write 0xDF gpram-inc-addr;
 write 0xDF gpram-inc-addr;
 write 0xDF gpram-inc-addr;
+write 0xE0 gpram-inc-addr;
+write 0xE0 gpram-inc-addr;
+write 0xE1 gpram-inc-addr;
+write 0xE1 gpram-inc-addr;
+write 0xE1 gpram-inc-addr;
+write 0xE2 gpram-inc-addr;
+write 0xE2 gpram-inc-addr;
+write 0xE3 gpram-inc-addr;
+write 0xE3 gpram-inc-addr;
+write 0xE3 gpram-inc-addr;
+write 0xE4 gpram-inc-addr;
+write 0xE4 gpram-inc-addr;
+write 0xE4 gpram-inc-addr;
+write 0xE5 gpram-inc-addr;
+write 0xE5 gpram-inc-addr;
+write 0xE6 gpram-inc-addr;
 # --------------------------------- </Lookup table> ---------------------------------
 
 # Write motor control lookup table, 5th bit is flipped each time, to connect speaker
@@ -363,7 +363,7 @@ write 0x5B gpram-inc-addr;write 0xE9 gpram-inc-addr;# Duration=0.392, Freq=233
 write 0x28 gpram-inc-addr;write 0xCF gpram-inc-addr;# Duration=0.194, Freq=207
 write 0x23 gpram-inc-addr;write 0xB8 gpram-inc-addr;# Duration=0.194, Freq=184
 write 0x44 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.392, Freq=174
-write 0x1E gpram-inc-addr;write 0x00 gpram-inc-addr;# Duration=0.392, Freq=0
+write 0x1C gpram-inc-addr;write 0x00 gpram-inc-addr;# Duration=0.392, Freq=0
 write 0x21 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.194, Freq=174
 write 0x23 gpram-inc-addr;write 0xB8 gpram-inc-addr;# Duration=0.194, Freq=184
 write 0x51 gpram-inc-addr;write 0xCF gpram-inc-addr;# Duration=0.392, Freq=207
@@ -373,7 +373,7 @@ write 0x5B gpram-inc-addr;write 0xE9 gpram-inc-addr;# Duration=0.392, Freq=233
 write 0x28 gpram-inc-addr;write 0xCF gpram-inc-addr;# Duration=0.194, Freq=207
 write 0x23 gpram-inc-addr;write 0xB8 gpram-inc-addr;# Duration=0.194, Freq=184
 write 0x44 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.392, Freq=174
-write 0x1E gpram-inc-addr;write 0x00 gpram-inc-addr;# Duration=0.392, Freq=0
+write 0x1C gpram-inc-addr;write 0x00 gpram-inc-addr;# Duration=0.392, Freq=0
 write 0x18 gpram-inc-addr;write 0x7E gpram-inc-addr;# Duration=0.194, Freq=126
 write 0x21 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.194, Freq=174
 write 0x48 gpram-inc-addr;write 0xB8 gpram-inc-addr;# Duration=0.392, Freq=184
@@ -383,7 +383,7 @@ write 0x60 gpram-inc-addr;write 0xF6 gpram-inc-addr;# Duration=0.392, Freq=246
 write 0x2D gpram-inc-addr;write 0xE9 gpram-inc-addr;# Duration=0.194, Freq=233
 write 0x28 gpram-inc-addr;write 0xCF gpram-inc-addr;# Duration=0.194, Freq=207
 write 0x48 gpram-inc-addr;write 0xB8 gpram-inc-addr;# Duration=0.392, Freq=184
-write 0x1E gpram-inc-addr;write 0x00 gpram-inc-addr;# Duration=0.392, Freq=0
+write 0x1C gpram-inc-addr;write 0x00 gpram-inc-addr;# Duration=0.392, Freq=0
 write 0x18 gpram-inc-addr;write 0x7E gpram-inc-addr;# Duration=0.194, Freq=126
 write 0x21 gpram-inc-addr;write 0xAE gpram-inc-addr;# Duration=0.194, Freq=174
 write 0x48 gpram-inc-addr;write 0xB8 gpram-inc-addr;# Duration=0.392, Freq=184
