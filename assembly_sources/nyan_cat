@@ -1,9 +1,16 @@
 # Nyan Cat animated
+# Background stars: Each frame they are moved left (-X) by 5 px (or maybe another factor of 30). When they get to X=1 they are moved back to X=31 and their state is switched.
 # Memory layout:
 #   0x0000: Current display buffer, cleared after every frame
 #   0x0100: Cat's head, 6 complete rows
 #   0x0200: Cat's body, with parts of the path that move with the cat's body
-#.  0x0300: Parts of path that move opposite the path
+#   0x0300: Parts of path that move opposite the body
+#   0x0300: Background stars, each star is 4 bits, 6 stars total. Each star's layout is:
+#     0. X pos
+#     1. Y pos
+#     2. State (0=dot, 1=4 dots around blank center)
+#   0x0400: Cat's feet backward position
+#   0x0500: Cat's feet forward position
 
 write 0x00 gpio-write-a;
 
@@ -12,6 +19,8 @@ write 0x00 alu-c-in;
 @call(clear-display-buffer);
 @call(update-display);
 @call(init-cat-head);
+@call(init-cat-body);
+@call(init-cat-path-alternate);
 # --------------------------------- </Init> ---------------------------------
 
 # --------------------------------- <Loop> ---------------------------------
@@ -24,7 +33,7 @@ move stack-pop alu-a;
 write 0x01 alu-b;
 move add alu alu-a;
 move a alu stack-push;
-write 0x0A alu-b;
+write 0x01 alu-b;
 move eq alu alu-a;
 move not alu goto-decider;
 @goto_if(infinite-loop-skip-cycle-increment);
@@ -46,13 +55,43 @@ write 0x07 alu-b;
 move shift alu goto-decider;
 @goto_if(infinite-loop-cat-body-pos-down);
 # Cat body up
-write 0x28 stack-push;
+write 0x20 stack-push;
+write 0x02 stack-push;# GPRAM-B address for cat body row data
+write 0x24 stack-push;
+write 0x03 stack-push;# GPRAM-B address for alternate path
 @goto(infinite-loop-cat-body-pos-end);
-# Cat body down
-write 0x2C stack-push;
 @anchor(infinite-loop-cat-body-pos-down);
-@goto(infinite-loop-cat-body-pos-end);
-
+# Cat body down
+write 0x24 stack-push;
+write 0x02 stack-push;# GPRAM-B address for cat body row data
+write 0x20 stack-push;
+write 0x03 stack-push;# GPRAM-B address for alternate path
+@anchor(infinite-loop-cat-body-pos-end);
+# Stack: Modular cycle count, Frame count, Display start address of body, GPRAM B address of rows, Display start address of alt path, GPRAM B address of rows
+@call(add-rows-to-display-buffer);
+@call(add-rows-to-display-buffer);
+# Stack: Modular cycle count, Frame count
+# Now for cat's head, moves 90 ahead of phase with the body so position has to be computed seperately
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x07 alu-b;
+move shift alu alu-b;
+move xnor alu goto-decider;
+@goto_if(infinite-loop-cat-head-pos-down);
+# Cat head up
+write 0x30 stack-push;
+@goto(infinite-loop-cat-head-pos-end);
+@anchor(infinite-loop-cat-head-pos-down);
+# Cat head down
+write 0x2C stack-push;
+@anchor(infinite-loop-cat-head-pos-end);
+write 0x01 stack-push;
+# Stack: Modular cycle count, Frame count, Display start address, GPRAM B address of rows
+@call(add-rows-to-display-buffer);
+# Stack: Modular cycle count, Frame count
+# Update display
+@call(update-display);
+@call(clear-display-buffer);
 @goto(infinite-loop);
 # --------------------------------- </Loop> ---------------------------------
 
@@ -61,12 +100,59 @@ write 0x2C stack-push;
 write 0x00 gpram-addr-a;
 write 0x01 gpram-addr-b;
 # Image
-write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x81 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x91 gpram-inc-addr;
 write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0xFF gpram-inc-addr;
 write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x81 gpram-inc-addr;
 write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0xA5 gpram-inc-addr;
 write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x99 gpram-inc-addr;
 write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x7E gpram-inc-addr;
+return;
+
+@anchor(init-cat-body);
+write 0x00 gpram-addr-a;
+write 0x02 gpram-addr-b;
+# Image
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0xFF gpram-inc-addr;write 0x0F gpram-inc-addr;
+write 0xE0 gpram-inc-addr;write 0x83 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x10 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x80 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x10 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x80 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x10 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x80 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0xE0 gpram-inc-addr;write 0x83 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x80 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x80 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x80 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x10 gpram-inc-addr;
+write 0xE0 gpram-inc-addr;write 0x03 gpram-inc-addr;write 0xFF gpram-inc-addr;write 0x0F gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+return;
+
+@anchor(init-cat-path-alternate);
+write 0x00 gpram-addr-a;
+write 0x03 gpram-addr-b;
+# Image
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x1F gpram-inc-addr;write 0x7C gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x1F gpram-inc-addr;write 0x7C gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+write 0x1F gpram-inc-addr;write 0x7C gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+return;
+
+@anchor(init-feet-backward);
+write 0x00 gpram-addr-a;
+write 0x04 gpram-addr-b;
+# Image
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
+return;
+
+@anchor(init-feet-forward);
+write 0x00 gpram-addr-a;
+write 0x05 gpram-addr-b;
+# Image
+write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;write 0x00 gpram-inc-addr;
 return;
 
 @anchor(update-display);
@@ -106,12 +192,61 @@ move gpram-addr-a alu-a;
 move eq alu goto-decider;
 @goto_if(clear-display-loop-end);
 @goto(clear-display-loop-start);
-@anchor(clear-display-loop-end); 
+@anchor(clear-display-loop-end);
 return;
 
 @anchor(add-rows-to-display-buffer);
-# Stack args: Display start address, GPRAM B address of start
+# Stack args: Display start address, GPRAM B address of rows
 write 0x01 set-stack-offset;
-# TODO
+move offset-read stack-push;
+write 0x00 stack-push;
+# Stack args: Display start address, GPRAM B address of rows, Address offset, Block address
+@anchor(add-rows-to-display-buffer-loop-start);
+# Read GPRAM at row block
+write 0x02 set-stack-offset;
+move offset-read gpram-addr-b;
+write 0x00 set-stack-offset;
+move offset-read gpram-addr-a;
+move gpram stack-push;
+# Stack args: Display start address, GPRAM B address of rows, Address offset, Block address, Byte from row block
+# Read corresponding display buffer byte to OR it with the new one
+write 0x00 gpram-addr-b;
+write 0x01 set-stack-offset;
+move offset-read alu-a;
+write 0x02 set-stack-offset;
+move offset-read alu-b;
+move add alu gpram-addr-a;
+# OR the bytes together
+move gpram alu-a;
+move stack-pop alu-b;
+move or alu gpram;
+# Stack args: Display start address, GPRAM B address of rows, Address offset, Block address
+# Increment block address
+move stack-pop alu-a;
+write 0x01 alu-b;
+move add alu stack-push;
+move add alu alu-a;
+# Check if done
+write 0x00 alu-b;
+move eq alu alu-a;
+move not alu goto-decider;
+@goto_if(add-rows-to-display-buffer-loop-start);
+# Stack args: Display start address, GPRAM B address of rows, Address offset, Block address
+# Delete stack variables
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+move stack-pop none;
+return;
+
+@anchor(update-stars);
+write 0x03 gpram-addr-b;
+write 0x00 stack-push;
+write 0x00 gpram-addr-a;
+# Stack: Star index
+@anchor(update-stars-loop-start);
+
+# Check if the star is at x=1
+
 return;
 # --------------------------------- </Functions> ---------------------------------

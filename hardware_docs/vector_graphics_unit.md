@@ -8,7 +8,7 @@ The reason that the vector hardware is so complicated is to compensate for the s
 ## 4 Inputs from bus, 1 byte each
 
 * Vector address A (bits 0-7) / Sprite address
-* Vector address B (bits 8-15) (MSB=0) / Sprite set field address (MSB=1)
+* Vector address B (bits 8-14) (MSB=0) / Sprite set field address (MSB=1)
 * Vector write X / Sprite write to field
 * Vector write Y / Nothing
 
@@ -37,41 +37,48 @@ Loop Sprite address (8 bit):
 	Read byte 3 (Offset X)
 	Increment sprite field counter
 	Read byte 4 (offset Y)
-	Loop vector address (15 bit):
+	// Vector loop, uninterrupted it takes 2 clock cycles
+	Loop (start signal read on CLK FALLING):
+		// If beginning a new sprite, both the vectors need to be loaded right after each other to prevent a line being drawn between them
+		If vector address != sprite start address:
+			Stop clock
+			Wait for next vector pulse from analog drawer indicating end of current line
+			// Another whole clock cycle is consumed after the wait so that this branch can trigger the rest of the loop
+		Load new (vector from current vector memory address) + sprite translation into one of the two analog generator vector buffers
+		Increment vector address (15 bit)
 		If vector address == sprite start address + sprite length:
 			break
-		// If beginning a new sprite, both the vectors need to be loaded right after eachother to prevent a line being drawn between them
-		If vector address != sprite start address:
-			Wait for next vector pulse from analog drawer indicating end of current line
-		Load new (vector from current vector memory address) + sprite translation into one of the two analog generator vector buffers
 ```
 
-### Timing (TODO)
+### Timing
 
 Paste into wavedrom.com/editor.html
 ```
 {
-  signal: [
-    {name: "CLK", wave: "lhlhlhlhlhlhlhlhl"},
-    {name: "CLK Enable", wave: "h................."},
-    {name: "Sprite address", wave: "22.2............", data: ["0x00", "0x01", "0x02"]},
-    {name: "Sprite address++ / Sprite field reset", wave: "lhlhl...........", node: "...b"},
-    {name: "Next sprite", wave: "lh...l..........", node: ".c"},
-    {name: "Sprite memory read", wave: "l.h...l.........", node: "..a"},
-    {name: "Sprite field", wave: "22....2.2.2.2......", data: ["0x4", "0x0", "0x1", "0x2", "0x3", "0x4"]},
-    {name: "Sprite field++", wave: "l.....hlhlhlhl.."},
-    {name: "Sprite field 0 CLK", wave: "l....h.l........."},
-    {name: "Sprite field 1 CLK", wave: "l......h.l......."},
-    {name: "Sprite field 2 CLK", wave: "l........h.l....."},
-    {name: "Sprite field 3 CLK", wave: "l..........h.l..."},
-    {name: "Sprite field 4 CLK", wave: "l............h.l."},
-    {name: "Inner loop start cycle / Set vector address", wave: "l............h.l"},
-    {name: "Vector address", wave: "2............2.", data: ["-", "Start + 0", "0x1", "0x2", "0x3", "0x4"]},
-    {name: "Vector address++", wave: "l...............hl."},
-    {name: "Analog line done", wave: "l.................."},
-    {name: "Vector memory read", wave: "l.............h.l."},
-    {name: "Update vector", wave: "l..............hlhl."}
-  ],
-  edge: ["a~>b Disabled sprite", "c~>a"]
+	signal: [
+		{name: "CLK", wave: "lhlhlhlhlhlhlhlhlhl..hlhlh"},
+		{name: "CLK Enable (AND)", wave: "h.................l..h....", node: "..................e"},
+		{name: "Sprite address", wave: "22.2.....................2", data: ["0x00", "0x01", "0x02", "0x03"]},
+		{name: "Sprite address++ / Sprite field reset", wave: "lhlhl....................h", node: "...b"},
+		{name: "Next sprite", wave: "lh...l...................h", node: ".c.......................j"},
+		{name: "Sprite memory read", wave: "l.h...l...................", node: "..a"},
+		{name: "Sprite field", wave: "22....2.2.2.2............2", data: ["0x4", "0x0", "0x1", "0x2", "0x3", "0x4", "0x0"]},
+		{name: "Sprite field++", wave: "l.....hlhlhlhl............"},
+		{name: "Sprite field 0 CLK", wave: "l....h.l.................."},
+		{name: "Sprite field 1 CLK", wave: "l......h.l................"},
+		{name: "Sprite field 2 CLK", wave: "l........h.l.............."},
+		{name: "Sprite field 3 CLK", wave: "l..........h.l............"},
+		{name: "Sprite field 4 CLK", wave: "l............h.l.........."},
+		{name: "Inner loop start cycle", wave: "l............h.l.h...l....", node: "..............i...d"},
+		{name: "Set vector address", wave: "l............h.l.........."},
+		{name: "Vector address", wave: "2............2..2.......2.", data: ["?", "Start + 0", "Start + 1", "Start + 2"]},
+		{name: "Vector address++", wave: "l...............hl......hl", node: ".c.......................k"},
+		{name: "Analog -> line done level trigger", wave: "l....................l...."},
+		{name: "Vector memory read", wave: "l.............h.l.....h.l.", node: "..............h.......g"},
+		{name: "Vector CLK -> Analog", wave: "l..............hl......hl."},
+		{name: "Vector memory write safe", wave: "h..........l......h..l...."},
+		{name: "Sprite memory write safe", wave: "hl.........h.............l"}
+	],
+	edge: ["a~>b Disabled sprite", "c~>a", "d~>e", "i~>h", "d~>g", "k~>j"]
 }
 ```
