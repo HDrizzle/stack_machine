@@ -8,7 +8,7 @@ The reason that the vector hardware is so complicated is to compensate for the s
 ## 4 Inputs from bus, 1 byte each
 
 * Vector address A (bits 0-7) / Sprite address
-* Vector address B (bits 8-14) (MSB=0) / Sprite set field address (MSB=1)
+* Vector address B (bits 8-14) (MSB=0) / Sprite set field address (bits 0 - 2), Sprite frame (bits 3 - 6) (MSB=1)
 * Vector write X / Sprite write to field
 * Vector write Y / Sprite offset resolution (LSB) 0 = normal, 1 = *3. Bits 1-7 are the sprite address limit where the LSB is set to 1
 
@@ -17,6 +17,10 @@ Since the vector memory is 2^15, the MSB is used to determine if writing to vect
 ### Sprite address limit
 
 When the main loop is going through deactivated sprites, it can leave the sprite memory write enable low for a long time, which can cause sprite updates from the computer to be missed. To prevent this the computer can set the highest prite address reached before looping back to 0. Writing to the 3rd bus input will use the LSB as the resolution config (something else) and the rest of the bits will be used to make an 8-bit number (LSB se tto 1). Setting these bits to all 1s will allow the whole sprite address range. This can also be used to quickly disable sprites higher in memory.
+
+### Sprite frames
+
+Because there are 256 sprites and 8 bytes allocated per sprite, that only uses 11 bits of the memory address. The chips I'm using have 15 bit addresses so I will have 4 bits of the address (11 - 14 although it doesn't actually matter) divide the entire memory into 16 "sprite frames" A sprite frame is a "version" of the sprite memory that can be switched over very fast by the computer simply by updating the corresponding bits in the 2nd bus register. The most recent sprite frame that was set is the one currently displayed.
 
 ## Simulation test data
 
@@ -108,34 +112,6 @@ Paste into wavedrom.com/editor.html
 ```
 {
 	signal: [
-		{name: "CLK", wave: "lhlhlhlhlhlhlhlhlhlhlh..lhlh"},
-		{name: "CLK Enable (AND)", wave: "h....................l..h..l", node: ".....................e"},
-		{name: "Sprite address", wave: "22.2.......................2", data: ["0x00", "0x01", "0x02", "0x03"]},
-		{name: "Start", wave: "h.l........................."},
-		{name: "Sprite address++ / Sprite field reset", wave: "lhlhl......................h", node: "...b"},
-		{name: "Next sprite", wave: "lh...l.....................h", node: ".c.........................j"},
-		{name: "Sprite field", wave: "22....2.2.2.2.2............2", data: ["0x4", "0x0", "0x1", "0x2", "0x3", "0x4", "0x5", "0x0"]},
-		{name: "Sprite field++", wave: "l.....hlhlhlhlhl............"},
-		{name: "Sprite field CLK", wave: "l....hlhlhlhlhl............."},
-		{name: "Inner loop start cycle", wave: "l............h.l.h.l.h...l..", node: "..............i......d"},
-		{name: "Vector address", wave: "2......2........2...2...2...", data: ["?", "Start + 0", "Start + 1", "Start + 2", "Start + 3"]},
-		{name: "Vector address++ (Pre-A)", wave: "hl.............h.l.h.l...h.l"},
-		{name: "Vector address++ (Post-A)", wave: "h.l.............h.l.h...l.h.", node: "...........................k"},
-		{name: "Analog -> line done level trigger", wave: "l.......................l..."},
-		{name: "Vector CLK -> Analog", wave: "hl.............h.l.h.l...h.l"},
-		{name: "Vector memory write safe (1) / read (0)", wave: "h.............l.h.l.h...l.h."},
-		{name: "Sprite memory write safe (1) / read (0)", wave: "hl.............h...........l"},
-		{name: "Beam enable", wave: "h.l............h............"}
-	],
-	edge: ["c~>b Disabled sprite", "d~>e", "i~>h", "d~>g", "k~>j", "a Not needed"]
-}
-```
-
-NEW VERSION, more time for memory writes
-
-```
-{
-	signal: [
 		{name: "CLK", wave: "lhlhlhlhlhlhlhlhlhlhlhlhlhlh..lhlhlh"},
 		{name: "CLK Enable (AND)", wave: "h..........................l..h....l", node: "...........................e"},
 		{name: "Sprite address", wave: "2..2.2..............................", data: ["0x00", "0x01", "0x02"]},
@@ -155,15 +131,23 @@ NEW VERSION, more time for memory writes
 		{name: "Vector memory write safe", wave: "h...............l...h.l...h...l...h."},
 		{name: "Sprite memory read", wave: "l..h.............l.................."},
 		{name: "Sprite memory write safe", wave: "hl...............h.................l"},
-		{name: "Beam enable", wave: "h.l..............h.................."}
+		{name: "Beam enable", wave: "h.l..............h.................."},
+      	{},
+		{name: "DAC input select", wave: "l..................h..l............."},
+		{name: "DAC WE", wave: "l...................hl.hl..........."},
+		{name: "DAC LDAC", wave: "l.......................h.l........."},
+      
 	],
 	edge: ["c~>b Disabled sprite", "d~>e", "i~>h", "d~>g", "k~>j", "a Not needed"]
 }
 ```
 
-## Bus reader logic
+## Analog stuff
 
-Pseudocode for timing
-```
+Power supply: +/- 15 V, +5V
 
-```
+DACs: 10 bit, Vout, 5V supply, DigiKey: MAX503CNG+-ND
+
+The two vectors from the digital circuit will go into 10-bit ADCs (total of 4 scalars). The voltage outputs from the ADCs will be LERPed by the output from a triangle wave generator (+/- close to 15V). The LERPing will be done by AD633 difference-multiplier ICs (Powered +/- 15V).
+
+The triangle wave will have a fixed frequency. To prevent inconsistent line brightness, the beam power will be controlled by the sum of 2 op-amp differentiator circuits connected to the X and Y ouputs.
