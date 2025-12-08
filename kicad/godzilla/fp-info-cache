@@ -1,4 +1,4 @@
-23385862164124261
+23387627121063844
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -95365,8 +95365,8 @@ battery_holder_coin
 
 
 0
-0
-0
+2
+2
 custom_footprint_library
 bus_connector
 
@@ -95388,6 +95388,13 @@ gm_tube_connection
 0
 2
 2
+custom_footprint_library
+godzilla_silkscreen
+
+
+0
+0
+0
 custom_footprint_library
 jumper
 

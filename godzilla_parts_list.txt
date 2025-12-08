@@ -1,9 +1,13 @@
 Parts list:
 Battery holder 2032: 123-A-BAT-CH-C8-EA-ZTP1-ND
 555: LMC555CN/NOPB-ND
-SMD LEDs: 1516-QBHP688-RGB3HCT-ND
+SMD LEDs, red: SML-D12U1WT86CT-ND
+Capacitor: 399-18273-ND
 
 Design:
 
-Lights alternate between green and red
+Lights flash red
 Battery from 2.6 to 3 volts, 20 mA for LEDs means
+
+555 circuit: https://www.electronics-tutorials.ws/waveforms/555_oscillator.html
+Period: ~ 2 secs, R2 = 470k, R1 = 10k, C = 2 uF

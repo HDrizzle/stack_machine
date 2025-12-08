@@ -1,0 +1,6 @@
+﻿Designator,Footprint,Quantity,Value,LCSC Part #
+BT1,battery_holder_coin,1,Battery_Cell,
+C1,CP_Radial_D4.0mm_P2.00mm,1,C,
+"D1, D2",0603,2,LED,
+"R1, R2, R3, R4",0.4_pitch_resistor,4,R,
+U1,DIP-8_W7.62mm,1,NE555P,

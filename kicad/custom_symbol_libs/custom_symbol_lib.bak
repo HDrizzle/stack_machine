@@ -8133,8 +8133,8 @@
 				)
 			)
 		)
-		(property "Footprint" ""
-			(at 0 0 0)
+		(property "Footprint" "custom_footprint_library:crystal_dip_14"
+			(at 0 -22.606 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8142,8 +8142,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" ""
-			(at 0 0 0)
+		(property "Datasheet" "https://media.digikey.com/pdf/Data%20Sheets/ECS%20PDFs/ECS-100_Series.pdf"
+			(at -0.254 -20.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10905,6 +10905,73 @@
 							(size 0.762 0.762)
 						)
 					)
+				)
+			)
+		)
+	)
+	(symbol "godzilla_placeholder"
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(property "Reference" "U"
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" ""
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 0 0 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(symbol "godzilla_placeholder_1_1"
+			(text_box "Godzilla"
+				(at -10.16 2.54 0)
+				(size 21.59 -5.08)
+				(stroke
+					(width 0)
+					(type default)
+				)
+				(fill
+					(type none)
+				)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
 				)
 			)
 		)

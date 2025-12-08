@@ -112,30 +112,29 @@ Paste into wavedrom.com/editor.html
 ```
 {
 	signal: [
-		{name: "CLK", wave: "lhlhlhlhlhlhlhlhlhlhlhlhlhlh..lhlhlh"},
-		{name: "CLK Enable (AND)", wave: "h..........................l..h....l", node: "...........................e"},
-		{name: "Sprite address", wave: "2..2.2..............................", data: ["0x00", "0x01", "0x02"]},
-		{name: "Start outer loop", wave: "h.l...............................h.", node: "..................................j"},
-		{name: "Sprite address++ / Sprite field reset", wave: "l..hlhl.............................", node: ".....b"},
-		{name: "Next sprite", wave: "l..h...l............................", node: "...c"},
-		{name: "Sprite field", wave: "2..2....2.2.2.2.2...................", data: ["0x4", "0x0", "0x1", "0x2", "0x3", "0x4", "0x5"]},
-		{name: "Sprite field++", wave: "l.......hlhlhlhlhl.................."},
-		{name: "Sprite field CLK", wave: "l......hlhlhlhlhl..................."},
-		{name: "Inner loop start cycle", wave: "l..............h.l...h.l...h...l....", node: "..............i............d"},
-		{name: "Vector address", wave: "2........2..........2.....2.......2.", data: ["?", "Start + 0", "Start + 1", "Start + 2", "Start + 3"]},
-		{name: "Vector address++ (Pre-A)", wave: "hl.................h.l...h.l.....h.l"},
-		{name: "Vector address++ (Post-A)", wave: "h.l.................h.l...h.l.....h.", node: "..................................k"},
-		{name: "Analog -> line done", wave: "l.............................l....."},
-		{name: "Vector CLK -> Analog", wave: "hl.................h.l...h.l.....h.l"},
-		{name: "Vector memory read", wave: "l.................h.l...h.l.....h.l."},
-		{name: "Vector memory write safe", wave: "h...............l...h.l...h...l...h."},
-		{name: "Sprite memory read", wave: "l..h.............l.................."},
-		{name: "Sprite memory write safe", wave: "hl...............h.................l"},
-		{name: "Beam enable", wave: "h.l..............h.................."},
-      	{},
-		{name: "DAC input select", wave: "l..................h..l............."},
-		{name: "DAC WE", wave: "l...................hl.hl..........."},
-		{name: "DAC LDAC", wave: "l.......................h.l........."},
+		{name: "CLK", wave: "lhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlhlh..lhlhlhlhlh"},
+		{name: "CLK Enable (AND)", wave: "h..................................l..h........l", node: "...................................e"},
+		{name: "Sprite address", wave: "2..2.2..........................................", data: ["0x00", "0x01", "0x02"]},
+		{name: "Start outer loop", wave: "h.l...........................................h.", node: "..............................................j"},
+		{name: "Sprite address++ / Sprite field reset", wave: "l..hlhl.........................................", node: ".....b"},
+		{name: "Next sprite", wave: "l..h...l........................................", node: "...c"},
+		{name: "Sprite field", wave: "2..2....2.2.2.2.2...............................", data: ["0x4", "0x0", "0x1", "0x2", "0x3", "0x4", "0x5"]},
+		{name: "Sprite field++", wave: "l.......hlhlhlhlhl.............................."},
+		{name: "Sprite field CLK", wave: "l......hlhlhlhlhl..............................."},
+		{name: "Inner loop start cycle", wave: "l..............h.l.......h.l.......h...l........", node: "..............i....................d"},
+		{name: "Vector address", wave: "2........2..........2.........2...........2.....", data: ["?", "Start + 0", "Start + 1", "Start + 2", "Start + 3"]},
+		{name: "Vector address++ (Pre-A)", wave: "hl.................h.l.......h.l.........h.l...."},
+		{name: "Vector address++ (Post-A)", wave: "h.l.................h.l.......h.l.........h.l..."},
+		{name: "Analog -> line done", wave: "l.................................l............."},
+		{name: "Vector CLK -> Analog", wave: "hl.................h.l.......h.l.........h.l...."},
+		{name: "DAC input select", wave: "l..................h..l......h..l........h..l..."},
+		{name: "DAC WE", wave: "l...................hl.hl.....hl.hl.......hl.hl."},
+		{name: "DAC LDAC", wave: "l.......................h.l.......h...l.......h.", node: "..............................................k"},
+		{name: "Vector memory read", wave: "l.................h.l.......h.l.........h.l....."},
+		{name: "Vector memory write safe", wave: "h...............l...h.....l...h.......l...h....."},
+		{name: "Sprite memory read", wave: "l..h.............l.............................."},
+		{name: "Sprite memory write safe", wave: "hl...............h.............................l"},
+		{name: "Beam enable", wave: "h.l..............h.............................."},
       
 	],
 	edge: ["c~>b Disabled sprite", "d~>e", "i~>h", "d~>g", "k~>j", "a Not needed"]
@@ -151,3 +150,9 @@ DACs: 10 bit, Vout, 5V supply, DigiKey: MAX503CNG+-ND
 The two vectors from the digital circuit will go into 10-bit ADCs (total of 4 scalars). The voltage outputs from the ADCs will be LERPed by the output from a triangle wave generator (+/- close to 15V). The LERPing will be done by AD633 difference-multiplier ICs (Powered +/- 15V).
 
 The triangle wave will have a fixed frequency. To prevent inconsistent line brightness, the beam power will be controlled by the sum of 2 op-amp differentiator circuits connected to the X and Y ouputs.
+
+Single coordinate LERP equation (4 of these): X0 + (X1 - X0)*LERP
+Voltage limits:
+* X0 and X1 from DAC: [0 to 5V]
+* LERP: 0V to 1V
+* Output: 0V to 5V
