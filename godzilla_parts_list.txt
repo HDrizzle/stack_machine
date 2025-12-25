@@ -7,7 +7,7 @@ Capacitor: 399-18273-ND
 Design:
 
 Lights flash red
-Battery from 2.6 to 3 volts, 20 mA for LEDs means
+Battery from 2.6 to 3 volts, <20 mA for LEDs. Testing results mean 100 Ohms in series w/ each LED is best and results in 10 mA which is still bright.
 
 555 circuit: https://www.electronics-tutorials.ws/waveforms/555_oscillator.html
 Period: ~ 2 secs, R2 = 470k, R1 = 10k, C = 2 uF

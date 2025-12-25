@@ -118,7 +118,7 @@ Paste into wavedrom.com/editor.html
 		{name: "Start outer loop", wave: "h.l...........................................h.", node: "..............................................j"},
 		{name: "Sprite address++ / Sprite field reset", wave: "l..hlhl.........................................", node: ".....b"},
 		{name: "Next sprite", wave: "l..h...l........................................", node: "...c"},
-		{name: "Sprite field", wave: "2..2....2.2.2.2.2...............................", data: ["0x4", "0x0", "0x1", "0x2", "0x3", "0x4", "0x5"]},
+		{name: "Sprite field", wave: "2..2....2.2.2.2.2...............................", data: ["0x5", "0x0", "0x1", "0x2", "0x3", "0x4", "0x5"]},
 		{name: "Sprite field++", wave: "l.......hlhlhlhlhl.............................."},
 		{name: "Sprite field CLK", wave: "l......hlhlhlhlhl..............................."},
 		{name: "Inner loop start cycle", wave: "l..............h.l.......h.l.......h...l........", node: "..............i....................d"},
@@ -135,11 +135,16 @@ Paste into wavedrom.com/editor.html
 		{name: "Sprite memory read", wave: "l..h.............l.............................."},
 		{name: "Sprite memory write safe", wave: "hl...............h.............................l"},
 		{name: "Beam enable", wave: "h.l..............h.............................."},
+		{name: "Toggle line end", wave: "l...............h.l.......h.l..................."},
       
 	],
 	edge: ["c~>b Disabled sprite", "d~>e", "i~>h", "d~>g", "k~>j", "a Not needed"]
 }
 ```
+
+## Determining which end vector to update
+
+Since the analog LERP is a triangle wave, each consecutive line/point should update one of the start/end vectors (the opposite one to where the LERP signal is). The vector to update will be controlled by an SR latch which will be explicitly set by the analog circuit (two very short signals, one for set, one for reset). The CRT circuit's pulses will be sent when the LERP signal crosses the halfway point. It will also be toggled right before both of the first two points of each sprite ("Toggle line end") by the digital timing.
 
 ## Analog stuff
 
@@ -156,3 +161,7 @@ Voltage limits:
 * X0 and X1 from DAC: [0 to 5V]
 * LERP: 0V to 1V
 * Output: 0V to 5V
+
+## DAC Configuration
+
+Single-suply (+5V), using the 4.096V internal reference
