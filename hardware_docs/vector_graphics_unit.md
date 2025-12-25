@@ -44,22 +44,29 @@ Vector memory Y: `96,160,160,96,96`
 Sprite memory (+/- 16): `128,0,133,116,116,0,0,0,128,0,133,144,144,0,0,0,128,0,133,144,116,0,0,0,128,0,133,116,144,0,0,0` <- Don't use
 Sprite memory (+/- 32): `128,0,133,96,96,0,0,0,128,0,133,160,160,0,0,0,128,0,133,160,96,0,0,0,128,0,133,96,160,0,0,0`
 
+4 squares, offset resolution test 2
+Vectors are from 96 to 160, which is 128 +/- 32
+
+Vector memory X: `96,96,160,160,96`
+Vector memory Y: `96,160,160,96,96`
+Sprite memory (+/- 32): `128,0,133,0,0,0,0,0,128,0,133,255,255,0,0,0,128,0,133,255,0,0,0,0,128,0,133,0,255,0,0,0`
+
 ## Number representation
 
 Sprite source vectors will have 8-bit unsigned components. Vector=128 + offset=128 will always be in the center regardless of offset resolution.
 
-Output coords (10 bit) from 0 to 896:
-	View is from 384 to 640, 512 is in the middle of the screen.
+Output coords (10 bit) from 0 to 768:
+	View is from 256 to 512, 384 is in the middle of the screen.
 
 If offset resolution == normal:
-	Output = vector + offset + 256
+	Output = vector + offset + 128
 Else, offset resolution == *3:
-	Output = vector + (offset * 3)
+	Output = vector + (offset * 2)
 
 The logic for this will look like:
 	Output = vector + offset + match resolution {
-		0 => 256,
-		1 => offset << 1
+		0 => 128,
+		1 => offset
 	}
 
 ## High level organization
@@ -152,16 +159,16 @@ Power supply: +/- 15 V, +5V
 
 DACs: 10 bit, Vout, 5V supply, DigiKey: MAX503CNG+-ND
 
-The two vectors from the digital circuit will go into 10-bit ADCs (total of 4 scalars). The voltage outputs from the ADCs will be LERPed by the output from a triangle wave generator (+/- close to 15V). The LERPing will be done by AD633 difference-multiplier ICs (Powered +/- 15V).
+The two vectors from the digital circuit will go into 10-bit ADCs (total of 4 scalars). The voltage outputs from the ADCs will be LERPed by the output from a triangle wave generator (+/- 5V). The LERPing will be done by AD633 difference-multiplier ICs (Powered +/- 15V).
 
-The triangle wave will have a fixed frequency. To prevent inconsistent line brightness, the beam power will be controlled by the sum of 2 op-amp differentiator circuits connected to the X and Y ouputs.
+The triangle wave will have a fixed frequency. To prevent inconsistent line brightness, the beam power will be controlled by the sum of 2 op-amp differentiator circuits (outputs rectified) connected to the X and Y ouputs. The ideal brightness control would use `sqrt(dx^2 + dy^2)` but summing the derivatives is close enough and much simpler.
 
 Single coordinate LERP equation (4 of these): X0 + (X1 - X0)*LERP
 Voltage limits:
 * X0 and X1 from DAC: [0 to 5V]
-* LERP: 0V to 1V
+* LERP: 0V to 10V (the multiplier chip divides by 10), the subtracting input for the LERP input will be -5V to change the +/- 5V from the triangle generator to 0 - 10V
 * Output: 0V to 5V
 
 ## DAC Configuration
 
-Single-suply (+5V), using the 4.096V internal reference
+Single-supply (+5V), using the 4.096V internal reference
