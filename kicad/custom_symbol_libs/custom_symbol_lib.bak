@@ -650,7 +650,7 @@
 		)
 		(embedded_fonts no)
 	)
-	(symbol "14_bit_counter_no_output_latch"
+	(symbol "12_bit_counter_no_output_latch"
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
@@ -697,7 +697,7 @@
 				(hide yes)
 			)
 		)
-		(symbol "14_bit_counter_no_output_latch_0_1"
+		(symbol "12_bit_counter_no_output_latch_0_1"
 			(rectangle
 				(start -6.35 8.89)
 				(end 6.35 -7.62)
@@ -710,8 +710,8 @@
 				)
 			)
 		)
-		(symbol "14_bit_counter_no_output_latch_1_1"
-			(text "14 bit\ncounter"
+		(symbol "12_bit_counter_no_output_latch_1_1"
+			(text "12 bit\ncounter"
 				(at -0.254 3.81 0)
 				(effects
 					(font
