@@ -3,20 +3,41 @@
 This will be an interface between the computer's bus and a cathode-ray tube (either something I make myself or an oscilloscope).
 It will have a memory of 2^15 2D vectors each represented by 2 bytes (one for X and one for Y).
 There will be another memory space for what I will call Sprites. Each Sprite will contain a starting address (15 bit) into the vector memory, an enable flag (1 bit), a length (7 bit) also for the vector memory, a point/line select (1 bit), and an XY offset (16 bit) for a total of 40 bits. The sprite memory will be indexed by two numbers: sprite address (8 bit) and sprite field (3 bit).
-The reason that the vector hardware is so complicated is to compensate for the slowness of the computer. All the computer needs to do is update sprites and vectors whenever things move and the hardware will be responsible for continuously writing to the display.
+The reason that the vector hardware is so complicated is to compensate for the slowness of the computer. All the computer needs to do is update sprites and vectors whenever things move and the hardware will be responsible for continuously drawing on the CRT.
 
 ## 4 Inputs from bus, 1 byte each
 
 * Vector address A (bits 0-7) / Sprite address
 * Vector address B (bits 8-14) (MSB=0) / Sprite set field address (bits 0 - 2), Sprite frame (bits 3 - 6) (MSB=1)
 * Vector write X / Sprite write to field
-* Vector write Y / Sprite offset resolution (LSB) 0 = normal, 1 = *3. Bits 1-7 are the sprite address limit where the LSB is set to 1
+* Vector write Y / Sprite offset resolution (LSB) 0 = normal, 1 = *2. Bits 1-7 are the sprite address limit where the LSB is set to 1
 
 Since the vector memory is 2^15, the MSB is used to determine if writing to vector or sprite memory: 0=Vector, 1=Sprite.
 
+### Bus input update rules
+
+Write order: To prevent corrupted data being written to the display memory while the computer is in the process of updating values, there is a lot of logic to control when data is finally propagated to memory. For this to work, all software must update the first two bus inputs (vec/sprite address, sprite field) first and then write data to the last two inputs.
+
+The bus input will have two "layers":
+
+1st layer: 4 latches clocked by corresponding bus inputs. The sprite frame will be in the 1st layer but with the special rule where it is clocked only when the bus MSB=1. the vector/sprite write select is directly from the 1st layer output (MSB of 2nd latch).
+
+2nd layer: sprite/vector address/data latches. These will be clocked by the locally-clocked memory write logic upon the edges of the `* write set A&D` signals. The external edge detection will be ANDed w/ some flags (`Address valid`, `Data 0 valid`, and `Data 1 valid`) which will be set based on which layer 1 latches have been written to most recently (remember bus write order).
+
+| 2nd Layer value | Bus addr | CLK condition, ANDed w/ `* write set A&D` edges | OE |
+| - | - | - | - |
+| Vector addr A | 0 | Address valid | Vec write |
+| Sprite addr | 0 | Address valid | Sprite write |
+| Vector addr B | 1 | Address valid | Vec write |
+| Sprite field addr | 1 | Address valid | Sprite write |
+| Vector write X | 2 | Data 0 valid | Vec write |
+| Sprite set data | 2 | Data 0 valid | Sprite write |
+| Vector write Y | 3 | Data 1 valid | Vec write |
+| Sprite limit & offset resolution | 3 | Data 1 valid | Always |
+
 ### Sprite address limit
 
-When the main loop is going through deactivated sprites, it can leave the sprite memory write enable low for a long time, which can cause sprite updates from the computer to be missed. To prevent this the computer can set the highest prite address reached before looping back to 0. Writing to the 3rd bus input will use the LSB as the resolution config (something else) and the rest of the bits will be used to make an 8-bit number (LSB se tto 1). Setting these bits to all 1s will allow the whole sprite address range. This can also be used to quickly disable sprites higher in memory.
+When the main loop is going through deactivated sprites, it can leave the sprite memory write enable low for a long time, which can cause sprite updates from the computer to be missed. To prevent this the computer can set the highest sprite address reached before looping back to 0. Writing to the 4th bus input will use the LSB as the resolution config (something else) and the rest of the bits will be used to make an 8-bit number (LSB set to 1). Setting these bits to all 1s will allow the whole sprite address range. This can also be used to quickly disable sprites higher in memory.
 
 ### Sprite frames
 
