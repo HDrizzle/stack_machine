@@ -58578,8 +58578,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5a793287-787e-420b-85e9-67da613e86d7")
-		(property "Reference" "U38"
-			(at 436.5341 328.93 0)
+		(property "Reference" "U422"
+			(at 436.4833 327.66 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -58588,7 +58588,7 @@
 			)
 		)
 		(property "Value" "~"
-			(at 436.5341 331.47 0)
+			(at 436.4833 330.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -58686,7 +58686,7 @@
 		(instances
 			(project "vector_digital_controller"
 				(path "/efcfb5e8-5771-4082-b7fd-a57c87392461"
-					(reference "U38")
+					(reference "U422")
 					(unit 1)
 				)
 			)
@@ -59425,8 +59425,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "685d572d-8399-4282-99e0-227f19b54bbc")
-		(property "Reference" "U8"
-			(at 177.4541 172.72 0)
+		(property "Reference" "U425"
+			(at 177.4033 171.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -59435,7 +59435,7 @@
 			)
 		)
 		(property "Value" "~"
-			(at 177.4541 175.26 0)
+			(at 177.4033 173.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -59533,7 +59533,7 @@
 		(instances
 			(project "vector_digital_controller"
 				(path "/efcfb5e8-5771-4082-b7fd-a57c87392461"
-					(reference "U8")
+					(reference "U425")
 					(unit 1)
 				)
 			)
@@ -63479,8 +63479,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "9b07178b-0248-4753-bb45-52765b0612d5")
-		(property "Reference" "U15"
-			(at 214.2841 172.72 0)
+		(property "Reference" "U420"
+			(at 214.2333 171.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -63489,7 +63489,7 @@
 			)
 		)
 		(property "Value" "~"
-			(at 214.2841 175.26 0)
+			(at 214.2333 173.99 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -63587,7 +63587,7 @@
 		(instances
 			(project "vector_digital_controller"
 				(path "/efcfb5e8-5771-4082-b7fd-a57c87392461"
-					(reference "U15")
+					(reference "U420")
 					(unit 1)
 				)
 			)
@@ -63919,7 +63919,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "a1aa9734-bf81-4896-bcf8-04788c095414")
-		(property "Reference" "U13"
+		(property "Reference" "U424"
 			(at 213.868 147.066 0)
 			(effects
 				(font
@@ -64027,7 +64027,7 @@
 		(instances
 			(project "vector_digital_controller"
 				(path "/efcfb5e8-5771-4082-b7fd-a57c87392461"
-					(reference "U13")
+					(reference "U424")
 					(unit 1)
 				)
 			)
@@ -65911,8 +65911,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "c925f84c-ea1d-4175-a948-67eea861a57c")
-		(property "Reference" "U31"
-			(at 182.5341 318.77 0)
+		(property "Reference" "U423"
+			(at 182.4833 317.5 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -65921,7 +65921,7 @@
 			)
 		)
 		(property "Value" "~"
-			(at 182.5341 321.31 0)
+			(at 182.4833 320.04 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -66001,7 +66001,7 @@
 		(instances
 			(project "vector_digital_controller"
 				(path "/efcfb5e8-5771-4082-b7fd-a57c87392461"
-					(reference "U31")
+					(reference "U423")
 					(unit 1)
 				)
 			)
@@ -67956,7 +67956,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e9099860-65a2-4d08-921d-eaf06e33c5ff")
-		(property "Reference" "U28"
+		(property "Reference" "U421"
 			(at 599.8767 369.57 0)
 			(effects
 				(font
@@ -68052,7 +68052,7 @@
 		(instances
 			(project "vector_digital_controller"
 				(path "/efcfb5e8-5771-4082-b7fd-a57c87392461"
-					(reference "U28")
+					(reference "U421")
 					(unit 1)
 				)
 			)
