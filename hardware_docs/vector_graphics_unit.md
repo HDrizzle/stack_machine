@@ -133,6 +133,7 @@ Loop Sprite address (8 bit):
 		If vector address == sprite start address + sprite length:
 			break
 ```
+NOTE: When the "clock" is stopped, this refers to the clock running the main memory read loop. The actual clock that also runs the bus read and memory write logic will always be on.
 
 ### Vector reader timing
 

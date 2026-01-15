@@ -1,10 +1,21 @@
 # Overview
 
+## For version 2
+
 This is the design and specifications for an 8-bit stack-based computer processor designed to support programming in Reverse Polish Notation (RPN). The computer has a LIFO (Last In First Out) stack which stores individual bytes. The Top of Stack (ToS) will be a 16-bit pointer which can be incremented and decremented for Pushes and Pops. It will also be possible to read/write the stack below the ToS. There will be another piece of memory, the general purpose static-RAM (GPRAM), that will be sort of like the heap and can be written to and read from without hardware protection.
 I got the idea for this from my 1989 HP 48SX calculator which also uses RPN.
 
 <img src="images/main_block_diagram.png"></img>
 <img src="images/photo.jpg"></img>
+
+## Changes from previous version
+
+* Bus read/write addresses are both now 5 bits. The WRITE/MOVE instruction formats will remain the same and the extra bit (MSB to be exact) will be set based on duplicate opcodes for WRITE/MOVE that are otherwise interpreted the same. 1 extra WRITE opcode and 3 extra MOVE opcodes.
+* Interrupts: There will be seperate interrupt GOTO latches that go to a dedicated interrupt handler function. That function should save the state of everything else (including the regular GOTO latches, which is why interrupt GOTO latches are seperate) onto the stack then do whatever depending on the interrupt code.
+* GOTO latches and GOTO decider can be written to the bus (see above).
+* The control unit will be able to fetch instructions from the GPRAM: Program addresses starting at 2^15 (32,768, halfway through the old flash memory space) will load 2 consecutive bytes (an instruction is 2 bytes) from the GPRAM. The GPRAM address of the first byte (lower byte of the instruction) will be determined by: `(prog_addr - 32,768) * 2`. Since that will only happen at or above 32,768 then the MSB will not be used in the math and will be used to determine whether to read from flash or GPRAM.
+* Flash program space is selectable: The flash chips have 17 address lines, while 15 are used (see above about half the program address space being mapped to the GPRAM). This means that the top 2 lines can be connected to jumpers to select between 4 different programs.
+* Normal clock: The stupid "A & B" scheme I thought up will be kept for compatability with older bus devices. The rising edges of the new clock will be in between the A & B transitions. The normal clock will be used for the control unit, central timing, and the bus controller.
 
 # Program instructions
 
@@ -41,6 +52,12 @@ Devices that can read the bus:
 13. `SET-STACK-OFFSET` - Sets the stack offset byte
 14. `ALU-C-IN` - ALU latch for carry and borrow, only LSB is used. Make sure this is always zero when not being used otherwise additions will be wrong.
 15. `GPIO-WRITE-B` - Writes to GPIO output pins 8 - 15
+16. `INT-GOTO-A` - Interrupt GOTO A
+17. `INT-GOTO-B` - Interrupt GOTO B
+18. `VECTORS-A` - Vector graphics A input
+19. `VECTORS-B` - Vector graphics B input
+20. `VECTORS-C` - Vector graphics C input
+21. `VECTORS-D` - Vector graphics D input
 
 Devices that can set the state of (write to) the bus:
 
@@ -56,6 +73,8 @@ Devices that can set the state of (write to) the bus:
 9. `CLK-COUNTER-A` - Lower byte of clock counter
 10. `CLK-COUNTER-B` - Upper byte of clock counter
 11. `GPIO-READ-B` - Reads GPIO input pins 8 - 15
+12. `INT-CODE` - Most recent interrupt code, will be cleared upon read
+13. `INT-ACTIVE` - Whether there are any active interrupts
 
 # The Stack
 

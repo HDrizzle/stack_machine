@@ -1,0 +1,8 @@
+﻿Designator,Footprint,Quantity,Value,LCSC Part #
+"R1, R2, R3, R4, R5, R6, R7, R8, R9",0.4_pitch_resistor,9,10k,
+U1,PinHeader_1x23_P2.54mm_Vertical,1,~,
+"U10, U13, U14, U15, U16, U25, U26, U3, U39, U40, U5, U9",DIP-20_W7.62mm,12,~,
+"U11, U12, U7, U8",DIP-16_W7.62mm,4,~,
+"U17, U2",DIP-28_W15.24mm,2,~,
+"U18, U19, U20, U21, U22, U23, U27, U28, U29, U30, U31, U32, U33, U43",jumper,14,~,
+"U24, U34, U35, U36, U37, U38, U4, U41, U42, U44, U46, U47, U6",DIP-14_W7.62mm,13,~,

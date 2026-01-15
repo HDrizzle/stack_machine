@@ -1,0 +1,1 @@
+{"logic_pins":{},"graphic_pins":{},"components":{"0":{"SubCircuit":["sequencer_simple",false,[1,-5],"E","","Stack Machine"]}},"wires":{},"splitters":{},"labels":{},"block_pin_positions":{},"type_name":"Control unit simple","fixed_sub_cycles_opt":null,"clock_enabled":false,"clock_freq":1.0,"clock_state":false,"probes":{},"timing_probe_order":[],"block_bb":[[0,0],[0,0]]}

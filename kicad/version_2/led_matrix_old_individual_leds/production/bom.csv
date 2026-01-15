@@ -1,9 +1,0 @@
-﻿Designator,Footprint,Quantity,Value,LCSC Part #
-"Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q9",TO-220-3_Vertical,8,IRF540N,
-"R10, R11, R12, R13, R20, R5, R6, R8, R9",0.4_pitch_resistor,9,R,
-SW1,SW_DIP_SPSTx01_Slide_6.7x4.1mm_W7.62mm_P2.54mm_LowProfile,1,SW_DIP_x01,
-U1,PinHeader_1x13_P2.54mm_Vertical,1,~,
-"U10, U12, U13, U18, U19, U4, U6, U8",DIP-24_W7.62mm,8,~,
-"U11, U5, U7, U9",led_block_16_x_8_left,4,~,
-"U20, U21, U22, U23",led_block_16_x_8_right,4,~,
-"U24, U33",DIP-16_W7.62mm,2,~,
