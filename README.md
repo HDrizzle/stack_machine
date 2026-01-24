@@ -4,6 +4,7 @@
 
 * The timing will be completely redone: A single normal clock signal, not the stupid "AB Alternating" I made up for the original. The PC will be incremented and a new instruction fetched during any non-flow-control instructions except when the GPRAM is used and the PC is in the same RAM chip (the RAM chips have 15 address lines each) as whatever is being accessed. The bus timing will also be very flexible and will be faster when possible but still slow when the memory is being accessed twice for example.
 * Bus read/write addresses are both now 5 bits. The WRITE/MOVE instruction formats will remain the same and the extra bit (MSB to be exact) will be set based on duplicate opcodes for WRITE/MOVE that are otherwise interpreted the same. 1 extra WRITE opcode and 3 extra MOVE opcodes.
+* The opcode decoder is actually 3 bits. There will be 4 bits used for extra MOVE/WRITE instructions (see above).
 * Interrupts: There will be seperate interrupt GOTO latches that go to a dedicated interrupt handler function. That function should save the state of everything else (including the regular GOTO latches, which is why interrupt GOTO latches are seperate) onto the stack then do whatever depending on the interrupt code.
 * GOTO latches can be written to the bus (see above). The goto decider doesn't need to be because it's simple to get its value from an IF-ELSE.
 * The control unit will be able to fetch instructions from the GPRAM: Program addresses starting at 2^15 (32,768, halfway through the old flash memory space) will load 2 consecutive bytes (an instruction is 2 bytes) from the GPRAM. The GPRAM address of the first byte (lower byte of the instruction) will be determined by: `(prog_addr - 32,768) * 2`. Since that will only happen at or above 32,768 then the MSB will not be used in the math and will be used to determine whether to read from flash or GPRAM.
@@ -19,7 +20,7 @@ Memory users will use either (or both) of the lower or upper RAM domains:
 
 # Program instructions
 
-Each instruction will be 16 bits and interpreted by the control unit. The first 4 bits (0 - 3) of the instruction will address the below list of operations. The rest of the instruction (bits 4 - 15) may be ignored or used for different things depending on the specific operation.
+Each instruction will be 16 bits and interpreted by the control unit. The first 3 bits (0 - 3) of the instruction will address the below list of operations. The rest of the instruction (bits 4 - 15) may be ignored or used for different things depending on the specific operation.
 
 Here's the current list of the operation codes (opcodes):
 

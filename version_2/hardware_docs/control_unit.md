@@ -95,7 +95,7 @@ Non delayed
 	{name: "Begin instruction sequence (non-flow-ctrl)", wave: "lh.l.."},
 	{name: "Post-adder latch OE", wave: "lh.l.."},
 	{name: "Pre-adder latch CLK", wave: "l.h.l."},
-    {name: "Instruction load possible", wave: "h....."},
+    {name: "Instruction load possible (read on +edge)", wave: "h....."},
     {name: "Load Instruction", wave: "l..h.l"}
   ],
 	edge: []
@@ -111,7 +111,7 @@ Delayed due to GPRAM usage
 	{name: "Begin instruction sequence (non-flow-ctrl)", wave: "lh.l...."},
 	{name: "Post-adder latch OE", wave: "lh.l...."},
 	{name: "Pre-adder latch CLK", wave: "l.h.l..."},
-    {name: "Instruction load possible", wave: "l...h..."},
+    {name: "Instruction load possible (read on +edge)", wave: "l...h..."},
     {name: "Load Instruction", wave: "l....h.l"}
   ],
 	edge: []
@@ -240,6 +240,7 @@ RX Not ready case
 	{name: "Begin instruction sequence (CALL)", wave: "lh.l....."},
 	{},
 	{name: "Call stack - Push", wave: "lh.l....."},
+    {name: "Interrupt in-progress", wave: "l.2......", data: ["Bit 4"]},
 	{name: "Post-adder latch OE", wave: "l.h..l..."},
 	{name: "GOTO latches OE", wave: "l....h.l."},
 	{name: "Pre-adder latch CLK", wave: "l.....h.l"},
@@ -259,6 +260,7 @@ RX Not ready case
 	{name: "Begin instruction sequence (RETURN)", wave: "lh.l."},
 	{},
 	{name: "Call stack - Pop & OE", wave: "lh.l."},
+    {name: "Interrupt in-progress", wave: "h.2..", data:["!Bit 4"]},
 	{name: "Pre-adder latch CLK", wave: "l.h.l"},
     {name: "Load Instruction", wave: "l..h."}
   ],

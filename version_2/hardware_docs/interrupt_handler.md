@@ -4,4 +4,4 @@ This will be a generic board connected to the bus. Interrupts will be triggered 
 
 ## Interface w/ control unit
 
-There will be a single signal to the control unit timing, `Interrupt` which is read on TODO clock edge.
+There will be a single signal to the control unit timing, `Interrupt` which is read on the +clock edge.
