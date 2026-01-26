@@ -188,8 +188,8 @@ RX Not ready case
 	{name: "Bus TX", wave: "lh.l.....", node: ".a"},
 	{name: "TX ready / OE", wave: "l..h..l..", node: "...b"},
 	{name: "RX not ready", wave: "l..h.l..."},
-	{name: "Bus save CLK", wave: "l...h.l.."},
-	{name: "Bus save OE", wave: "l....h..l"},
+	{name: "Bus save CLK", wave: "l...h...l"},
+	{name: "Bus save OE", wave: "l...h...l"},
 	{name: "Instruction done", wave: "l.......h"}
   ],
   edge: ["a~>b TX Delay (possibly instant)"]
