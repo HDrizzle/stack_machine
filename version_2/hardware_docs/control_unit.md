@@ -4,9 +4,24 @@ https://lucid.app/lucidchart/32ad8e9d-d2d1-47b0-a4b6-105ece57e4e0/edit?viewport_
 
 ## Startup
 
-1. Started by the `Set` input from the startup controller going high, which will disable the GOTO latches OE, post-adder latch OE, and the call stack OE. Pullup resistors will set the inputs to the pre-adder latch to 0xFFFF so when it is incremented it starts at instruction 0x0000.
+1. Started by the `Set` input from the startup controller going high, the sequencer `Start` input will go high for exactly 1 cycle (update on -edge). `Start` will disable the GOTO latches OE, post-adder latch OE, and the call stack OE. Pullup resistors will set the inputs to the pre-adder latch to 0xFFFF so when it is incremented it starts at instruction 0x0000.
 2. Clock pre-adder address latch
+3. Clock post-adder address latch
 3. Begin regular cycle
+
+```
+{
+  signal: [
+	{name: "CLK", wave: "lhlhlh"},
+	{},
+    {name: "Enable", wave: "lh...."},
+    {name: "Start", wave: "l.h.l."},
+	{name: "Pre-adder latch CLK", wave: "l.h.l."},
+    {name: "Load Instruction", wave: "l..h.l"}
+  ],
+	edge: ["a~>b Wait for instruction done"]
+}
+```
 
 ## Cycle, PC incrementation may be done in parallel
 
@@ -25,9 +40,8 @@ Load from FLash
 	{name: "Flash read (PC MSB=0)", wave: "lh.l..."},
     {name: "Instruction pre-latches CLK", wave: "l.h.l..", node: "..a"},
 	{name: "Instruction post-latch CLK", wave: "l..h.l.", node: "...b"},
-	{name: "Instruction post-latch OE", wave: "l..h.l."},
 	{name: "Begin instruction sequence", wave: "l..h.l."},
-	{name: "Instruction done", wave: "l.hl..."}
+    {name: "Instruction done", wave: "l.hl2..", data: ["flow-ctrl"]}
   ],
 	edge: ["a~>b Wait for instruction done"]
 }
@@ -46,9 +60,8 @@ Load from RAM
 	{name: "Instruction pre-latch A CLK", wave: "l.h.l..."},
 	{name: "Instruction pre-latch B CLK", wave: "l...h.l.", node: "....a"},
 	{name: "Instruction post-latch CLK", wave: "l....h.l", node: ".....b"},
-	{name: "Instruction post-latch OE", wave: "l....h.l"},
 	{name: "Begin instruction sequence", wave: "l....h.l"},
-	{name: "Instruction done", wave: "l...hl.."}
+    {name: "Instruction done", wave: "l...hl2.", data: ["flow-ctrl"]}
   ],
 	edge: ["a~>b Wait for instruction done"]
 }
@@ -74,11 +87,11 @@ The interrupt call can only happen when `Interrupt in-progress` is low and `Inte
 	{name: "Flash read (PC MSB=0)", wave: "lh.l..."},
     {name: "Instruction pre-latches CLK", wave: "l.h.l..", node: "..a"},
 	{name: "Instruction post-latch CLK", wave: "l..h.l.", node: "...b"},
-	{name: "Instruction post-latch OE", wave: "l......"},
+	{name: "Instruction post-latch OE", wave: "h..l.h."},
 	{name: "Interrupt (latched on +edge)", wave: "x.h...."},
 	{name: "Interrupt in-progress", wave: "l...h.."},
 	{name: "Begin instruction sequence", wave: "l..h.l."},
-	{name: "Instruction done", wave: "l.hl..."}
+    {name: "Instruction done", wave: "l.hl2..", data: ["flow-ctrl"]}
   ],
 	edge: ["a~>b Wait for instruction done"]
 }
@@ -119,6 +132,8 @@ Delayed due to GPRAM usage
 ```
 
 ## Instruction sequences
+
+NOTE: Even flow-control instructions must set "Instruction Done" high again so that the "Load instruction" sequence will continue to load the new instruction w/o being deadlocked.
 
 ### MOVE & WRITE
 
