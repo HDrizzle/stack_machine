@@ -6,7 +6,6 @@ List of outputs from timing logic (excluding bus):
 
 * Pre-adder latch CLK
 * Post-adder latch CLK
-* Post-adder latch OE
 * Pre-adder address A OE to bus
 * Pre-adder address B OE to bus
 * Address A [bus (1) / adder (0)] select & Bus -> A OE
@@ -14,9 +13,11 @@ List of outputs from timing logic (excluding bus):
 * Memory write (write happens on WE disable-edge)
 * Memory read
 
-### TX (Read / Read ++addr)
+## Timing
 
 Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
+
+### TX (Read / Read ++addr)
 
 ```
 {
@@ -24,7 +25,7 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
     {name: "CLK", wave: "lhlhlhl"},
 	{},
 	{name: "TX (Read / Read ++addr)", wave: "lh.l..."},
-	{name: "TX ready / OE", wave: "lh..l.."},
+	{name: "TX ready", wave: "lh.l..."},
     {},
     {name: "Post-adder latch CLK", wave: "l.h.l.."},
     {name: "Pre-adder latch CLK", wave: "l...2.l", data: ["++addr"]},
@@ -41,7 +42,7 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
     {name: "CLK", wave: "lhlhl"},
 	{},
     {name: "TX (Read addr A / B)", wave: "lh.l."},
-	{name: "TX ready / OE", wave: "lh..l"},
+	{name: "TX ready", wave: "lh.l."},
     {},
     {name: "Pre-adder address A/B OE to bus", wave: "lh..l"}
   ]
@@ -53,13 +54,13 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
 ```
 {
   signal: [
-    {name: "CLK", wave: "lhlhlhl"},
+    {name: "CLK", wave: "lhlhlhlh"},
 	{},
-    {name: "TX ready (Write / Write ++addr)", wave: "lh.l..."},
+    {name: "TX ready (Write / Write ++addr)", wave: "lh.l...."},
     {},
-    {name: "Post-adder latch CLK", wave: "l..h.l."},
-    {name: "Pre-adder latch CLK", wave: "l...2.l", data: ["++addr"]},
-    {name: "Memory write", wave: "lhl...."}
+    {name: "Post-adder latch CLK", wave: "l...h.l."},
+    {name: "Pre-adder latch CLK", wave: "l....2.l", data: ["++addr"]},
+    {name: "Memory write", wave: "l.hl...."}
   ]
 }
 ```

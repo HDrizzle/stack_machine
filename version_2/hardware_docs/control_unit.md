@@ -137,7 +137,7 @@ NOTE: Even flow-control instructions must set "Instruction Done" high again so t
 
 ### MOVE & WRITE
 
-The data source and destination will have their own sequences
+Refer to "bus.md" for move timing
 
 Fastest possible case
 ```
@@ -147,52 +147,11 @@ Fastest possible case
 	{},
 	{name: "Begin instruction sequence (MOVE/WRITE)", wave: "lh.l."},
 	{},
-    {name: "Bus TX", wave: "lh.l."},
-	{name: "TX ready / OE", wave: "lh..l"},
-	{name: "RX not ready", wave: "l...."},
-	{name: "Bus save CLK", wave: "l...."},
-	{name: "Bus save OE", wave: "l...."},
+    {name: "Bus move", wave: "lh.l.", node: ".a"},
+    {name: "Move done", wave: "l...h", node: "....b"},
 	{name: "Instruction done", wave: "l...h"}
   ],
-  edge: []
-}
-```
-
-RX Ready case
-```
-{
-  signal: [
-    {name: "CLK", wave: "lhlhlhl"},
-	{},
-	{name: "Begin instruction sequence (MOVE/WRITE)", wave: "lh.l..."},
-	{},
-    {name: "Bus TX", wave: "lh.l...", node: ".a"},
-	{name: "TX ready / OE", wave: "l..h..l", node: "...b"},
-	{name: "RX not ready", wave: "l......"},
-	{name: "Bus save CLK", wave: "l......"},
-	{name: "Bus save OE", wave: "l......"},
-	{name: "Instruction done", wave: "l.....h"}
-  ],
-  edge: ["a~>b TX Delay (possibly instant)"]
-}
-```
-
-RX Not ready case
-```
-{
-  signal: [
-    {name: "CLK", wave: "lhlhlhlhl"},
-	{},
-	{name: "Begin instruction sequence (MOVE/WRITE)", wave: "lh.l....."},
-    {},
-	{name: "Bus TX", wave: "lh.l.....", node: ".a"},
-	{name: "TX ready / OE", wave: "l..h..l..", node: "...b"},
-	{name: "RX not ready", wave: "l..h.l..."},
-	{name: "Bus save CLK", wave: "l...h...l"},
-	{name: "Bus save OE", wave: "l...h...l"},
-	{name: "Instruction done", wave: "l.......h"}
-  ],
-  edge: ["a~>b TX Delay (possibly instant)"]
+  edge: ["a~>b Move delay"]
 }
 ```
 
