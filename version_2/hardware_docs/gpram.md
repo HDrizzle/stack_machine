@@ -56,7 +56,7 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
   signal: [
     {name: "CLK", wave: "lhlhlhlh"},
 	{},
-    {name: "TX ready (Write / Write ++addr)", wave: "lh.l...."},
+    {name: "RX (Write / Write ++addr)", wave: "lh.l...."},
     {},
     {name: "Post-adder latch CLK", wave: "l...h.l."},
     {name: "Pre-adder latch CLK", wave: "l....2.l", data: ["++addr"]},
@@ -72,7 +72,7 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
   signal: [
     {name: "CLK", wave: "lhlhl"},
 	{},
-    {name: "TX ready (Write addr A / B)", wave: "lh.l."},
+    {name: "RX (Write addr A / B)", wave: "lh.l."},
     {},
     {name: "Pre-adder latch CLK", wave: "l.h.l"},
     {name: "Address A/B select & Bus -> A/B OE", wave: "lh.l."}

@@ -14,7 +14,7 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
     {name: "CLK", wave: "lhlhlhl"},
 	{},
     {name: "TX (Pop)", wave: "lh.l..."},
-	{name: "TX ready / OE", wave: "lh..l.."},
+	{name: "TX ready", wave: "lh.l..."},
     {},
     {name: "Pre-adder latch CLK", wave: "lh.l..."},
     {name: "Memory output enable", wave: "lh..l.."},
@@ -31,7 +31,7 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
   signal: [
     {name: "CLK", wave: "lhlhlhl"},
 	{},
-	{name: "TX ready / OE (Push)", wave: "lh..l.."},
+	{name: "RX (Push)", wave: "lh.l..."},
 	{name: "RX not ready", wave: "lh.l..."},
 	{name: "Bus save OE", wave: "l..h..l"},
     {},
@@ -50,7 +50,7 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
   signal: [
     {name: "CLK", wave: "lhlhl"},
 	{},
-	{name: "TX ready / OE (Offset write)", wave: "lh..l"},
+	{name: "RX (Offset write)", wave: "lh.l."},
     {},
     {name: "Memory write enable", wave: "l.hl."},
     {name: "ToS (0) / Offset (1) select", wave: "lh..l"}
@@ -63,13 +63,13 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
 ```
 {
   signal: [
-    {name: "CLK", wave: "lhlhlhl"},
+    {name: "CLK", wave: "lhlhl"},
 	{},
-    {name: "TX ready / OE (Write / Write ++addr)", wave: "lh..l.."},
+    {name: "TX (Offset read)", wave: "lh.l."},
+	{name: "TX ready", wave: "lh.l."},
     {},
-    {name: "Post-adder latch CLK", wave: "l..h.l."},
-    {name: "Pre-adder latch CLK", wave: "l...2.l", data: ["++addr"]},
-    {name: "Memory write", wave: "l.hl..."}
+    {name: "Memory output enable", wave: "lh..l"},
+    {name: "ToS (0) / Offset (1) select", wave: "lh..l"}
   ]
 }
 ```
@@ -81,10 +81,9 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
   signal: [
     {name: "CLK", wave: "lhlhl"},
 	{},
-    {name: "TX ready / OE (Write addr A / B)", wave: "lh..l"},
+	{name: "RX (Set offset)", wave: "lh.l."},
     {},
-    {name: "Pre-adder latch CLK", wave: "l.h.l"},
-    {name: "Address A/B select & Bus -> A/B OE", wave: "lh.l."}
+    {name: "Offset latch CLK", wave: "l.h.l"}
   ]
 }
 ```

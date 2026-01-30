@@ -6,6 +6,8 @@ Bus TX ready signals will only last 1 cycle so that recieving logic doesn't have
 
 There may be glitches in the initial move TX signal to bus devices so those signals should always be clocked in to logic on the -edge before anything is done.
 
+TODO: Delay bus save OE to after CLK
+
 Timing signals
 | Signal | Set by | Set clock edge |
 | - | - | - |
