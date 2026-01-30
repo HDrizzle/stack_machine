@@ -60,6 +60,7 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
     {},
     {name: "Post-adder latch CLK", wave: "l...h.l."},
     {name: "Pre-adder latch CLK", wave: "l....2.l", data: ["++addr"]},
+    {name: "Memory prepare to write", wave: "lh..l..."},
     {name: "Memory write", wave: "l.hl...."}
   ]
 }

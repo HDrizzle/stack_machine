@@ -33,6 +33,13 @@ Here's the current list of the operation codes (opcodes):
 6. `RETURN` - The program counter will be set to the return address popped off the top of the call stack. If bit 4 is 1 this means that this return instruction is returning from the interrupt handler function and will allow interrupts again.
 7. `CONFIG-INT` - Configure interrupt. Bit 4 enables or disables interrupts. Interrupts are disabled on startup.
 
+The following are treated as either MOVE or WRITE by the sequencer and set the bus TX and RX MSBs. The original MOVE and WRITE have all MSBs = 0.
+
+8. `MOVE` - MSBs TX=1, RX=0
+9. `MOVE` - MSBs TX=0, RX=1
+10. `MOVE` - MSBs TX=1, RX=1
+11. `WRITE` - MSBs RX=1
+
 # Bus
 
 Up to 15 devices can read the bus and 16 write to it.
@@ -60,6 +67,10 @@ Devices that can read the bus:
 19. `VECTORS-B` - Vector graphics B input
 20. `VECTORS-C` - Vector graphics C input
 21. `VECTORS-D` - Vector graphics D input
+22. `EXPANSION-0` - Expansion write 0
+23. `EXPANSION-1` - Expansion write 1
+24. `EXPANSION-2` - Expansion write 2
+25. `EXPANSION-3` - Expansion write 3
 
 Devices that can set the state of (write to) the bus:
 
@@ -77,6 +88,11 @@ Devices that can set the state of (write to) the bus:
 11. `GPIO-READ-B` - Reads GPIO input pins 8 - 15
 12. `INT-CODE` - Most recent interrupt code, will be cleared upon read
 13. `INT-ACTIVE` - Whether there are any active interrupts
+14. `GET-STACK-OFFSET` - Retrieves stack offset, needed to save state during interrupt
+15. `EXPANSION-0` - Expansion read 0
+16. `EXPANSION-1` - Expansion read 1
+17. `EXPANSION-2` - Expansion read 2
+18. `EXPANSION-3` - Expansion read 3
 
 # The Stack
 
