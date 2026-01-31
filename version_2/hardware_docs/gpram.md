@@ -29,7 +29,7 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
     {},
     {name: "Post-adder latch CLK", wave: "l.h.l.."},
     {name: "Pre-adder latch CLK", wave: "l...2.l", data: ["++addr"]},
-    {name: "Memory read", wave: "lh..l.."}
+    {name: "Memory read", wave: "lh.2l..", data: ["RX Extend"]}
   ]
 }
 ```
@@ -44,7 +44,7 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
     {name: "TX (Read addr A / B)", wave: "lh.l."},
 	{name: "TX ready", wave: "lh.l."},
     {},
-    {name: "Pre-adder address A/B OE to bus", wave: "lh..l"}
+    {name: "Pre-adder address A/B OE to bus", wave: "lh.2l", data: ["RX Extend"]}
   ]
 }
 ```
@@ -57,6 +57,7 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
     {name: "CLK", wave: "lhlhlhlh"},
 	{},
     {name: "RX (Write / Write ++addr)", wave: "lh.l...."},
+	{name: "RX extend half cycle", wave: "lh.l...."},
     {},
     {name: "Post-adder latch CLK", wave: "l...h.l."},
     {name: "Pre-adder latch CLK", wave: "l....2.l", data: ["++addr"]},
