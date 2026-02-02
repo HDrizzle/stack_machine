@@ -2,6 +2,8 @@
 
 https://lucid.app/lucidchart/32ad8e9d-d2d1-47b0-a4b6-105ece57e4e0/edit?viewport_loc=-87%2C-294%2C1954%2C1174%2C0_0&invitationId=inv_57dea9bb-0ba1-45a8-8f8a-2a729ad6f8bd
 
+Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
+
 ## Startup
 
 1. Started by the `Set` input from the startup controller going high, the sequencer `Start` input will go high for exactly 1 cycle (update on -edge). `Start` will disable the GOTO latches OE, post-adder latch OE, and the call stack OE. Pullup resistors will set the inputs to the pre-adder latch to 0xFFFF so when it is incremented it starts at instruction 0x0000.
@@ -25,8 +27,6 @@ https://lucid.app/lucidchart/32ad8e9d-d2d1-47b0-a4b6-105ece57e4e0/edit?viewport_
 
 ## Cycle, PC incrementation may be done in parallel
 
-Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
-
 There will be an SR latch `Instruction done` which will be read on +edge to continue with `Begin instruction sequence` for the next instruction.
 
 Load from FLash
@@ -47,7 +47,11 @@ Load from FLash
 }
 ```
 
-Load from RAM
+The `Instruction load possible` signal is combinational from the GPRAM sharing circuit and the PC MSB. If the PC MSB = 0 then it is always 1, otherwise it depends on the PC MSB, the GPRAM MSB, and whether the GPRAM is being used.
+
+If at any time during an instruction load, the `Instruction load possible` signal goes low (only will happen from GPRAM usage, always +edge), then the timing chain must loop back into the waiting loop (`Load Instruction`) for it to go high again.
+
+Load from RAM (non delayed)
 ```
 {
   signal: [
@@ -56,12 +60,34 @@ Load from RAM
     {name: "Load Instruction", wave: "lh.l...."},
 	{name: "Post-adder latch CLK & OE", wave: "lh...l.."},
 	{name: "RAM read (PC MSB=1)", wave: "lh...l.."},
+    {name: "Instruction load possible (read on -edge)", wave: "xh......"},
 	{name: "RAM LSB", wave: "l..h.l.."},
 	{name: "Instruction pre-latch A CLK", wave: "l.h.l..."},
 	{name: "Instruction pre-latch B CLK", wave: "l...h.l.", node: "....a"},
 	{name: "Instruction post-latch CLK", wave: "l....h.l", node: ".....b"},
 	{name: "Begin instruction sequence", wave: "l....h.l"},
     {name: "Instruction done", wave: "l...hl2.", data: ["flow-ctrl"]}
+  ],
+	edge: ["a~>b Wait for instruction done"]
+}
+```
+
+Load from RAM, start delayed
+```
+{
+  signal: [
+	{name: "CLK", wave: "lhlhlhlhlh"},
+	{},
+    {name: "Load Instruction", wave: "lh.l......"},
+	{name: "Post-adder latch CLK & OE", wave: "lh.....l.."},
+	{name: "RAM read (PC MSB=1)", wave: "lh.....l.."},
+    {name: "Instruction load possible (read on -edge)", wave: "l..h......"},
+	{name: "RAM LSB", wave: "l....h.l.."},
+	{name: "Instruction pre-latch A CLK", wave: "l...h.l..."},
+	{name: "Instruction pre-latch B CLK", wave: "l.....h.l.", node: "......a"},
+	{name: "Instruction post-latch CLK", wave: "l......h.l", node: ".......b"},
+	{name: "Begin instruction sequence", wave: "l......h.l"},
+    {name: "Instruction done", wave: "l.....hl2.", data: ["flow-ctrl"]}
   ],
 	edge: ["a~>b Wait for instruction done"]
 }
@@ -97,9 +123,8 @@ The interrupt call can only happen when `Interrupt in-progress` is low and `Inte
 }
 ```
 
-## Non-control-flow parallel instruction loading
+## Non-control-flow parallel PC++
 
-Non delayed
 ```
 {
   signal: [
@@ -108,24 +133,7 @@ Non delayed
 	{name: "Begin instruction sequence (non-flow-ctrl)", wave: "lh.l.."},
 	{name: "Post-adder latch OE", wave: "lh.l.."},
 	{name: "Pre-adder latch CLK", wave: "l.h.l."},
-    {name: "Instruction load possible (read on +edge)", wave: "h....."},
     {name: "Load Instruction", wave: "l..h.l"}
-  ],
-	edge: []
-}
-```
-
-Delayed due to GPRAM usage
-```
-{
-  signal: [
-	{name: "CLK", wave: "lhlhlhlh"},
-	{},
-	{name: "Begin instruction sequence (non-flow-ctrl)", wave: "lh.l...."},
-	{name: "Post-adder latch OE", wave: "lh.l...."},
-	{name: "Pre-adder latch CLK", wave: "l.h.l..."},
-    {name: "Instruction load possible (read on +edge)", wave: "l...h..."},
-    {name: "Load Instruction", wave: "l....h.l"}
   ],
 	edge: []
 }
