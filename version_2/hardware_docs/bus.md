@@ -4,7 +4,7 @@ TX and RX addresses are both 5 bits. Both the TX and RX devices have the option 
 
 Bus TX ready signals will only last 1 cycle so that recieving logic doesn't have to deal with race conditions.
 
-If the signal `RX extend half cycle` is high then values on the bus should remain valid for another half cycle after "TX Ready" goes low. This is to allow memory writes to happen without sketchy edge cases. This signal is in place to optimize the best possible bus move timing (1 clock cycle, not counting instruction load) but still allow memory writes to happen cleanly.
+If the signal `RX extend half cycle` is high then values on the bus should remain valid for another half cycle after "TX Ready" goes low. This is to allow memory writes to happen without sketchy edge cases. This signal is in place to optimize the best possible bus move timing (1 clock cycle, not counting instruction load) but still allow memory writes to happen cleanly. The `RX extend half cycle (to TX device)` signal is delayed by a half cycle to make the timing logic in TX devices simpler.
 
 There may be glitches in the initial move TX signal to bus devices so those signals should always be clocked in to logic on the -edge before anything is done.
 
@@ -16,7 +16,8 @@ Timing signals
 | Move / TX | Main sequencer | + |
 | TX Ready | TX Device | + |
 | RX Not Ready | RX Device | + |
-| RX extend half cycle | RX Device | + |
+| RX extend half cycle (to controller) | RX Device | + |
+| RX extend half cycle (to TX device) | controller | - |
 | Bus save CLK | Bus controller | - |
 | Bus save OE | Bus controller | + |
 | Move done | Bus controller | - |
@@ -41,7 +42,8 @@ Fastest possible case
 	{name: "TX ready", wave: "lh.l"},
 	{name: "(actual data valid)", wave: "lh.l"},
 	{name: "RX not ready", wave: "l..."},
-	{name: "RX extend half cycle", wave: "l..."},
+	{name: "RX extend half cycle (to controller)", wave: "l..."},
+	{name: "RX extend half cycle (to TX device)", wave: "l..."},
 	{name: "Bus save CLK", wave: "l..."},
 	{name: "Bus save OE", wave: "l..."},
 	{name: "Move done", wave: "l.h."}
@@ -62,7 +64,8 @@ TX not ready, RX Ready
 	{name: "TX ready", wave: "l..h.l", node: "...b"},
 	{name: "(actual data valid)", wave: "l..h.l"},
 	{name: "RX not ready", wave: "l....."},
-	{name: "RX extend half cycle", wave: "l....."},
+	{name: "RX extend half cycle (to controller)", wave: "l....."},
+	{name: "RX extend half cycle (to TX device)", wave: "l....."},
 	{name: "Bus save CLK", wave: "l....."},
 	{name: "Bus save OE", wave: "l....."},
 	{name: "Instruction done", wave: "l...h."}
@@ -83,7 +86,8 @@ TX not ready, RX Not ready
 	{name: "TX ready", wave: "l..h.l..", node: "...b"},
 	{name: "(actual data valid)", wave: "l..h.h.l"},
 	{name: "RX not ready", wave: "l..h.l.."},
-	{name: "RX extend half cycle", wave: "l......."},
+	{name: "RX extend half cycle (to controller)", wave: "l......."},
+	{name: "RX extend half cycle (to TX device)", wave: "l......."},
 	{name: "Bus save CLK", wave: "l...h.l."},
 	{name: "Bus save OE", wave: "l....h.l"},
 	{name: "Instruction done", wave: "l.....h."}
@@ -106,7 +110,8 @@ Fastest possible case
 	{name: "TX ready", wave: "lh.l."},
 	{name: "(actual data valid)", wave: "lh..l"},
 	{name: "RX not ready", wave: "l...."},
-	{name: "RX extend half cycle", wave: "lh.l."},
+	{name: "RX extend half cycle (to controller)", wave: "lh.l."},
+	{name: "RX extend half cycle (to TX device)", wave: "l.h.l"},
 	{name: "Bus save CLK", wave: "l...."},
 	{name: "Bus save OE", wave: "l...."},
 	{name: "Move done", wave: "l...h"}
@@ -127,7 +132,8 @@ TX not ready, RX Ready
 	{name: "TX ready", wave: "l..h.l.", node: "...b"},
 	{name: "(actual data valid)", wave: "l..h..l"},
 	{name: "RX not ready", wave: "l......"},
-	{name: "RX extend half cycle", wave: "l..h.l."},
+	{name: "RX extend half cycle (to controller)", wave: "l..h.l."},
+	{name: "RX extend half cycle (to TX device)", wave: "l...h.l"},
 	{name: "Bus save CLK", wave: "l......"},
 	{name: "Bus save OE", wave: "l......"},
 	{name: "Instruction done", wave: "l.....h"}
@@ -148,7 +154,8 @@ TX not ready, RX Not ready
 	{name: "TX ready", wave: "l..h.l....", node: "...b"},
 	{name: "(actual data valid)", wave: "l..h.h...l"},
 	{name: "RX not ready", wave: "l..h.l...."},
-	{name: "RX extend half cycle", wave: "l....h.l.."},
+	{name: "RX extend half cycle (to controller)", wave: "l....h.l.."},
+	{name: "RX extend half cycle (to TX device)", wave: "l.....h.l."},
 	{name: "Bus save CLK", wave: "l...h...l."},
 	{name: "Bus save OE", wave: "l....h...l"},
 	{name: "Instruction done", wave: "l.......h."}
