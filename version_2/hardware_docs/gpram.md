@@ -17,6 +17,8 @@ List of outputs from timing logic (excluding bus):
 
 Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
 
+The `Prog read disable` signal makse sure that the `Instruction load possible` signal to the main sequencer is only updated on the +edge of the clock.
+
 ### TX (Read / Read ++addr)
 
 ```
@@ -29,7 +31,8 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
     {},
     {name: "Post-adder latch CLK", wave: "l.h.l.."},
     {name: "Pre-adder latch CLK", wave: "l...2.l", data: ["++addr"]},
-    {name: "Memory read", wave: "lh.2l..", data: ["RX Extend"]}
+    {name: "Memory read", wave: "lh.2l..", data: ["RX Extend"]},
+    {name: "Prog read disable", wave: "lh.2.l.", data: ["RX Extend"]}
   ]
 }
 ```
@@ -38,14 +41,14 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
 
 ```
 {
-  signal: [
-    {name: "CLK", wave: "lhlhl"},
+	signal: [
+		{name: "CLK", wave: "lhlhl"},
 	{},
-    {name: "TX (Read addr A / B)", wave: "lh.l."},
+		{name: "TX (Read addr A / B)", wave: "lh.l."},
 	{name: "TX ready", wave: "lh.l."},
-    {},
-    {name: "Pre-adder address A/B OE to bus", wave: "lh.2l", data: ["RX Extend"]}
-  ]
+		{},
+		{name: "Pre-adder address A/B OE to bus", wave: "lh.2l", data: ["RX Extend"]}
+	]
 }
 ```
 
@@ -62,6 +65,7 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
     {name: "Post-adder latch CLK", wave: "l...h.l."},
     {name: "Pre-adder latch CLK", wave: "l....2.l", data: ["++addr"]},
     {name: "Memory prepare to write", wave: "lh..l..."},
+    {name: "Prog read disable", wave: "lh...l.."},
     {name: "Memory write", wave: "l.hl...."}
   ]
 }
@@ -71,13 +75,13 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
 
 ```
 {
-  signal: [
-    {name: "CLK", wave: "lhlhl"},
+	signal: [
+		{name: "CLK", wave: "lhlhl"},
 	{},
-    {name: "RX (Write addr A / B)", wave: "lh.l."},
-    {},
-    {name: "Pre-adder latch CLK", wave: "l.h.l"},
-    {name: "Address A/B select & Bus -> A/B OE", wave: "lh.l."}
-  ]
+		{name: "RX (Write addr A / B)", wave: "lh.l."},
+		{},
+		{name: "Pre-adder latch CLK", wave: "l.h.l"},
+		{name: "Address A/B select & Bus -> A/B OE", wave: "lh.l."}
+	]
 }
 ```
