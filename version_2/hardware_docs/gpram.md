@@ -32,7 +32,7 @@ The `Prog read disable` signal makse sure that the `Instruction load possible` s
     {name: "Post-adder latch CLK", wave: "l.h.l.."},
     {name: "Pre-adder latch CLK", wave: "l...2.l", data: ["++addr"]},
     {name: "Memory read", wave: "lh.2l..", data: ["RX Extend"]},
-    {name: "Prog read disable", wave: "lh.2.l.", data: ["RX Extend"]}
+    {name: "Prog read disable", wave: "l..2.l.", data: ["RX Extend"]}
   ]
 }
 ```
@@ -65,7 +65,7 @@ The `Prog read disable` signal makse sure that the `Instruction load possible` s
     {name: "Post-adder latch CLK", wave: "l...h.l."},
     {name: "Pre-adder latch CLK", wave: "l....2.l", data: ["++addr"]},
     {name: "Memory prepare to write", wave: "lh..l..."},
-    {name: "Prog read disable", wave: "lh...l.."},
+    {name: "Prog read disable", wave: "l..h.l.."},
     {name: "Memory write", wave: "l.hl...."}
   ]
 }
