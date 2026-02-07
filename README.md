@@ -24,7 +24,7 @@ Each instruction will be 16 bits and interpreted by the control unit. The first 
 
 Here's the current list of the operation codes (opcodes):
 
-0. `MOVE` - Bus usage - The rest of the instruction will be interpreted as follows: bits 8 - 11 address the device which will set the state of the bus and bits 12 - 15 will address the device to read from it. Bits 4 - 7 are sent to the ALU as it's opcode incase the data is comming from it.
+0. `MOVE` - Bus usage - The rest of the instruction will be interpreted as follows: bits 8 - 11 address the device which will set the state of the bus (TX) and bits 12 - 15 will address the device to read from it (RX). Bits 4 - 7 are sent to the ALU as it's opcode incase the data is comming from it.
 1. `WRITE` - Writes instruction bits 4 - 11 to the bus. Bits 12 - 15 address the device to read from it.
 2. `GOTO` - Saves the 2 execution pointer GOTO latches (each of them are 1 byte) to the program counter
 3. `GOTO-IF` - Reads the LSB of the value in the goto decider latch and does a GOTO only if it is 1, otherwise does nothing
@@ -67,10 +67,13 @@ Devices that can read the bus:
 19. `VECTORS-B` - Vector graphics B input
 20. `VECTORS-C` - Vector graphics C input
 21. `VECTORS-D` - Vector graphics D input
-22. `EXPANSION-0` - Expansion write 0
-23. `EXPANSION-1` - Expansion write 1
-24. `EXPANSION-2` - Expansion write 2
-25. `EXPANSION-3` - Expansion write 3
+22. `INT-AND-MAIN-TIMER-ADDRESS` - Bits 0 - 1 address 1 of the 4 interrupt timers. Bit 2 will reset the addressed counter to 0.
+23. `INT-TIMER-CONFIG-MAX` - Sets the start value of one of the interrupt timers
+24. `INT-TIMER-CONFIG-TIMEBASE-AND-ENABLE` - Configures one of the interrupt timers, see `timer_board.md`
+25. `EXPANSION-0` - Expansion write 0
+26. `EXPANSION-1` - Expansion write 1
+27. `EXPANSION-2` - Expansion write 2
+28. `EXPANSION-3` - Expansion write 3
 
 Devices that can set the state of (write to) the bus:
 
@@ -83,16 +86,18 @@ Devices that can set the state of (write to) the bus:
 6. `GPRAM-ADDR-A` - GPRAM - Address bits 0 - 7
 7. `GPRAM-ADDR-B` - GPRAM - Address bits 8 - 15
 8. `GPIO-READ-A` - Reads GPIO input pins 0 - 7
-9. `CLK-COUNTER-A` - Lower byte of clock counter
-10. `CLK-COUNTER-B` - Upper byte of clock counter
+9. `MAIN-TIMER` - 8 bits of the main timer, addressed by `INT-AND-MAIN-TIMER-ADDRESS`
+10. `INT-TIMER` - Current value of 1 of the 4 interrupt timers, addressed by `INT-AND-MAIN-TIMER-ADDRESS`
 11. `GPIO-READ-B` - Reads GPIO input pins 8 - 15
 12. `INT-CODE` - Most recent interrupt code, will be cleared upon read
 13. `INT-ACTIVE` - Whether there are any active interrupts
 14. `GET-STACK-OFFSET` - Retrieves stack offset, needed to save state during interrupt
-15. `EXPANSION-0` - Expansion read 0
-16. `EXPANSION-1` - Expansion read 1
-17. `EXPANSION-2` - Expansion read 2
-18. `EXPANSION-3` - Expansion read 3
+15. `GET-GOTO-A` - Read GOTO Latch A
+16. `GET-GOTO-B` - Read GOTO Latch B
+17. `EXPANSION-0` - Expansion read 0
+18. `EXPANSION-1` - Expansion read 1
+19. `EXPANSION-2` - Expansion read 2
+20. `EXPANSION-3` - Expansion read 3
 
 # The Stack
 
