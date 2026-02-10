@@ -43,7 +43,7 @@ The following are treated as either MOVE or WRITE by the sequencer and set the b
 # Bus
 
 Up to 15 devices can read the bus and 16 write to it.
-Devices that can read the bus:
+Devices that can read the bus (RX):
 
 0. `NONE` - Nothing reads this so that bytes can be popped from the stack without them going anywhere.
 1. `STACK-PUSH` - Stack controller (Push)
@@ -75,7 +75,7 @@ Devices that can read the bus:
 27. `EXPANSION-2` - Expansion write 2
 28. `EXPANSION-3` - Expansion write 3
 
-Devices that can set the state of (write to) the bus:
+Devices that can write to the bus (TX):
 
 0. `STACK-POP` - Stack controller (pop)
 1. `OFFSET-READ` - Reads value from stack at `ToS - offset`, does not affect the ToS
@@ -90,7 +90,7 @@ Devices that can set the state of (write to) the bus:
 10. `INT-TIMER` - Current value of 1 of the 4 interrupt timers, addressed by `INT-AND-MAIN-TIMER-ADDRESS`
 11. `GPIO-READ-B` - Reads GPIO input pins 8 - 15
 12. `INT-CODE` - Most recent interrupt code, will be cleared upon read
-13. `INT-ACTIVE` - Whether there are any active interrupts
+13. `INT-ACTIVE` - Whether there are any active interrupts, LSB is set to 0 or 1, rest are zeros
 14. `GET-STACK-OFFSET` - Retrieves stack offset, needed to save state during interrupt
 15. `GET-GOTO-A` - Read GOTO Latch A
 16. `GET-GOTO-B` - Read GOTO Latch B
