@@ -1,4 +1,5 @@
 // For creating lookup table to be used in `assembly_sources/stepper_music`
+// Generates version 1 compatible assembly code, does not take adbvantage of timers
 
 static MOVE_CYCLES: u32 = 24;
 static HALT_CYCLES: u32 = 8;

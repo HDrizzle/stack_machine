@@ -2,22 +2,34 @@
 
 use std::{collections::HashMap, env, fs};
 
-pub mod compiler;
-pub mod emulator;
+#[cfg(feature = "version_1")]
+pub mod version_1;
+#[cfg(feature = "version_2")]
+pub mod version_2;
 pub mod resources;
 pub mod program_upload;
 pub mod display_emulator;
 pub mod music_assembly_generator;
 pub use crate::prelude::*;
-#[cfg(test)]
-mod tests;
 
 /// Prelude
 pub mod prelude {
     use std::fmt::Write;
-    pub use crate::compiler::{assembly_encode::{AssemblyWord, AssemblerConfig}, syntax_tree::{ParseError, ParseErrorType, SyntaxTreeNodeType, ParseContext}, macros::Macro};
     pub use crate::resources;
-    pub use crate::emulator::{Machine, GpioInterface, GpioInterfaceDoesNothing, CliInterface};
+	// Version dependent imports
+	#[cfg(feature = "version_1")]
+    pub use crate::version_1::compiler::{self, assembly_encode::{AssemblyWord, AssemblerConfig}, syntax_tree::{ParseError, ParseErrorType, SyntaxTreeNodeType, ParseContext}, macros::Macro};
+	#[cfg(feature = "version_2")]
+    pub use crate::version_2::compiler::{self, assembly_encode::{AssemblyWord, AssemblerConfig}, syntax_tree::{ParseError, ParseErrorType, SyntaxTreeNodeType, ParseContext}, macros::Macro};
+	#[cfg(feature = "version_1")]
+    pub use crate::version_1::emulator::{self, Machine, GpioInterface, GpioInterfaceDoesNothing, CliInterface};
+	#[cfg(feature = "version_2")]
+    pub use crate::version_2::emulator::{self, Machine, GpioInterface, GpioInterfaceDoesNothing, CliInterface};
+	// Version dependent CONSTS
+	#[cfg(feature = "version_1")]
+	pub const ASSEMBLER_CONFIG_FILE: &str = "assembler_config_v1";
+	#[cfg(feature = "version_2")]
+	pub const ASSEMBLER_CONFIG_FILE: &str = "assembler_config_v2";
 	// CONSTS
 	pub const IDENTIFIER_CHARS: [char; 64] = [
 		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',

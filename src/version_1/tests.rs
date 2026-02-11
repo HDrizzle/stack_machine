@@ -1,6 +1,7 @@
 //! Tests
 
-use crate::{compiler::{self, assembly_encode::{Token, TokenEnum}, macros::{Macro, MacroEnum, MacroArgument}, syntax_tree::{SyntaxTreeNode, SyntaxTreeNodeType}}, prelude::*};
+use super::{compiler::{self, assembly_encode::{Token, TokenEnum}, macros::{Macro, MacroEnum, MacroArgument}, syntax_tree::{SyntaxTreeNode, SyntaxTreeNodeType}}};
+use crate::prelude::*;
 
 #[test]
 fn parse_binary_literal() {

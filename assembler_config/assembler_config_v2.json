@@ -1,0 +1,358 @@
+{
+    "opcodes": [
+        {
+            "id_": 0,
+            "name": "move"
+        },
+        {
+            "id_": 1,
+            "name": "write"
+        },
+        {
+            "id_": 2,
+            "name": "goto"
+        },
+        {
+            "id_": 3,
+            "name": "goto-if"
+        },
+        {
+            "id_": 4,
+            "name": "halt"
+        },
+        {
+            "id_": 5,
+            "name": "call"
+        },
+        {
+            "id_": 6,
+            "name": "return"
+        },
+        {
+            "id_": 6,
+            "name": "config-int"
+        }
+    ],
+    "alu_opcodes": [
+        {
+            "id_": 0,
+            "name": "add"
+        },
+        {
+            "id_": 1,
+            "name": "add-c"
+        },
+        {
+            "id_": 2,
+            "name": "not"
+        },
+        {
+            "id_": 3,
+            "name": "or"
+        },
+        {
+            "id_": 4,
+            "name": "and"
+        },
+        {
+            "id_": 5,
+            "name": "xnor"
+        },
+        {
+            "id_": 6,
+            "name": "shift"
+        },
+        {
+            "id_": 7,
+            "name": "eq"
+        },
+        {
+            "id_": 8,
+            "name": "a"
+        },
+        {
+            "id_": 9,
+            "name": "b"
+        },
+        {
+            "id_": 10,
+            "name": "ext-10"
+        },
+        {
+            "id_": 11,
+            "name": "ext-11"
+        },
+        {
+            "id_": 12,
+            "name": "ext-12"
+        },
+        {
+            "id_": 13,
+            "name": "ext-13"
+        },
+        {
+            "id_": 14,
+            "name": "ext-14"
+        },
+        {
+            "id_": 15,
+            "name": "ext-15"
+        }
+    ],
+    "to_bus": [
+        {
+            "id_": 0,
+            "name": "stack-pop"
+        },
+        {
+            "id_": 1,
+            "name": "offset-read"
+        },
+        {
+            "id_": 2,
+            "name": "alu"
+        },
+        {
+            "id_": 4,
+            "name": "GPRAM"
+        },
+        {
+            "id_": 5,
+            "name": "GPRAM-inc-addr"
+        },
+        {
+            "id_": 6,
+            "name": "GPRAM-addr-a"
+        },
+        {
+            "id_": 7,
+            "name": "GPRAM-addr-b"
+        },
+        {
+            "id_": 8,
+            "name": "GPIO-READ-A"
+        },
+        {
+            "id_": 9,
+            "name": "clk-counter-a"
+        },
+        {
+            "id_": 10,
+            "name": "clk-counter-b"
+        },
+        {
+            "id_": 11,
+            "name": "GPIO-READ-B"
+        },
+        {
+            "id_": 12,
+            "name": "INT-CODE"
+        },
+        {
+            "id_": 13,
+            "name": "INT-ACTIVE"
+        },
+        {
+            "id_": 14,
+            "name": "GET-STACK-OFFSET"
+        },
+        {
+            "id_": 15,
+            "name": "GET-GOTO-A"
+        },
+        {
+            "id_": 16,
+            "name": "GET-GOTO-B"
+        },
+        {
+            "id_": 17,
+            "name": "TX-17"
+        },
+        {
+            "id_": 18,
+            "name": "TX-18"
+        },
+        {
+            "id_": 19,
+            "name": "TX-19"
+        },
+        {
+            "id_": 20,
+            "name": "TX-20"
+        },
+        {
+            "id_": 21,
+            "name": "TX-21"
+        },
+        {
+            "id_": 22,
+            "name": "TX-22"
+        },
+        {
+            "id_": 23,
+            "name": "TX-23"
+        },
+        {
+            "id_": 24,
+            "name": "TX-24"
+        },
+        {
+            "id_": 25,
+            "name": "TX-25"
+        },
+        {
+            "id_": 26,
+            "name": "TX-26"
+        },
+        {
+            "id_": 27,
+            "name": "TX-27"
+        },
+        {
+            "id_": 28,
+            "name": "TX-28"
+        },
+        {
+            "id_": 29,
+            "name": "TX-29"
+        },
+        {
+            "id_": 30,
+            "name": "TX-30"
+        },
+        {
+            "id_": 31,
+            "name": "TX-31"
+        }
+    ],
+    "from_bus": [
+        {
+            "id_": 0,
+            "name": "none"
+        },
+        {
+            "id_": 1,
+            "name": "stack-push"
+        },
+        {
+            "id_": 2,
+            "name": "alu-a"
+        },
+        {
+            "id_": 3,
+            "name": "alu-b"
+        },
+        {
+            "id_": 4,
+            "name": "goto-a"
+        },
+        {
+            "id_": 5,
+            "name": "goto-b"
+        },
+        {
+            "id_": 6,
+            "name": "goto-decider"
+        },
+        {
+            "id_": 7,
+            "name": "GPRAM"
+        },
+        {
+            "id_": 8,
+            "name": "GPRAM-inc-addr"
+        },
+        {
+            "id_": 9,
+            "name": "GPRAM-addr-a"
+        },
+        {
+            "id_": 10,
+            "name": "GPRAM-addr-b"
+        },
+        {
+            "id_": 11,
+            "name": "gpio-write-a"
+        },
+        {
+            "id_": 12,
+            "name": "offset-write"
+        },
+        {
+            "id_": 13,
+            "name": "set-stack-offset"
+        },
+        {
+            "id_": 14,
+            "name": "alu-c-in"
+        },
+        {
+            "id_": 15,
+            "name": "gpio-write-b"
+        },
+        {
+            "id_": 16,
+            "name": "INT-GOTO-A"
+        },
+        {
+            "id_": 17,
+            "name": "INT-GOTO-B"
+        },
+        {
+            "id_": 18,
+            "name": "VECTORS-A"
+        },
+        {
+            "id_": 19,
+            "name": "VECTORS-B"
+        },
+        {
+            "id_": 20,
+            "name": "VECTORS-C"
+        },
+        {
+            "id_": 21,
+            "name": "VECTORS-D"
+        },
+        {
+            "id_": 22,
+            "name": "INT-AND-MAIN-TIMER-ADDRESS"
+        },
+        {
+            "id_": 23,
+            "name": "INT-TIMER-CONFIG-MAX"
+        },
+        {
+            "id_": 24,
+            "name": "INT-TIMER-CONFIG-TIMEBASE-AND-ENABLE"
+        },
+        {
+            "id_": 25,
+            "name": "RX-25"
+        },
+        {
+            "id_": 26,
+            "name": "RX-26"
+        },
+        {
+            "id_": 27,
+            "name": "RX-27"
+        },
+        {
+            "id_": 28,
+            "name": "RX-28"
+        },
+        {
+            "id_": 29,
+            "name": "RX-29"
+        },
+        {
+            "id_": 30,
+            "name": "RX-30"
+        },
+        {
+            "id_": 31,
+            "name": "RX-31"
+        }
+    ]
+}

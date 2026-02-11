@@ -70,10 +70,11 @@ Devices that can read the bus (RX):
 22. `INT-AND-MAIN-TIMER-ADDRESS` - Bits 0 - 1 address 1 of the 4 interrupt timers. Bit 2 will reset the addressed counter to 0.
 23. `INT-TIMER-CONFIG-MAX` - Sets the start value of one of the interrupt timers
 24. `INT-TIMER-CONFIG-TIMEBASE-AND-ENABLE` - Configures one of the interrupt timers, see `timer_board.md`
-25. `EXPANSION-0` - Expansion write 0
-26. `EXPANSION-1` - Expansion write 1
-27. `EXPANSION-2` - Expansion write 2
-28. `EXPANSION-3` - Expansion write 3
+25. `RX-25` - Expansion RX 25
+
+...
+
+31. `RX-31` - Expansion RX 31
 
 Devices that can write to the bus (TX):
 
@@ -94,10 +95,11 @@ Devices that can write to the bus (TX):
 14. `GET-STACK-OFFSET` - Retrieves stack offset, needed to save state during interrupt
 15. `GET-GOTO-A` - Read GOTO Latch A
 16. `GET-GOTO-B` - Read GOTO Latch B
-17. `EXPANSION-0` - Expansion read 0
-18. `EXPANSION-1` - Expansion read 1
-19. `EXPANSION-2` - Expansion read 2
-20. `EXPANSION-3` - Expansion read 3
+17. `TX-17` - Expansion TX 17
+
+...
+
+31. `TX-31` - Expansion TX 31
 
 # The Stack
 
