@@ -198,14 +198,14 @@ fn paste_to_lower_and_upper_memory_csv(program: &Vec<u16>) {
 	println!("Lower bytes");
 	for (i, n) in program.iter().enumerate() {
 		print!("{},", (n & 0xFF));
-		if i % 20 == 0 {
+		if (i+1) % 50 == 0 {
 			println!("");
 		}
 	}
 	println!("\n\nUpper bytes");
 	for (i, n) in program.iter().enumerate() {
 		print!("{},", ((n >> 8) & 0xFF));
-		if i % 20 == 0 {
+		if (i+1) % 50 == 0 {
 			println!("");
 		}
 	}

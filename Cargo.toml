@@ -15,7 +15,7 @@ name = "stack_machine"
 path = "src/bin.rs"
 
 [features]
-default = ["version_2"]#"replicate_stack_issue", "emulator_debug"]
+default = ["version_1"]#"replicate_stack_issue", "emulator_debug"]
 emulator_debug = []
 replicate_stack_issue = []
 

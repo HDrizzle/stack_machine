@@ -2,7 +2,8 @@
 
 ## Changes from previous version
 
-* The timing will be completely redone: A single normal clock signal, not the stupid "AB Alternating" I made up for the original. The PC will be incremented and a new instruction fetched during any non-flow-control instructions except when the GPRAM is used and the PC is in the same RAM chip (the RAM chips have 15 address lines each) as whatever is being accessed. The bus timing will also be very flexible and will be faster when possible but still slow when the memory is being accessed twice for example.
+* The timing will be completely redone: A single normal clock signal, not the stupid "AB Alternating" I made up for the original.
+* The PC will be incremented and a new instruction fetched during any non-flow-control instructions except when the GPRAM is used and the PC is in the same RAM chip (the RAM chips have 15 address lines each) as whatever is being accessed. The bus timing will also be very flexible and will be faster when possible but still slow when the memory is being accessed twice for example.
 * Bus read/write addresses are both now 5 bits. The WRITE/MOVE instruction formats will remain the same and the extra bit (MSB to be exact) will be set based on duplicate opcodes for WRITE/MOVE that are otherwise interpreted the same. 1 extra WRITE opcode and 3 extra MOVE opcodes.
 * The opcode decoder is actually 3 bits. There will be 4 bits used for extra MOVE/WRITE instructions (see above).
 * Interrupts: There will be seperate interrupt GOTO latches that go to a dedicated interrupt handler function. That function should save the state of everything else (including the regular GOTO latches, which is why interrupt GOTO latches are seperate) onto the stack then do whatever depending on the interrupt code.

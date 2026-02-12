@@ -26,6 +26,8 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
 
 The data source and destination will have their own sequences
 
+TODO: Make `move done` signal half cycle
+
 ### Without RX extend half cycle
 
 Fastest possible case
@@ -44,7 +46,7 @@ Fastest possible case
 	{name: "RX extend half cycle (to TX device)", wave: "l..."},
 	{name: "Bus save CLK", wave: "l..."},
 	{name: "Bus save OE", wave: "l..."},
-	{name: "Move done", wave: "l.h."}
+	{name: "Move done", wave: "l.hl"}
   ],
   edge: []
 }
@@ -66,7 +68,7 @@ TX not ready, RX Ready
 	{name: "RX extend half cycle (to TX device)", wave: "l....."},
 	{name: "Bus save CLK", wave: "l....."},
 	{name: "Bus save OE", wave: "l....."},
-	{name: "Instruction done", wave: "l...h."}
+	{name: "Move done", wave: "l...hl"}
   ],
   edge: ["a~>b TX Delay (possibly instant)"]
 }
@@ -88,7 +90,7 @@ TX not ready, RX Not ready
 	{name: "RX extend half cycle (to TX device)", wave: "l......."},
 	{name: "Bus save CLK", wave: "l...h.l."},
 	{name: "Bus save OE", wave: "l....h.l"},
-	{name: "Instruction done", wave: "l.....h."}
+	{name: "Move done", wave: "l.....hl"}
   ],
   edge: ["a~>b TX Delay (possibly instant)"]
 }
@@ -134,7 +136,7 @@ TX not ready, RX Ready
 	{name: "RX extend half cycle (to TX device)", wave: "l...h.l"},
 	{name: "Bus save CLK", wave: "l......"},
 	{name: "Bus save OE", wave: "l......"},
-	{name: "Instruction done", wave: "l.....h"}
+	{name: "Move done", wave: "l.....h"}
   ],
   edge: ["a~>b TX Delay (possibly instant)"]
 }
@@ -156,7 +158,7 @@ TX not ready, RX Not ready
 	{name: "RX extend half cycle (to TX device)", wave: "l.....h.l."},
 	{name: "Bus save CLK", wave: "l...h...l."},
 	{name: "Bus save OE", wave: "l....h...l"},
-	{name: "Instruction done", wave: "l.......h."}
+	{name: "Move done", wave: "l.......hl"}
   ],
   edge: ["a~>b TX Delay (possibly instant)"]
 }
