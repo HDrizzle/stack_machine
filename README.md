@@ -1,5 +1,9 @@
 # Stack Machine Version 2
 
+<img src="version_1/images/completed_back.jpeg"></img>
+
+Photo of Version 1
+
 ## Changes from previous version
 
 * The timing will be completely redone: A single normal clock signal, not the stupid "AB Alternating" I made up for the original.

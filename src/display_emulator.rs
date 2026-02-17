@@ -137,7 +137,7 @@ impl eframe::App for EguiApp {
 						let i = (y*4) + byte_x;
 						let current_byte: u8 = self.interface.display_state[i];
 						for bit_i in 0..8 {
-							if (current_byte >> bit_i) % 2 == 1 {// If LSB (after shifting by `bit_i`) is 1
+							if (current_byte >> bit_i) & 0x01 == 1 {// If LSB (after shifting by `bit_i`) is 1
 								let pixel_upper_left_pos = egui::Pos2{x: ((byte_x*8 + bit_i) * PIXEL_SIZE) as f32, y: (y*PIXEL_SIZE) as f32} + start_offset;
 								painter.rect_filled(egui::Rect{min: pixel_upper_left_pos, max: pixel_upper_left_pos + pixel_size_offset}, egui::Rounding::ZERO, egui::Color32::from_gray(255));
 							}
