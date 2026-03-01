@@ -116,7 +116,7 @@ write 0x10 stack-push;
 
 # --------------------------------- <Init> ---------------------------------
 @anchor(init);
-@call(clear-display);
+#@call(clear-display);
 @call(clear-display-buffer);
 @call(init-arena-outline);
 @call(pseudo-random-init);

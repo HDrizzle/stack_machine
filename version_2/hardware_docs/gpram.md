@@ -19,6 +19,10 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
 
 The `Prog read disable` signal makse sure that the `Instruction load possible` signal to the main sequencer is only updated on the +edge of the clock.
 
+The `Pre-adder latch CLK` outputs for "TX (Read / Read ++addr)" and "RX (Write / Write ++addr)" will be OR'ed together then put through an edge detector so as not to interfere with the shorter sequences whenever there is a 2-CLK-cycle instruction cycle.
+
+Seperate A and B pre adder latch clocks are used when loading from the bus so the other latch doesn't clock data from the post adder latch.
+
 ### TX (Read / Read ++addr)
 
 ```
@@ -30,10 +34,11 @@ The `Prog read disable` signal makse sure that the `Instruction load possible` s
 	{name: "TX ready", wave: "lh.l..."},
     {},
     {name: "Post-adder latch CLK", wave: "l.h.l.."},
-    {name: "Pre-adder latch CLK", wave: "l...2.l", data: ["++addr"]},
+    {name: "Pre-adder latch CLK", wave: "l...l..", node: "....ab"},
     {name: "Memory read", wave: "lh.2l..", data: ["RX Extend"]},
     {name: "Prog read disable", wave: "l..2.l.", data: ["RX Extend"]}
-  ]
+  ],
+  "edge": ["a~>b ++addr"]
 }
 ```
 
@@ -63,11 +68,12 @@ The `Prog read disable` signal makse sure that the `Instruction load possible` s
 	{name: "RX extend half cycle", wave: "lh.l...."},
     {},
     {name: "Post-adder latch CLK", wave: "l...h.l."},
-    {name: "Pre-adder latch CLK", wave: "l....2.l", data: ["++addr"]},
+    {name: "Pre-adder latch CLK", wave: "l....l..", node: ".....ab"},
     {name: "Memory prepare to write", wave: "lh..l..."},
     {name: "Prog read disable", wave: "l..h.l.."},
     {name: "Memory write", wave: "l.hl...."}
-  ]
+  ],
+  "edge": ["a~>b ++addr"]
 }
 ```
 

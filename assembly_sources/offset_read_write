@@ -1,5 +1,5 @@
-#write 0xFF gpio-write-a;
-@goto(loop-2-start);
+write 0xFF gpio-write-a;
+@goto(loop-start);
 @anchor(loop-start);
 write 0x01 stack-push;
 write 0x02 stack-push;

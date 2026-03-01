@@ -8,6 +8,8 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
 
 ### Pop (TX)
 
+The `Post-adder latch CLK` signal is high for a half cycle to prevent interference id a "Push" is executed right after
+
 ```
 {
   signal: [
@@ -18,7 +20,7 @@ Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
     {},
     {name: "Pre-adder latch CLK", wave: "lh.l..."},
     {name: "Memory output enable", wave: "lh.2l..", data: ["RX Extend"]},
-    {name: "Post-adder latch CLK", wave: "l...h.l"},
+    {name: "Post-adder latch CLK", wave: "l...hl."},
     {name: "Pointer ++(0) / -- (1)", wave: "l..h.l."}
   ]
 }

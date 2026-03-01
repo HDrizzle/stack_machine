@@ -1,5 +1,7 @@
 # All Timing diagrams go here
 
+The shortest possible cycle is 2 clock cycles.
+
 ## Memory read delays
 
 For flash whichever is highest of:
