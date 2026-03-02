@@ -1,5 +1,7 @@
 # The Stack Memory
 
+TODO: For this and GPRAM: Prevent overlapping sequences when source & destination
+
 2^15 levels, different RAM then the PC and GPRAM.
 
 At "rest" the post-adder latch (connected to memory address) is pointing to the element at the ToS. This means a pop can be OE'd to the bus immediately but a push has to wait for the pointer to be incremented.
