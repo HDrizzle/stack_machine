@@ -8,6 +8,8 @@ If the signal `RX extend half cycle` is high then values on the bus should remai
 
 There may be glitches in the initial move TX signal to bus devices so those signals should always be clocked in to logic on the -edge before anything is done.
 
+When the same device is TXing and also RXing, that device will be responsible for possibly delaying the RX timing chain for 2 clock cycles.
+
 Timing signals
 | Signal | Set by | Set clock edge |
 | - | - | - |
