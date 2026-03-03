@@ -20,15 +20,13 @@ Timing signals
 | RX extend half cycle (to TX device) | controller | - |
 | Bus save CLK | Bus controller | - |
 | Bus save OE | Bus controller | + |
-| Move done | Bus controller | - |
+| Move done | Bus controller | - (half cycle) |
 
 ## Timing
 
 Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
 
 The data source and destination will have their own sequences
-
-TODO: Make `move done` signal half cycle
 
 ### Without RX extend half cycle
 

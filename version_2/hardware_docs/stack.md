@@ -1,10 +1,10 @@
 # The Stack Memory
 
-TODO: For this and GPRAM: Prevent overlapping sequences when source & destination
-
 2^15 levels, different RAM then the PC and GPRAM.
 
 At "rest" the post-adder latch (connected to memory address) is pointing to the element at the ToS. This means a pop can be OE'd to the bus immediately but a push has to wait for the pointer to be incremented.
+
+Same device TX/RX resolution: When the stack controller is both the bus source and destination, the destination sequence will be delayed for 2 clock cycles. For those 2 cycles the `RX Not Ready` signal to the bus controller will be set high to save the bus state.
 
 Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
 
@@ -24,6 +24,37 @@ The `Post-adder latch CLK` signal is high for a half cycle to prevent interferen
     {name: "Memory output enable", wave: "lh.2l..", data: ["RX Extend"]},
     {name: "Post-adder latch CLK", wave: "l...hl."},
     {name: "Pointer ++(0) / -- (1)", wave: "l..h.l."}
+  ]
+}
+```
+
+### Offset read (TX)
+
+```
+{
+  signal: [
+    {name: "CLK", wave: "lhlhl"},
+	{},
+    {name: "TX (Offset read)", wave: "lh.l."},
+	{name: "TX ready", wave: "lh.l."},
+    {},
+    {name: "Memory output enable", wave: "lh.2l", data: ["RX Extend"]},
+    {name: "ToS (0) / Offset (1) select", wave: "lh.2l", data: ["RX Extend"]}
+  ]
+}
+```
+
+### Get stack offset (TX)
+
+```
+{
+  signal: [
+    {name: "CLK", wave: "lhlhl"},
+	{},
+	{name: "TX (Get offset)", wave: "lh.l."},
+	{name: "TX ready", wave: "lh.l."},
+    {},
+    {name: "Offset latch OE -> Bus", wave: "lh.2l", data: ["RX Extend"]}
   ]
 }
 ```
@@ -63,22 +94,6 @@ The `Post-adder latch CLK` signal is high for a half cycle to prevent interferen
 }
 ```
 
-### Offset read (TX)
-
-```
-{
-  signal: [
-    {name: "CLK", wave: "lhlhl"},
-	{},
-    {name: "TX (Offset read)", wave: "lh.l."},
-	{name: "TX ready", wave: "lh.l."},
-    {},
-    {name: "Memory output enable", wave: "lh.2l", data: ["RX Extend"]},
-    {name: "ToS (0) / Offset (1) select", wave: "lh.2l", data: ["RX Extend"]}
-  ]
-}
-```
-
 ### Set stack offset (RX)
 
 ```
@@ -89,21 +104,6 @@ The `Post-adder latch CLK` signal is high for a half cycle to prevent interferen
 	{name: "RX (Set offset)", wave: "lh.l."},
     {},
     {name: "Offset latch CLK", wave: "l.h.l"}
-  ]
-}
-```
-
-### Get stack offset (TX)
-
-```
-{
-  signal: [
-    {name: "CLK", wave: "lhlhl"},
-	{},
-	{name: "TX (Get offset)", wave: "lh.l."},
-	{name: "TX ready", wave: "lh.l."},
-    {},
-    {name: "Offset latch OE -> Bus", wave: "lh.2l", data: ["RX Extend"]}
   ]
 }
 ```

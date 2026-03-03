@@ -23,6 +23,8 @@ The `Pre-adder latch CLK` outputs for "TX (Read / Read ++addr)" and "RX (Write /
 
 Seperate A and B pre adder latch clocks are used when loading from the bus so the other latch doesn't clock data from the post adder latch.
 
+Same device TX/RX resolution: When the GPRAM controller is both the bus source and destination, the destination sequence will be delayed for 2 clock cycles. For those 2 cycles the `RX Not Ready` signal to the bus controller will be set high to save the bus state.
+
 ### TX (Read / Read ++addr)
 
 ```
