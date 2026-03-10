@@ -81,7 +81,9 @@ pub enum MacroEnum {
 	Goto,
 	GotoIf,
 	WriteString,
-	PushAnchorAddress
+	PushAnchorAddress,
+	#[cfg(feature = "version_2")]
+	SetIntGoto
 }
 
 impl MacroEnum {
@@ -92,7 +94,9 @@ impl MacroEnum {
 			Self::Goto => 1,
 			Self::GotoIf => 1,
 			Self::WriteString => 1,
-			Self::PushAnchorAddress => 1
+			Self::PushAnchorAddress => 1,
+			#[cfg(feature = "version_2")]
+			Self::SetIntGoto => 1
 		}
 	}
 	/// Assumes that the number of arguments (`Self::num_args()`) has already been checked
@@ -121,6 +125,11 @@ impl MacroEnum {
 			Self::PushAnchorAddress => match &args[0] {
 				MacroArgument::Identifier(_) => Ok(()),
 				invalid => Err(ProgramSkeletonBuildError::MacroArgumentWrongType(invalid.clone()))
+			},
+			#[cfg(feature = "version_2")]
+			Self::SetIntGoto => match &args[0] {
+				MacroArgument::Identifier(_) => Ok(()),
+				invalid => Err(ProgramSkeletonBuildError::MacroArgumentWrongType(invalid.clone()))
 			}
 		}
 	}
@@ -143,7 +152,9 @@ impl MacroEnum {
 			Self::Goto => 3,
 			Self::GotoIf => 3,
 			Self::WriteString => args[0].to_string().len() as u16 + 2,
-			Self::PushAnchorAddress => 2
+			Self::PushAnchorAddress => 2,
+			#[cfg(feature = "version_2")]
+			Self::SetIntGoto => 2
 		}
 	}
 }

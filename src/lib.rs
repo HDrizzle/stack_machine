@@ -2,10 +2,10 @@
 
 use std::{collections::HashMap, env, fs};
 
-#[cfg(feature = "version_1")]
-pub mod version_1;
-#[cfg(feature = "version_2")]
-pub mod version_2;
+#[cfg(test)]
+pub mod tests;
+pub mod emulator;
+pub mod compiler;
 pub mod resources;
 pub mod program_upload;
 pub mod display_emulator;
@@ -17,14 +17,8 @@ pub mod prelude {
     use std::fmt::Write;
     pub use crate::resources;
 	// Version dependent imports
-	#[cfg(feature = "version_1")]
-    pub use crate::version_1::compiler::{self, assembly_encode::{AssemblyWord, AssemblerConfig}, syntax_tree::{ParseError, ParseErrorType, SyntaxTreeNodeType, ParseContext}, macros::Macro};
-	#[cfg(feature = "version_2")]
-    pub use crate::version_2::compiler::{self, assembly_encode::{AssemblyWord, AssemblerConfig}, syntax_tree::{ParseError, ParseErrorType, SyntaxTreeNodeType, ParseContext}, macros::Macro};
-	#[cfg(feature = "version_1")]
-    pub use crate::version_1::emulator::{self, Machine, GpioInterface, GpioInterfaceDoesNothing, CliInterface};
-	#[cfg(feature = "version_2")]
-    pub use crate::version_2::emulator::{self, Machine, GpioInterface, GpioInterfaceDoesNothing, CliInterface};
+    pub use crate::compiler::{self, assembly_encode::{AssemblyWord, AssemblerConfig}, syntax_tree::{ParseError, ParseErrorType, SyntaxTreeNodeType, ParseContext}, macros::Macro};
+    pub use crate::emulator::{self, Machine, GpioInterface, GpioInterfaceDoesNothing, CliInterface};
 	// Version dependent CONSTS
 	#[cfg(feature = "version_1")]
 	pub const ASSEMBLER_CONFIG_FILE: &str = "assembler_config_v1";

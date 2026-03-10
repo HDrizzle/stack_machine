@@ -1,0 +1,6 @@
+# For Version 2 Only
+# Test interrupt feature using timers and external interruot inputs
+# TODO
+
+# Throwaway instruction
+write 0xFF gpio-write-a;

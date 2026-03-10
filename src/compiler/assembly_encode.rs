@@ -1,10 +1,10 @@
 //! Translating assembly directly to machine code, the last step in compilation
 
-use serde::{Serialize, Deserialize};
+use serde::Deserialize;
 
 /// For each "unit" of the assembly code, names of opcodes and devices to read/write the bus, etc.
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct AssemblyWord<const BIT_SIZE: u8> {
+#[derive(Deserialize, Clone, Debug)]
+pub struct AssemblyWord {
 	/// May be represented by less then 8 bits
 	pub id_: u8,
 	/// Name of this in the assembly program
@@ -12,7 +12,7 @@ pub struct AssemblyWord<const BIT_SIZE: u8> {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub enum Assembler4BitWordContext {
+pub enum AssemblerWordContext {
 	Opcode,
 	AluOpcode,
 	ToBus,
@@ -20,27 +20,27 @@ pub enum Assembler4BitWordContext {
 }
 
 /// All the data about the assembly words
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 pub struct AssemblerConfig {
-	pub opcodes: Vec<AssemblyWord<4>>,
-	pub alu_opcodes: Vec<AssemblyWord<4>>,
-	pub to_bus: Vec<AssemblyWord<4>>,
-	pub from_bus: Vec<AssemblyWord<4>>
+	pub opcodes: Vec<AssemblyWord>,
+	pub alu_opcodes: Vec<AssemblyWord>,
+	pub to_bus: Vec<AssemblyWord>,
+	pub from_bus: Vec<AssemblyWord>
 }
 
 impl AssemblerConfig {
-	pub fn encode_4_bit_word(&self, word_type: Assembler4BitWordContext, raw: &str) -> Option<AssemblyWord<4>> {
-		self.encode_generic_4_bit_word(
+	pub fn encode_word(&self, word_type: AssemblerWordContext, raw: &str) -> Option<AssemblyWord> {
+		self.encode_generic_word(
 			match word_type {
-				Assembler4BitWordContext::Opcode => &self.opcodes,
-				Assembler4BitWordContext::AluOpcode => &self.alu_opcodes,
-				Assembler4BitWordContext::ToBus => &self.to_bus,
-				Assembler4BitWordContext::FromBus => &self.from_bus
+				AssemblerWordContext::Opcode => &self.opcodes,
+				AssemblerWordContext::AluOpcode => &self.alu_opcodes,
+				AssemblerWordContext::ToBus => &self.to_bus,
+				AssemblerWordContext::FromBus => &self.from_bus
 			},
 			raw
 		)
 	}
-	fn encode_generic_4_bit_word(&self, words: &Vec<AssemblyWord<4>>, raw: &str) -> Option<AssemblyWord<4>> {
+	fn encode_generic_word(&self, words: &Vec<AssemblyWord>, raw: &str) -> Option<AssemblyWord> {
 		for word_config in words {
 			if word_config.name.to_lowercase() == raw.to_lowercase() {
 				return Some(word_config.clone());
@@ -49,9 +49,9 @@ impl AssemblerConfig {
 		// Done
 		None
 	}
-	pub fn get_4_bit_assembly_word(&self, token: &Token, correct_context: Assembler4BitWordContext) -> Result<AssemblyWord<4>, AssemblyEncodeErrorEnum> {
+	pub fn get_assembly_word(&self, token: &Token, correct_context: AssemblerWordContext) -> Result<AssemblyWord, AssemblyEncodeErrorEnum> {
 		if let TokenEnum::AssemblyWord(word_raw) = &token.enum_ {
-			match self.encode_4_bit_word(correct_context, word_raw) {
+			match self.encode_word(correct_context, word_raw) {
 				Some(word) =>Ok(word),
 				None => {
 					Err(AssemblyEncodeErrorEnum::TokenWordInWrongContext{token_raw: token.raw.clone(), correct_context})
@@ -87,7 +87,7 @@ impl TokenEnum {
 				Err(e) => return Err(AssemblyEncodeErrorEnum::HexLiteralInvalid(e))
 			};
 			let n_bits: usize = (in_.len() - 2) * 4;//hex_decode.len() * 4;
-			if n_bits != 8 {
+			if n_bits != 8 {// The only context where literal number are decoded is in `WRITE` instructions which require 8 bits
 				return Err(AssemblyEncodeErrorEnum::HexLiteralWrongLength{correct_len_bits: 8, actual_len_bits: n_bits as u32});
 			}
 			Ok(Self::Literal{n: hex_decode[0], bit_size: n_bits as u8})
@@ -120,10 +120,11 @@ impl Token {
 }
 
 /// Takes the instruction as a vec of tokens, tries to assemble it into an instruction
+/// This is the only function that is compiled differently for versions 1 and 2
 pub fn assemble_instruction(line: &Vec<Token>, config: &AssemblerConfig) -> Result<u16, (AssemblyEncodeErrorEnum, Option<String>)> {
 	// Opcode
-	let opcode: AssemblyWord<4> = if let TokenEnum::AssemblyWord(word) = &line[0].enum_ {
-		match config.encode_4_bit_word(Assembler4BitWordContext::Opcode, &word) {
+	let opcode: AssemblyWord = if let TokenEnum::AssemblyWord(word) = &line[0].enum_ {
+		match config.encode_word(AssemblerWordContext::Opcode, &word) {
 			Some(opc) => opc,
 			None => {return Err((AssemblyEncodeErrorEnum::InvalidToken(line[0].raw.clone()), None));}
 		}
@@ -145,7 +146,7 @@ pub fn assemble_instruction(line: &Vec<Token>, config: &AssemblerConfig) -> Resu
 			};
 			let alu_opcode: u8 = match alu_opcode_included {
 				true => {
-					match config.get_4_bit_assembly_word(&line[1], Assembler4BitWordContext::AluOpcode) {
+					match config.get_assembly_word(&line[1], AssemblerWordContext::AluOpcode) {
 						Ok(word) => word.id_,
 						Err(err_enum) => {return Err((err_enum, None));}
 					}
@@ -159,14 +160,36 @@ pub fn assemble_instruction(line: &Vec<Token>, config: &AssemblerConfig) -> Resu
 				true => (&line[2], &line[3]),
 				false => (&line[1], &line[2])
 			};
-			let write_addr: u8 = match config.get_4_bit_assembly_word(write_addr_token, Assembler4BitWordContext::ToBus) {
+			let mut write_addr: u8 = match config.get_assembly_word(write_addr_token, AssemblerWordContext::ToBus) {
 				Ok(word) => word.id_,
 				Err(err_enum) => {return Err((err_enum, None));}
 			};
-			let read_addr: u8 = match config.get_4_bit_assembly_word(read_addr_token, Assembler4BitWordContext::FromBus) {
+			let mut read_addr: u8 = match config.get_assembly_word(read_addr_token, AssemblerWordContext::FromBus) {
 				Ok(word) => word.id_,
 				Err(err_enum) => {return Err((err_enum, None));}
 			};
+			// FOR VERSION 2: Check if move opcode needs to be changed for 5-bit bus address compatibility
+			#[cfg(feature = "version_2")]
+			{
+				/*
+				8. `MOVE` - MSBs TX=1, RX=0
+				9. `MOVE` - MSBs TX=0, RX=1
+				10. `MOVE` - MSBs TX=1, RX=1
+				11. `WRITE` - MSBs RX=1
+				*/
+				let tx_rx_msbs: u8 = ((write_addr >> 3) & 0b10) | ((read_addr >> 4) & 0b1);
+				let new_opcode: u16 = match tx_rx_msbs {
+					0b00 => 0,
+					0b01 => 9,
+					0b10 => 8,
+					0b11 => 10,
+					_ => panic!("Logic error")
+				};
+				// Update instruction for new opcode
+				instruction = (instruction & 0xFFF0) | (new_opcode & 0b1111);
+			}
+			write_addr = write_addr & 0b1111;
+			read_addr = read_addr & 0b1111;
 			// Add to instruction
 			instruction |= (alu_opcode << 4) as u16 | (((write_addr | ((read_addr << 4) & 0xF0u8)) as u16) << 8);
 		},
@@ -177,7 +200,7 @@ pub fn assemble_instruction(line: &Vec<Token>, config: &AssemblerConfig) -> Resu
 			}
 			// Bits 4 - 11 raw hex value
 			let write_value_token = &line[1];
-			let mut  write_value: u8 = if let TokenEnum::Literal{n, bit_size} = &write_value_token.enum_ {
+			let mut write_value: u8 = if let TokenEnum::Literal{n, bit_size} = &write_value_token.enum_ {
 				if *bit_size == 8 {
 					*n
 				}
@@ -190,7 +213,7 @@ pub fn assemble_instruction(line: &Vec<Token>, config: &AssemblerConfig) -> Resu
 			};
 			// Bus read addr
 			let read_addr_token = &line[2];
-			let read_addr: u8 = match config.get_4_bit_assembly_word(read_addr_token, Assembler4BitWordContext::FromBus) {
+			let mut read_addr: u8 = match config.get_assembly_word(read_addr_token, AssemblerWordContext::FromBus) {
 				Ok(word) => word.id_,
 				Err(err_enum) => {return Err((err_enum, None));}
 			};
@@ -198,6 +221,20 @@ pub fn assemble_instruction(line: &Vec<Token>, config: &AssemblerConfig) -> Resu
 			if read_addr == 13 {
 				write_value = 0xFF - write_value;
 			}
+			// FOR VERSION 2: Check if move opcode needs to be changed for 5-bit bus address compatibility
+			#[cfg(feature = "version_2")]
+			{
+				/*
+				8. `MOVE` - MSBs TX=1, RX=0
+				9. `MOVE` - MSBs TX=0, RX=1
+				10. `MOVE` - MSBs TX=1, RX=1
+				11. `WRITE` - MSBs RX=1
+				*/
+				if (read_addr >> 4) & 1 == 1 {// If 5th bit is high, change write opcode
+					instruction = (instruction & 0xFFF0) | 11;
+				}
+			}
+			read_addr = read_addr & 0b1111;
 			// Add to instruction
 			instruction |= ((write_value as u16) << 4) | ((read_addr as u16) << 12);
 		},
@@ -216,12 +253,12 @@ pub enum AssemblyEncodeErrorEnum {
 	},
 	InvalidToken(String),
 	IncorrectNumberOfTokensForOpcode {
-		opcode: AssemblyWord<4>,
+		opcode: AssemblyWord,
 		n_tokens_in_line: usize
 	},
 	TokenWordInWrongContext {
 		token_raw: String,
-		correct_context: Assembler4BitWordContext
+		correct_context: AssemblerWordContext
 	},
 	LiteralTokenInWrongContext {
 		token: Token

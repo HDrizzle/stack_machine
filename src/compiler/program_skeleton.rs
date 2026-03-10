@@ -156,6 +156,27 @@ fn macro_expansion(nodes: &Vec<(ProgramSkeletonNode, usize)>) -> Result<Vec<(Vec
 							Token::new(TokenEnum::Literal{n: ((address >> 8) & 0x00FF) as u8, bit_size: 8}, "<Expanded macro>".to_owned()),
 							Token::new(TokenEnum::AssemblyWord("stack-push".to_string()), "<Expanded macro>".to_owned())
 						], *line_n));
+					},
+					#[cfg(feature = "version_2")]
+					MacroEnum::SetIntGoto => {
+						// Setup interrupt latches
+						let anchor_name = macro_.args[0].to_string();
+						let address: u16 = match anchors.get(&anchor_name) {
+							Some(prog_address) => (*prog_address as u16).wrapping_sub(1),// TODO
+							None => {return Err(ProgramSkeletonBuildError::MacroInvalidAnchor(anchor_name.to_owned()));}
+						};
+						// INT-GOTO-A
+						out.push((vec![
+							Token::new(TokenEnum::AssemblyWord("write".to_string()), "<Expanded macro>".to_owned()),
+							Token::new(TokenEnum::Literal{n: (address & 0x00FF) as u8, bit_size: 8}, "<Expanded macro>".to_owned()),
+							Token::new(TokenEnum::AssemblyWord("int-goto-a".to_string()), "<Expanded macro>".to_owned())
+						], *line_n));
+						// INT-GOTO-B
+						out.push((vec![
+							Token::new(TokenEnum::AssemblyWord("write".to_string()), "<Expanded macro>".to_owned()),
+							Token::new(TokenEnum::Literal{n: ((address >> 8) & 0x00FF) as u8, bit_size: 8}, "<Expanded macro>".to_owned()),
+							Token::new(TokenEnum::AssemblyWord("int-goto-b".to_string()), "<Expanded macro>".to_owned())
+						], *line_n));
 					}
 				}
 			}
@@ -193,20 +214,24 @@ pub enum ProgramSkeletonBuildError {
 }
 
 
-/// Creates to instructions to load `address` into the goto latches, takes care of subtracting 1 from it to compensate for the computer hardware incrementing it
-fn load_goto_instructions(address_og: u16, line_n: usize) -> Vec<(Vec<Token>, usize)> {
-	let address = address_og.wrapping_sub(1);// TODO
+/// Creates 2 instructions to load `address` into the goto latches, takes care of subtracting 1 from it to compensate for the computer hardware incrementing it
+fn load_goto_instructions(address_og: u16, line_n: usize, for_interrupt: bool) -> Vec<(Vec<Token>, usize)> {
+	let registers: (&str, &str) = match for_interrupt {
+		true => ("int-goto-a", "int-goto-b"),
+		false => ("goto-a", "goto-b")
+	};
+	let address = address_og.wrapping_sub(1);
 	// GOTO-A
 	let goto_a: Vec<Token> = vec![
 		Token::new(TokenEnum::AssemblyWord("write".to_string()), "<Expanded macro>".to_owned()),
 		Token::new(TokenEnum::Literal{n: (address & 0x00FF) as u8, bit_size: 8}, "<Expanded macro>".to_owned()),
-		Token::new(TokenEnum::AssemblyWord("goto-a".to_string()), "<Expanded macro>".to_owned())
+		Token::new(TokenEnum::AssemblyWord(registers.0.to_string()), "<Expanded macro>".to_owned())
 	];
 	// GOTO-B
 	let goto_b: Vec<Token> = vec![
 		Token::new(TokenEnum::AssemblyWord("write".to_string()), "<Expanded macro>".to_owned()),
 		Token::new(TokenEnum::Literal{n: ((address >> 8) & 0x00FF) as u8, bit_size: 8}, "<Expanded macro>".to_owned()),
-		Token::new(TokenEnum::AssemblyWord("goto-b".to_string()), "<Expanded macro>".to_owned())
+		Token::new(TokenEnum::AssemblyWord(registers.1.to_string()), "<Expanded macro>".to_owned())
 	];
 	// Done
 	vec![(goto_a, line_n), (goto_b, line_n)]
@@ -217,7 +242,7 @@ fn expand_address_set_macro(anchors: &HashMap<String, usize>, anchor_name: &str,
 	match anchors.get(anchor_name) {
 		Some(prog_address) => {
 			// Expand macro into vec of instructions
-			let mut out: Vec<(Vec<Token>, usize)> = load_goto_instructions(*prog_address as u16, line_n);
+			let mut out: Vec<(Vec<Token>, usize)> = load_goto_instructions(*prog_address as u16, line_n, false);
 			// Call instruction
 			out.push((vec![
 				Token::new(TokenEnum::AssemblyWord(assembly_word), "<Expanded macro>".to_owned())

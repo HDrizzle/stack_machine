@@ -188,3 +188,35 @@ HALT;";
 	// Check for fibonacci sequence in GPRAM
 	assert_eq!(machine.general_mem[0..10], [1, 1, 2, 3, 5, 8, 13, 21, 34, 55]);
 }
+
+// Version 2
+#[cfg(test)]
+mod tests_v2 {
+	use super::*;
+	#[test]
+	fn move_5_bit_bus_addresses() {
+		let assembler_config = resources::load_assembler_config().expect("Unable to load assembler config");
+		let assembly_source = "
+			move get-goto-a int-goto-b;# get-goto-a = 15, int-goto-b = 17
+			move tx-17 gpio-write-b;# tx-17 = 17, gpio-write-b = 15
+			move tx-17 int-goto-b;
+		";
+		let program: Vec<u16> = match compiler::compiler_pipeline_formated_errors(assembly_source, &assembler_config) {
+			Ok(program) => program,
+			Err(s) => panic!("{}", s)
+		};
+		assert_eq!(program[..], [0x1F09, 0xF108, 0x110A]);
+	}
+	#[test]
+	fn write_5_bit_bus_addresses() {
+		let assembler_config = resources::load_assembler_config().expect("Unable to load assembler config");
+		let assembly_source = "
+			write 0x42 int-goto-b;# int-goto-b = 17
+		";
+		let program: Vec<u16> = match compiler::compiler_pipeline_formated_errors(assembly_source, &assembler_config) {
+			Ok(program) => program,
+			Err(s) => panic!("{}", s)
+		};
+		assert_eq!(program[..], [0x142B]);
+	}
+}

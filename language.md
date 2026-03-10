@@ -22,6 +22,8 @@ marks the beginning of a function. An anchor can also mean other things such as 
 
 which will be expanded to three instructions: `write 0xXX goto-a`, `write 0xXX goto-b`, `call` where it will write the correct address to the GOTO A & B latches. `@goto(_)` and `goto_if(_)` work in the exact same way.
 
+For version 2: `@set_interrupt(_)` will use the given anchor name to setup the interrupt goto latches.
+
 ### Write string
 
 Another macro is `@write_string("Hello world")` which will write each character of the given string (in ASCII) to the GPRAM starting at wherever the address is currently set to.
