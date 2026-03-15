@@ -1,12 +1,12 @@
 # Timer board
 
-The timing board will have its own crytal and a large clock divider, it can also triger interrupts.
+The timing board will have its own crystal and a large clock divider, it can also triger interrupts.
 
 The base clock will be a 1 MHz crystal. That clock will be fed into 3 cascaded 12-bit counters which roll over every 68719.476736 seconds.
 
 ## Interrupt timers (x4)
 
-Interrupt timers will be 8-bit counters with a configurable max value and time base. When they reach their max value they may be configured to cause an interrupt. They will rollover back to 0 and keep going unless paused by the program.
+Interrupt timers will be 8-bit counters with a configurable max value and time base. When they count past their max value and rollover they may be configured to cause an interrupt. Setting the max value to n will make it rollover at n+1, so setting it to 255 will cause it to rollover normally, TODO: Make sure this is how the simulation works.
 
 ## From bus (RX)
 

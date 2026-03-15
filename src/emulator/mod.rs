@@ -173,6 +173,84 @@ impl MachineComponent for GeneralMemController {
 	}
 }
 
+/// Read and Write pointers are incremented AFTER push/pop
+#[cfg(feature = "version_2")]
+struct InterruptHandler {
+	pub enabled: bool,
+	pub interrupt_queue: [u8; 256],
+	pub read_pointer: u8,
+	pub write_pointer: u8,
+	pub interrupt_counter: u8
+}
+
+#[cfg(feature = "version_2")]
+impl InterruptHandler {
+	fn push(&mut self, source: u8, extra: u8) {
+		let interrupt_code: u8 = if source >= 4 {
+			(source & 0b111) & ((extra & 0xF) << 4)
+		}
+		else {
+			source & 0b111// Timers, no extra info
+		};
+		self.interrupt_queue[self.write_pointer as usize] = interrupt_code;
+		self.write_pointer = self.write_pointer.wrapping_add(1);
+		self.interrupt_counter = self.interrupt_counter.wrapping_add(1);
+	}
+	fn pop(&mut self) -> u8 {
+		let out = self.interrupt_queue[self.read_pointer as usize];
+		self.read_pointer = self.read_pointer.wrapping_add(1);
+		self.interrupt_counter = self.interrupt_counter.wrapping_add(255);
+		out
+	}
+}
+
+#[cfg(feature = "version_2")]
+impl MachineComponent for InterruptHandler {
+	fn new() -> Self {
+		Self {
+			enabled: false,// Hardware flag is set to false on startup
+			interrupt_queue: [0; 256],
+			read_pointer: 0,
+			write_pointer: 0,
+			interrupt_counter: 0
+		}
+	}
+}
+
+/// Timers
+#[cfg(feature = "version_2")]
+struct Timers {
+	/// 1 MHz in hardware, 36 bits used
+	base_timer: u64,
+	interrupt_timers_state: [u8; 4],
+	interrupt_timers_max: [u8; 4],
+	interrupt_timers_cause_interrupts: [bool; 4]
+}
+
+#[cfg(feature = "version_2")]
+impl Timers {
+	fn update(&mut self, clock_cycles: u64) {
+		self.base_timer = self.base_timer.wrapping_add(clock_cycles);
+		for i in 0..4_usize {
+			let max = self.interrupt_timers_max[i];
+			let to_overflow = max - self.interrupt_timers_state[i];
+			let n_overflows = clock_cycles / ((max as u64) + 1);
+		}
+	}
+}
+
+#[cfg(feature = "version_2")]
+impl MachineComponent for Timers {
+	fn new() -> Self {
+		Self {
+			base_timer: 0,
+			interrupt_timers_state: [0; 4],
+			interrupt_timers_max: [255; 4],
+			interrupt_timers_cause_interrupts: [false; 4]
+		}
+	}
+}
+
 /// Represents state of entire computer
 pub struct Machine {
 	pub prog_mem: [u16; POWER_16],
@@ -189,7 +267,9 @@ pub struct Machine {
 	goto_decider_latch: bool,
 	program_size: u16,
 	clock_counter: u16,
-	pub clock_counter_perf_tracking: u128
+	pub clock_counter_perf_tracking: u128,
+	#[cfg(feature = "version_2")]
+	interrupt_handler: InterruptHandler
 }
 
 impl Machine {
@@ -215,19 +295,28 @@ impl Machine {
 			goto_decider_latch: false,
 			program_size: prog.len() as u16,
 			clock_counter: 0,
-			clock_counter_perf_tracking: 0
+			clock_counter_perf_tracking: 0,
+			interrupt_handler: InterruptHandler::new()
 		}
 	}
 	/// Executes 1 instruction
 	/// Returns: Ok(whether to stop the clock (HALT)) or Err(EmulationError)
 	pub fn execute_instruction<T: GpioInterface>(&mut self, gpio_interface: &mut T) -> Result<bool, EmulationError> {
-		// TODO: Increment `self.clock_counter`
 		// Check that execution pointer is within limits
 		if self.execution_pointer >= self.program_size {
 			return Err(self.err_enum_to_err(EmulationErrorEnum::ExecutionPointerExceededProgramSize));
 		}
 		// Get instruction
-		let instruction: u16 = self.prog_mem[self.execution_pointer as usize];
+		let instruction: u16 = {
+			let mut out= self.prog_mem[self.execution_pointer as usize];
+			// Version 2 feature to load from GPRAM
+			#[cfg(feature = "version_2")]
+			if self.execution_pointer >> 15 & 1 == 1 {
+				let gpram_start: u16 = (self.execution_pointer & 0x7FFF) << 1;
+				out = (self.general_mem[gpram_start as usize] as u16) | ((self.general_mem[gpram_start as usize + 1] as u16) << 8);
+			}
+			out
+		};
 		let second_byte: u8 = ((instruction >> 8) & 255u16) as u8;
 		let opcode: u8 = (instruction & 15u16) as u8;
 		let alu_opcode: u8 = ((instruction >> 4) & 0x000Fu16) as u8;

@@ -141,6 +141,7 @@ impl MacroEnum {
 			"goto_if" => Self::GotoIf,
 			"write_string" => Self::WriteString,
 			"push_anchor_address" => Self::PushAnchorAddress,
+			"set_interrupt" => Self::SetIntGoto,
 			id => {return Err(ParseError::new(source_start, source_end, ParseErrorType::InvalidMacroIdentifier(id.to_owned()), None));}
 		})
 	}

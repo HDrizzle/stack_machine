@@ -29,7 +29,7 @@
             "name": "return"
         },
         {
-            "id_": 6,
+            "id_": 7,
             "name": "config-int"
         }
     ],
@@ -150,7 +150,7 @@
         },
         {
             "id_": 13,
-            "name": "INT-ACTIVE"
+            "name": "INT-COUNT"
         },
         {
             "id_": 14,
@@ -353,6 +353,28 @@
         {
             "id_": 31,
             "name": "RX-31"
+        }
+    ],
+    "after_call": [
+        {
+            "id_": 1,
+            "name": "int"
+        }
+    ],
+    "after_return": [
+        {
+            "id_": 1,
+            "name": "int"
+        }
+    ],
+    "generic_after_opcode": [
+        {
+            "id_": 0,
+            "name": "false"
+        },
+        {
+            "id_": 1,
+            "name": "true"
         }
     ]
 }

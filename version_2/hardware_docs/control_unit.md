@@ -95,7 +95,7 @@ Load from RAM, start delayed
 
 ## Interrupts
 
-The signal `Interrupt` from the interrupt handler is read on the positive edge and used to determine whether `Instruction post-latch OE` is set. The instruction data bus has pull up/down resistors to hardcode the default value to the interruot call instruction (0x0015) so when the `Instruction post-latch OE` is low then the interrupt handler will be called.
+The signal `Interrupt` from the interrupt handler is read on the positive edge and used to determine whether `Instruction post-latch OE` is set. The instruction data bus has pull up/down resistors to hardcode the default value to the interrupt call instruction (0x0015) so when the `Instruction post-latch OE` is low then the interrupt handler will be called.
 
 The interrupt call can only happen when `Interrupt in-progress` is low and `Interrupt enabled` is high. `Interrupt enabled` is an SR latch which is set by:
 
@@ -234,6 +234,8 @@ Fastest possible case
 
 ### RETURN (flow-control)
 
+There is a signal `Instruction++` that should always remain high except in the case of returning from an interrupt so that the interrupted instruction can still be run.
+
 ```
 {
   signal: [
@@ -244,7 +246,8 @@ Fastest possible case
 	{name: "Call stack - Pop & OE", wave: "lh.l."},
     {name: "Interrupt in-progress", wave: "h.2..", data:["!Bit 4"]},
 	{name: "Pre-adder latch CLK", wave: "l.h.l"},
-    {name: "Load Instruction", wave: "l..h."}
+    {name: "Load Instruction", wave: "l..h."},
+	{name: "Instruction++", wave: "h.2.h", data:["!Bit 4"]}
   ],
   edge: []
 }

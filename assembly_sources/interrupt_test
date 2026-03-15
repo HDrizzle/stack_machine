@@ -1,6 +1,55 @@
 # For Version 2 Only
 # Test interrupt feature using timers and external interruot inputs
-# TODO
+# Memory:
+#  0x0000: Main loop count variable
+#  0x0001: Interrupt shift variable
 
 # Throwaway instruction
 write 0xFF gpio-write-a;
+
+# Setup
+write 0x00 gpio-write-a;
+write 0x00 gpio-write-b;
+write 0x00 alu-c-in;
+write 0x00 set-stack-offset;
+write 0x00 offset-write;
+write 0x00 gpram-addr-a;
+write 0x00 gpram-addr-b;
+write 0x00 gpram-inc-addr;
+write 0x01 gpram;
+write 0x00 gpram-addr-a;
+@set_interrupt(interrupt-handler);
+config-int true;
+# Normal loop, writes to GPIO A
+@anchor(main-loop-start);
+move gpram alu-a;
+write 0x01 alu-b;
+move add alu gpio-write-a;
+move add alu gpram;
+@goto(main-loop-start);
+
+# Interrupt function, writes to GPIO B
+@anchor(interrupt-handler);
+# Clear interrupt
+move int-code none;
+# Save state
+move get-stack-offset stack-push;
+move a alu stack-push;
+move b alu stack-push;
+move gpram-addr-a stack-push;
+move gpram-addr-b stack-push;
+# Stack: N, Offset, ALU A, ALU B, GPRAM A, GPRAM B
+# Shift
+write 0x01 gpram-addr-a;
+move gpram alu-a;
+write 0x01 alu-b;
+move shift alu gpio-write-b;
+move shift alu gpram;
+# Restore state
+move stack-pop gpram-addr-b;
+move stack-pop gpram-addr-a;
+move stack-pop alu-b;
+move stack-pop alu-a;
+move stack-pop set-stack-offset;
+# Stack: N
+return int;

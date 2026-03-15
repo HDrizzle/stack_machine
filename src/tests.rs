@@ -219,4 +219,19 @@ mod tests_v2 {
 		};
 		assert_eq!(program[..], [0x142B]);
 	}
+	#[test]
+	fn call_and_return_and_config_interrupt() {
+		let assembler_config = resources::load_assembler_config().expect("Unable to load assembler config");
+		let assembly_source = "
+			call int;
+			return int;
+			config-int true;
+			config-int false;
+		";
+		let program: Vec<u16> = match compiler::compiler_pipeline_formated_errors(assembly_source, &assembler_config) {
+			Ok(program) => program,
+			Err(s) => panic!("{}", s)
+		};
+		assert_eq!(program[..], [0x0015, 0x0016, 0x0017, 0x0007]);
+	}
 }

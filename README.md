@@ -96,7 +96,7 @@ Devices that can write to the bus (TX):
 10. `INT-TIMER` - Current value of 1 of the 4 interrupt timers, addressed by `INT-AND-MAIN-TIMER-ADDRESS`
 11. `GPIO-READ-B` - Reads GPIO input pins 8 - 15
 12. `INT-CODE` - Most recent interrupt code, will be cleared upon read
-13. `INT-ACTIVE` - Whether there are any active interrupts, LSB is set to 0 or 1, rest are zeros
+13. `INT-COUNT` - Number of interrupts in queue, will overflow past 255
 14. `GET-STACK-OFFSET` - Retrieves stack offset, needed to save state during interrupt
 15. `GET-GOTO-A` - Read GOTO Latch A
 16. `GET-GOTO-B` - Read GOTO Latch B

@@ -16,7 +16,13 @@ pub enum AssemblerWordContext {
 	Opcode,
 	AluOpcode,
 	ToBus,
-	FromBus
+	FromBus,
+	#[cfg(feature = "version_2")]
+	AfterCall,
+	#[cfg(feature = "version_2")]
+	AfterReturn,
+	#[cfg(feature = "version_2")]
+	GenericAfterOpcode
 }
 
 /// All the data about the assembly words
@@ -25,7 +31,13 @@ pub struct AssemblerConfig {
 	pub opcodes: Vec<AssemblyWord>,
 	pub alu_opcodes: Vec<AssemblyWord>,
 	pub to_bus: Vec<AssemblyWord>,
-	pub from_bus: Vec<AssemblyWord>
+	pub from_bus: Vec<AssemblyWord>,
+	#[cfg(feature = "version_2")]
+	pub after_call: Vec<AssemblyWord>,
+	#[cfg(feature = "version_2")]
+	pub after_return: Vec<AssemblyWord>,
+	#[cfg(feature = "version_2")]
+	pub generic_after_opcode: Vec<AssemblyWord>
 }
 
 impl AssemblerConfig {
@@ -35,7 +47,13 @@ impl AssemblerConfig {
 				AssemblerWordContext::Opcode => &self.opcodes,
 				AssemblerWordContext::AluOpcode => &self.alu_opcodes,
 				AssemblerWordContext::ToBus => &self.to_bus,
-				AssemblerWordContext::FromBus => &self.from_bus
+				AssemblerWordContext::FromBus => &self.from_bus,
+				#[cfg(feature = "version_2")]
+				AssemblerWordContext::AfterCall => &self.after_call,
+				#[cfg(feature = "version_2")]
+				AssemblerWordContext::AfterReturn => &self.after_return,
+				#[cfg(feature = "version_2")]
+				AssemblerWordContext::GenericAfterOpcode => &self.generic_after_opcode
 			},
 			raw
 		)
@@ -238,7 +256,28 @@ pub fn assemble_instruction(line: &Vec<Token>, config: &AssemblerConfig) -> Resu
 			// Add to instruction
 			instruction |= ((write_value as u16) << 4) | ((read_addr as u16) << 12);
 		},
-		_ => {}// All other instructions don't require any additional information besides the opcode
+		#[allow(unused)]// In case of not version 2 where `other` would not be used
+		other => {// For call, return, config-int
+			#[cfg(feature = "version_2")]
+			if let Some(word_context) = match other {
+				"call" => Some(AssemblerWordContext::AfterCall),
+				"return" => Some(AssemblerWordContext::AfterReturn),
+				"config-int" => Some(AssemblerWordContext::GenericAfterOpcode),
+				_ => None
+			} {
+				// Check number of tokens
+				if !(line.len() == 1 || line.len() == 2) {
+					return Err((AssemblyEncodeErrorEnum::IncorrectNumberOfTokensForOpcode{opcode, n_tokens_in_line: line.len()}, None));
+				}
+				if line.len() == 2 {
+					let after_opcode_flag: u8 = match config.get_assembly_word(&line[1], word_context) {
+						Ok(word) => word.id_,
+						Err(err_enum) => {return Err((err_enum, None));}
+					};
+					instruction |= (after_opcode_flag as u16 & 0xF) << 4;
+				}
+			}
+		}
 	}
 	// Done
 	Ok(instruction)
