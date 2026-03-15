@@ -1,7 +1,5 @@
 # Hardware Interrupt Handler
 
-TODO: FIX: `Memory source & address counter++` has a glitch during cycle after high interrupt input.
-
 This will be a generic board connected to the bus. Interrupts will be triggered by rising edges, falling edges, timers, and comparators. They can be queued up to as many as 256. Both of the read and write pointers will be incremented AFTER the read/write. When an interrupt is triggered or when the handler returns and there is another one queued up, the normal program instruction will be overridden and the special `CALL` will be run with bit 4 set to 1.
 
 Every interrupt has an 8-bit "code". The first 3 bits address the source of the interrupt, bit 3 is always 0, the last 4 bits vary depending on what the interrupt is. Interrupt sources are as follows:
@@ -16,6 +14,10 @@ Every interrupt has an 8-bit "code". The first 3 bits address the source of the 
 7. Configurable, +4 bits
 
 The 4 configurable interrupts each correspond to a 5-pin header with the 1st pin being the active-high interrupt signal and the other 4 being the upper 4 bits of the interrupt code. For example 16 buttons could be encoded into the 4 customizable bits with the interrupt pin being triggered by any of them.
+
+## Minimum pulse width (CAUTION)
+
+Usually an extremely short pulse (shorter than 1 clock cycle) will be detected as an interrupt since there are SR latches used, however there is a 1/16 chance of that pulse occuring between when that interrupt is read and when it is reset meaning it will be missed. To gurantee the interrupt is never missed make sure it is longer than 1 clock cycle.
 
 ## Edge detection
 
@@ -79,15 +81,15 @@ Timing diagram (Interrupt)
     {name: "CLK", wave: "lhlhlhlhl"},
 	{},
 	{name: "Interrupt address CLK", wave: "lh.l...h.", node: ".......b"},
-    {name: "Current state CLK", wave: "l.h.l...h"},
+    {name: "Current state CLK", wave: "l.h.l...h", node: "..c"},
     {name: "Current state", wave: "l.h......"},
     {name: "Prev state", wave: "l.....h.."},
     {name: "Memory source (0=read, 1=write)", wave: "l.h..l..."},
     {name: "Write address++", wave: "l.....hl."},
     {name: "Memory write", wave: "l..hl...."},
-    {name: "Current state reset", wave: "l..hl...."},
+    {name: "Current state reset", wave: "l..hl....", node: "....d"},
     {name: "INT-CODE Pre-latch CLK & Prev state set", wave: "l.....hl.", node: "......a"},
   ],
-  edge: ["a~>b Begin cycle"]
+  edge: ["a~>b Begin cycle", "c~>d Short interrupt will be missed"]
 }
 ```

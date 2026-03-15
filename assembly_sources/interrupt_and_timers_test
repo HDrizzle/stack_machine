@@ -18,6 +18,11 @@ write 0x00 gpram-addr-b;
 write 0x00 gpram-inc-addr;
 write 0x01 gpram;
 write 0x00 gpram-addr-a;
+# Optional - Setup timer 0 to cause interrupts
+write 0x00 INT-AND-MAIN-TIMER-ADDRESS;
+write 0x31 INT-TIMER-CONFIG-MAX;# 49, so rollover once per 50 cycles (100 clock cycles)
+write 0x30 INT-TIMER-CONFIG-TIMEBASE-AND-ENABLE;
+# End Optional
 @set_interrupt(interrupt-handler);
 config-int true;
 # Normal loop, writes to GPIO A

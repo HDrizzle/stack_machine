@@ -8,10 +8,12 @@ The base clock will be a 1 MHz crystal. That clock will be fed into 3 cascaded 1
 
 Interrupt timers will be 8-bit counters with a configurable max value and time base. When they count past their max value and rollover they may be configured to cause an interrupt. Setting the max value to n will make it rollover at n+1, so setting it to 255 will cause it to rollover normally, TODO: Make sure this is how the simulation works.
 
+The timer reset logic resets the timer immediately when it reaches max+1, so the comparator output is high very briefly. To ensure that the interrupt pulse is not too short for the interrupt handler (see "minimum pulse width" in its readme) it must be extended to greater than 1 clock cycle.
+
 ## From bus (RX)
 
 22. `INT-AND-MAIN-TIMER-ADDRESS` - Bits 0 - 1 address 1 of the 4 interrupt timers OR a byte of the main timer. Bit 2 will reset the addressed interrupt timer to 0.
-23. `INT-TIMER-CONFIG-MAX` - Sets the start value
+23. `INT-TIMER-CONFIG-MAX` - Sets the max value (will rollover past this, not at it)
 24. `INT-TIMER-CONFIG-TIMEBASE-AND-ENABLE` - Bits 0 - 3 address every even-indexed bit of the main 36-bit divider up to bit 30, so 0x0 -> 1 MHz, 0x1 -> 250 KHz and so on. Bit 4 sets whether the timer is allowed to cause interrupts. Bit 5 sets whether the counter is currently counting.
 
 ## To bus (TX)

@@ -223,19 +223,48 @@ struct Timers {
 	/// 1 MHz in hardware, 36 bits used
 	base_timer: u64,
 	interrupt_timers_state: [u8; 4],
+	/// Max value, timer will roll over after going PAST this, not too it. This is so that 255 will cause the timer to rollover normally.
 	interrupt_timers_max: [u8; 4],
-	interrupt_timers_cause_interrupts: [bool; 4]
+	/// Timebase 3:0, Interrupt 4, Enable 5
+	interrupt_timers_timebase_and_enable: [u8; 4],
+	/// Same as the bus input except only first 2 bits are used
+	int_and_main_timer_address: u8
 }
 
 #[cfg(feature = "version_2")]
 impl Timers {
-	fn update(&mut self, clock_cycles: u64) {
-		self.base_timer = self.base_timer.wrapping_add(clock_cycles);
+	/// Updates interrupt timers
+	/// Returns: Vec of interrupt codes
+	pub fn update(&mut self, clock_cycles: u64) -> Vec<u8> {
+		self.base_timer = self.base_timer.wrapping_add(clock_cycles) & 0x0000000FFFFFFFFF;// 36 bits used
+		let mut out = Vec::new();
+		// For each of the 4 timers
 		for i in 0..4_usize {
-			let max = self.interrupt_timers_max[i];
-			let to_overflow = max - self.interrupt_timers_state[i];
-			let n_overflows = clock_cycles / ((max as u64) + 1);
+			if (self.interrupt_timers_timebase_and_enable[i] >> 5) & 1 == 1 {
+				let max = self.interrupt_timers_max[i];
+				let to_overflow = max - self.interrupt_timers_state[i];
+				if clock_cycles >= (to_overflow as u64) {
+					let diff = clock_cycles - (to_overflow as u64);
+					let n_overflows = diff / ((max as u64) + 1);
+					if (self.interrupt_timers_timebase_and_enable[i] >> 4) & 1 == 1 {// Check whether this timer can cause interrupts
+						for _ in 0..n_overflows {
+							out.push(i as u8 & 0b111);
+						}
+					}
+				}
+				// TODO: Update count
+			}
 		}
+		out
+	}
+	pub fn set_int_and_main_timer_address(&mut self, bus_value: u8) {
+		self.int_and_main_timer_address = bus_value & 0b11;
+		if (bus_value >> 2) & 1 == 1 {// Bit 2 is a flag to clear given interrupt timer
+			self.interrupt_timers_state[self.int_and_main_timer_address as usize] = 0;
+		}
+	}
+	pub fn set_int_timer_max(&mut self, bus_value: u8) {
+		self.interrupt_timers_max[self.int_and_main_timer_address as usize] = bus_value;
 	}
 }
 
@@ -246,7 +275,8 @@ impl MachineComponent for Timers {
 			base_timer: 0,
 			interrupt_timers_state: [0; 4],
 			interrupt_timers_max: [255; 4],
-			interrupt_timers_cause_interrupts: [false; 4]
+			interrupt_timers_timebase_and_enable: [0; 4],
+			int_and_main_timer_address: 0
 		}
 	}
 }
@@ -269,7 +299,9 @@ pub struct Machine {
 	clock_counter: u16,
 	pub clock_counter_perf_tracking: u128,
 	#[cfg(feature = "version_2")]
-	interrupt_handler: InterruptHandler
+	interrupt_handler: InterruptHandler,
+	#[cfg(feature = "version_2")]
+	timers: Timers
 }
 
 impl Machine {
@@ -296,7 +328,10 @@ impl Machine {
 			program_size: prog.len() as u16,
 			clock_counter: 0,
 			clock_counter_perf_tracking: 0,
-			interrupt_handler: InterruptHandler::new()
+			#[cfg(feature = "version_2")]
+			interrupt_handler: InterruptHandler::new(),
+			#[cfg(feature = "version_2")]
+			timers: Timers::new()
 		}
 	}
 	/// Executes 1 instruction
