@@ -95,13 +95,40 @@ pub mod prelude {
 					Err(e) => Some(Err(e))
 				}
 			}
+			else if source[start+1] == 'b' {
+				match parse_until_false(source, start+2, |c: &char| -> bool {['0', '1'].contains(c)}, eof_error_parse_context_opt, true) {
+					Ok((raw_s, new_i)) => {
+						let mut n_bytes: u8 = raw_s.len() as u8 / 8;
+						if raw_s.len() & 0b111 != 0 {
+							n_bytes += 1;
+						}
+						let mut bytes = Vec::<u8>::from_iter((0..n_bytes).map(|_| 0));// Big endian
+						// Parse bits
+						for string_i in 0..raw_s.len() {
+							let bit_i: usize = raw_s.len() - string_i - 1;
+							let byte_i: usize = (n_bytes as usize) - 1 - (bit_i >> 3);
+							if raw_s.chars().nth(string_i) == Some('1') {
+								bytes[byte_i] |= 1 << (bit_i & 0b111);
+							}
+						}
+						Some(Ok((bytes, raw_s.len() as u8, new_i)))
+					},
+					Err(e) => Some(Err(e))
+				}
+			}
+			else if source[start+1] == 'd' {// Decimal, only for u8
+				match parse_until_false(source, start+2, |c: &char| -> bool {['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].contains(c)}, eof_error_parse_context_opt, true) {
+					Ok((raw_s, new_i)) => {
+						match raw_s.parse::<u8>() {
+							Ok(n) => Some(Ok((vec![n], 8, new_i))),
+							Err(literal_parse_error) => Some(Err(ParseError::new(start, new_i, ParseErrorType::DecimalParseError, Some(format!("Decimal literal parse error: {}", literal_parse_error)))))
+						}
+					},
+					Err(e) => Some(Err(e))
+				}
+			}
 			else {
-				if source[start+1] == 'b' {
-					None// TODO
-				}
-				else {
-					None
-				}
+				None
 			}
 		}
 		else {
@@ -202,6 +229,14 @@ fn paste_to_lower_and_upper_memory_csv(program: &Vec<u16>) {
 		if (i+1) % 50 == 0 {
 			println!("");
 		}
+	}
+}
+
+/// Creates a piece of code that write the assembled program into GPRAM
+fn paste_to_gpram(program: &Vec<u16>) {
+	println!("GPRAM write code:");
+	for n in program {
+		println!("write 0d{} gpram-inc-addr;write 0d{} gpram-inc-addr;", n & 0xFF, (n >> 8) & 0xFF)// Lower then upper
 	}
 }
 
@@ -355,6 +390,25 @@ pub fn ui_main() {
 					match compiler::compiler_pipeline_formated_errors(&file_raw, &assembler_config) {
 						Ok(program) => {
 							paste_to_lower_and_upper_memory_csv(&program);
+						},
+						Err(s) => println!("{}", s)
+					}
+				}
+			},
+			"-assemble-to-gpram-write" => {
+				if args.len() < 3 {
+					println!("Plz include name of file in `{}`", resources::ASSEMBLY_SOURCES_DIR);
+				}
+				else {
+					let name = &args[2];
+					let path: String = resources::ASSEMBLY_SOURCES_DIR.to_owned() + name;
+					let file_raw = match fs::read_to_string(&path) {
+						Ok(s) => s,
+						Err(e) => panic!("Could not load test file at \"{}\" because {}", &path, e)
+					};
+					match compiler::compiler_pipeline_formated_errors(&file_raw, &assembler_config) {
+						Ok(program) => {
+							paste_to_gpram(&program);
 						},
 						Err(s) => println!("{}", s)
 					}

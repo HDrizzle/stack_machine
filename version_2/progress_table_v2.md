@@ -10,11 +10,11 @@
 | Start pulse generator | Not needed | Done | Done | TODO | TODO | TODO | TODO | TODO | TODO |
 | ALU | Not needed | Done | Bus timing only | TODO | TODO | TODO | TODO | TODO | TODO |
 | Stack controller data | Not needed | Done | Not needed | TODO | TODO | TODO | TODO | TODO | TODO |
-| Stack controller sequencer | Done | Done | TODO | TODO | TODO | TODO | TODO | TODO | TODO |
-| GPRAM sequencer & address | Done | Done | TODO | TODO | TODO | TODO | TODO | TODO | TODO |
-| GPRAM Shared memory | Not needed | Done | TODO | TODO | TODO | TODO | TODO | TODO | TODO |
-| I/O controller | Done | Done | TODO | TODO | TODO | TODO | TODO | TODO | TODO |
-| Vector digital board | Done | Done | TODO | TODO | TODO | TODO | TODO | TODO | TODO |
+| Stack controller sequencer | Done | Done | Done | TODO | TODO | TODO | TODO | TODO | TODO |
+| GPRAM sequencer & address | Done | Done | Sequencer only | TODO | TODO | TODO | TODO | TODO | TODO |
+| GPRAM Shared memory | Not needed | Done | Done | TODO | TODO | TODO | TODO | TODO | TODO |
+| I/O controller | Done | Done | Sequencer only | TODO | TODO | TODO | TODO | TODO | TODO |
+| Vector digital board | Done | Done | Done | TODO | TODO | TODO | TODO | TODO | TODO |
 | Timers | Not needed | Done | TODO | TODO | TODO | TODO | TODO | TODO | TODO |
 | Interrupt handler | Done | Done | TODO | TODO | TODO | TODO | TODO | TODO | TODO |
 | CLK / Control panel | Not needed | Not needed | TODO | TODO | TODO | TODO | TODO | TODO | TODO |

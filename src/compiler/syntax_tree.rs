@@ -198,6 +198,8 @@ pub enum ParseErrorType {
 	StringInvalidEscapeSequence(char),
 	StringEscapeEOF,
 	HexParseError,
+	BinaryParseError,
+	DecimalParseError,
     InvalidMacroIdentifier(String),
     MacroWrongNumArgs{actual: usize, correct: usize}
 }

@@ -1,0 +1,15 @@
+# For use inside the `gpram_instruction_loading_test` test program, this program will be loaded into the GPRAM
+
+# Init
+write 0d0 gpram-addr-a;
+write 0x80 gpram-addr-b;
+write 0x0F gpram;
+write 0d1 alu-b;
+write 0d5 goto-a;
+write 0x80 goto-b;
+
+# Loop, anchor address is 0x8005 (accounting for +1 from hardware)
+move gpram alu-a;
+move shift alu gpio-write-a;
+move shift alu gpram;
+goto;

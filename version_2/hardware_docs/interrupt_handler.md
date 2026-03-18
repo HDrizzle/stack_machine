@@ -56,20 +56,20 @@ Timing diagram (no interrupt)
 
 ```
 {
-  signal: [
-    {name: "CLK", wave: "lhlhlhl"},
+	signal: [
+		{name: "CLK", wave: "lhlhlhl"},
 	{},
-    {name: "Interrupt address CLK", wave: "lh.l.h.", node: ".....b"},
-    {name: "Current state CLK", wave: "l.h.l.h"},
-    {name: "Current state", wave: "l......"},
-    {name: "Prev state", wave: "l......"},
-    {name: "Memory source (0=read, 1=write)", wave: "l......"},
-    {name: "Write address++", wave: "l......"},
-    {name: "Memory write", wave: "l......"},
-    {name: "Current state reset", wave: "l..hl.."},
-    {name: "INT-CODE Pre-latch CLK & Prev state set", wave: "l...hl.", node: "....a"},
-  ],
-  edge: ["a~>b Begin cycle"]
+		{name: "Interrupt address CLK", wave: "lh.l.h.", node: ".....b"},
+		{name: "Current state CLK", wave: "l.h.l.h"},
+		{name: "Current state", wave: "l......"},
+		{name: "Prev state", wave: "l......"},
+		{name: "Memory source (0=read, 1=write)", wave: "l......"},
+		{name: "Write address++", wave: "l......"},
+		{name: "Memory write", wave: "l......"},
+		{name: "Current state reset", wave: "l..hl.."},
+		{name: "INT-CODE Pre-latch CLK & Prev state set", wave: "l...hl.", node: "....a"},
+	],
+	edge: ["a~>b Begin cycle"]
 }
 ```
 
@@ -77,19 +77,19 @@ Timing diagram (Interrupt)
 
 ```
 {
-  signal: [
-    {name: "CLK", wave: "lhlhlhlhl"},
+	signal: [
+		{name: "CLK", wave: "lhlhlhlhl"},
 	{},
 	{name: "Interrupt address CLK", wave: "lh.l...h.", node: ".......b"},
-    {name: "Current state CLK", wave: "l.h.l...h", node: "..c"},
-    {name: "Current state", wave: "l.h......"},
-    {name: "Prev state", wave: "l.....h.."},
-    {name: "Memory source (0=read, 1=write)", wave: "l.h..l..."},
-    {name: "Write address++", wave: "l.....hl."},
-    {name: "Memory write", wave: "l..hl...."},
-    {name: "Current state reset", wave: "l..hl....", node: "....d"},
-    {name: "INT-CODE Pre-latch CLK & Prev state set", wave: "l.....hl.", node: "......a"},
-  ],
-  edge: ["a~>b Begin cycle", "c~>d Short interrupt will be missed"]
+		{name: "Current state CLK", wave: "l.h.l...h", node: "..c"},
+		{name: "Current state", wave: "l.h......"},
+		{name: "Prev state", wave: "l.....h.."},
+		{name: "Memory source (0=read, 1=write)", wave: "l.h..l..."},
+		{name: "Write address++", wave: "l.....hl."},
+		{name: "Memory write", wave: "l..hl...."},
+		{name: "Current state reset", wave: "l..hl....", node: "....d"},
+		{name: "INT-CODE Pre-latch CLK & Prev state set", wave: "l.....hl.", node: "......a"},
+	],
+	edge: ["a~>b Begin cycle", "c~>d Short interrupt will be missed"]
 }
 ```

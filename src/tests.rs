@@ -55,6 +55,45 @@ fn test_parse_string_literal() {
 }
 
 #[test]
+fn test_parse_binary_literal_single_byte() {
+	let string_to_parse = "0b01100111".to_owned();// 0x67
+	let source: Vec<char> = string_to_parse.chars().collect();
+	let out = check_for_and_parse_bit_string(&source, 0, None);
+	let res = out.unwrap();
+	let data = res.unwrap();
+	assert_eq!(
+		data,
+		(vec![0x67], 8, 10)
+	);
+}
+
+#[test]
+fn test_parse_binary_literal_multiple_bytes() {
+	let string_to_parse = "0b101100111".to_owned();// 0x167
+	let source: Vec<char> = string_to_parse.chars().collect();
+	let out = check_for_and_parse_bit_string(&source, 0, None);
+	let res = out.unwrap();
+	let data = res.unwrap();
+	assert_eq!(
+		data,
+		(vec![1, 0x67], 9, 11)
+	);
+}
+
+#[test]
+fn test_parse_decimal_literal() {
+	let string_to_parse = "0d67".to_owned();
+	let source: Vec<char> = string_to_parse.chars().collect();
+	let out = check_for_and_parse_bit_string(&source, 0, None);
+	let res = out.unwrap();
+	let data = res.unwrap();
+	assert_eq!(
+		data,
+		(vec![67], 8, 4)
+	);
+}
+
+#[test]
 fn parse_macro_with_string_literal() {
 	let source: Vec<char> = String::from("@write_string(\"Hello world\\n\");").chars().collect();// "Hello world\n"
 	let tree: SyntaxTreeNode = SyntaxTreeNode::build_tree(&source).unwrap();
