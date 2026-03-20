@@ -5,21 +5,21 @@
 write 0xFF gpio-write-a;
 
 # Write program into GPRAM
-write 0d0 gpram-addr-a;
-write 0d0 gpram-addr-b;
+write 0d2 gpram-addr-a;
+write 0x80 gpram-addr-b;
 # From cargo run -- -assemble-to-gpram-write gpram_program
 write 0d1 gpram-inc-addr;write 0d144 gpram-inc-addr;
-write 0d1 gpram-inc-addr;write 0d168 gpram-inc-addr;
+write 0d1 gpram-inc-addr;write 0d160 gpram-inc-addr;
 write 0d241 gpram-inc-addr;write 0d112 gpram-inc-addr;
 write 0d17 gpram-inc-addr;write 0d48 gpram-inc-addr;
 write 0d81 gpram-inc-addr;write 0d64 gpram-inc-addr;
-write 0d1 gpram-inc-addr;write 0d88 gpram-inc-addr;
+write 0d1 gpram-inc-addr;write 0d92 gpram-inc-addr;
 write 0d0 gpram-inc-addr;write 0d36 gpram-inc-addr;
 write 0d96 gpram-inc-addr;write 0d178 gpram-inc-addr;
 write 0d96 gpram-inc-addr;write 0d114 gpram-inc-addr;
 write 0d2 gpram-inc-addr;write 0d0 gpram-inc-addr;
 
 # Goto the program (remember 1 is added)
-write 0xFF goto-a;
-write 0x7F goto-b;
+write 0x00 goto-a;
+write 0xC0 goto-b;
 goto;
