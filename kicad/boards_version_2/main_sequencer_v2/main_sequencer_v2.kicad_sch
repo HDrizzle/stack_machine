@@ -3888,7 +3888,7 @@
 		)
 		(uuid "f1d473c6-4734-4568-a158-581f23d4eb66")
 	)
-	(text "G0"
+	(text "G8"
 		(exclude_from_sim no)
 		(at 131.572 110.744 0)
 		(effects

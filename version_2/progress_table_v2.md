@@ -2,8 +2,8 @@
 
 | PCB | Timing diagram(s) completed | Built in RustyLogic | Gates numbered | KiCad Schematic verified | Parts list updated | KiCad PCB | PCB built/aquired | Assembled | Tested |
 | - | - | - | - | - | - | - | - | - | - |
-| Main sequencer | Done | Done | Done | TODO | TODO | TODO | TODO | TODO | TODO |
-| Call stack | Done | Done | Sequencer only | TODO | TODO | TODO | TODO | TODO | TODO |
+| Main sequencer | Done | Done | Done | Done | TODO | TODO | TODO | TODO | TODO |
+| Call stack | Done | Done | Sequencer only | Done | TODO | TODO | TODO | TODO | TODO |
 | Prog memory module | Not needed | Not needed | Not needed | TODO | TODO | TODO | TODO | TODO | TODO |
 | Ctrl unit main board | Not needed | In toplevel | Not needed | TODO | TODO | TODO | TODO | TODO | TODO |
 | Bus (Motherboard) | Done | In toplevel | Not needed | TODO | TODO | TODO | TODO | TODO | TODO |
