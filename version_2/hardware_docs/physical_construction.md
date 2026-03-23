@@ -29,3 +29,19 @@ Starting from the control unit module and ending at the I/O controller
 * Base board - Bus timing and connections to almost everything else
 * CLK / Control panel - Clock source & divider select, manual clock stepping, power switch, programming connection, interrupt connections, etc
 * Global state LED panel - LEDs that show timing states from all other boards. There will be a lot of silkscreen graphics and labels. This board will have a lot of connections using 0.1" connectors.
+
+## Board internal debug connections
+
+These are lists of jumpers and connections to the global state LED board that are internal to the circuit and not connected to any outputs
+
+These all use the "Jumper V2 debug" symbol
+
+Main sequencer:
+
+0. `Begin instruction sequence`
+1. `Early PC++, non-flow-ctrl`
+2. `Interrupt enable`
+3. `Interrupt in-progress`
+4. `Instruction Done`
+5. `Bit 4 save for int call`
+6. `Load Instruction`
