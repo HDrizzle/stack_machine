@@ -21,11 +21,11 @@ Starting from the control unit module and ending at the I/O controller
 | Interrupt handler data/main | Yes | No | Interrupt active to control unit main sequencer, Front panel interrupts, Timer interrupts | None |
 | Timers | Yes | No | Interrupt handler data/main for timer interrupts | Has internal 1 MHz clock |
 | Vector digital board | Yes | No | Vector analog board (not yet designed) | None |
-| I/O controller | Yes | No | No | None |
+| I/O controller | Yes | No | No | Actually horizontal and will stick out to the side for easy pin access |
 
 ## Other boards
 
 * Start pulse generator - Small circuit to generate start pulses that are updated on the + and - clock edges whenever the global `Enable` signal goes high.
 * Base board - Bus timing and connections to almost everything else
-
-TODO
+* CLK / Control panel - Clock source & divider select, manual clock stepping, power switch, programming connection, interrupt connections, etc
+* Global state LED panel - LEDs that show timing states from all other boards. There will be a lot of silkscreen graphics and labels. This board will have a lot of connections using 0.1" connectors.
