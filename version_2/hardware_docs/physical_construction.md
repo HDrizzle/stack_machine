@@ -38,10 +38,18 @@ These all use the "Jumper V2 debug" symbol
 
 Main sequencer:
 
-0. `Begin instruction sequence`
-1. `Early PC++, non-flow-ctrl`
-2. `Interrupt enable`
-3. `Interrupt in-progress`
-4. `Instruction Done`
-5. `Bit 4 save for int call`
-6. `Load Instruction`
+0. Begin instruction sequence
+1. Early PC++, non-flow-ctrl
+2. Interrupt enable
+3. Interrupt in-progress
+4. Instruction Done
+5. Bit 4 save for int call
+6. Load Instruction
+
+Call stack:
+
+0. Pointer ++(0) / -- (1)
+1. Pre-adder latch CLK
+2. Post-adder latch CLK
+3. Read
+4. Write
