@@ -5,7 +5,7 @@
 | Main sequencer | Done | Done | Done | Done | TODO | TODO | TODO | TODO | TODO |
 | Call stack | Done | Done | Sequencer only | Done | TODO | TODO | TODO | TODO | TODO |
 | Prog memory module | Not needed | Not needed | Not needed | Done | TODO | TODO | TODO | TODO | TODO |
-| Ctrl unit main board | Not needed | In toplevel | Done | TODO | TODO | TODO | TODO | TODO | TODO |
+| Ctrl unit main board | Not needed | In toplevel | Done | Done | TODO | TODO | TODO | TODO | TODO |
 | Bus (Motherboard) | Done | In toplevel | Not needed | TODO | TODO | TODO | TODO | TODO | TODO |
 | Start pulse generator | Not needed | Done | Done | TODO | TODO | TODO | TODO | TODO | TODO |
 | ALU | Not needed | Done | Bus timing only | TODO | TODO | TODO | TODO | TODO | TODO |
