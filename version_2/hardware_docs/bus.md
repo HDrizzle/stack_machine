@@ -163,3 +163,20 @@ TX not ready, RX Not ready
   edge: ["a~>b TX Delay (possibly instant)"]
 }
 ```
+
+## List of bus slots
+
+0. Control unit main board
+1. Program memory
+2. GPRAM Shared memory
+3. GPRAM Sequencer & address
+4. ALU
+5. Stack data/main
+6. Interrupt handler data/main
+7. Timers
+8. Vector digital board
+9. I/O Controller (horizontal, to the side)
+10. Expansion slot 0
+11. Expansion slot 1
+12. Expansion slot 2
+13. Expansion slot 3, mechanical supports in place to attach LED display from version 1

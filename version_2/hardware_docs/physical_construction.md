@@ -8,6 +8,7 @@ Starting from the control unit module and ending at the I/O controller
 
 | Board | Connected to bus | Additional buttom connections | Additional connections | Notes |
 | - | - | - | - | - |
+| Bus Sequencer | Not usual connection | No | No | Vertically oriented, one connection to motherboard |
 | Main sequencer | No | No | Control unit main | Sits alongside call stack |
 | Call stack | No | No | Control unit main | Sits alongside main sequencer |
 | Control unit main | Yes | Controls mostly bus TX/RX addresses | ALU Opcode, Main sequencer, call stack, prog mem interface | Connected to 3 other boards besides bus |
