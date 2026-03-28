@@ -22,6 +22,10 @@ Timing signals
 | Bus save OE | Bus controller | + |
 | Move done | Bus controller | - (half cycle) |
 
+## LEDs
+
+There will be a normal sequencer debug interface on the main board (not sequencer board). There will also be LEDs for each of: Fault, RX Extend to controller, RX not ready, TX ready for each slot. These LEDs will also function as pulldown resistors in the case of empty slots.
+
 ## Timing
 
 Plot sources to be pasted into <a href="wavedrom.com/editor.html">Wavedrom</a>.
@@ -180,3 +184,18 @@ TX not ready, RX Not ready
 11. Expansion slot 1
 12. Expansion slot 2
 13. Expansion slot 3, mechanical supports in place to attach LED display from version 1
+
+## TX/RX addresses to physical slots TODO
+
+| Bus slot | TX 0 | TX 1 | TX 2 | TX 3 | RX 0 | RX 1 | RX 2 | RX 3 |
+| - | - | - | - | - | - | - | - | - |
+| Control unit main board | 3 | 15 | 16 | NA | 4 | 5 | 16 | 17 |
+| Program memory | NA | NA | NA | NA | 25 | NA | NA | NA |
+| GPRAM Shared memory | NA | NA | NA | NA | NA | NA | NA | NA |
+| GPRAM Sequencer & address | 4 | 5 | 6 | 7 | 7 | 8 | 9 | 10 |
+| ALU | 2 | NA | NA | NA | 2 | 3 | 14 | NA |
+| Stack data/main | 0 | 1 | 14 | NA | 1 | 12 | 13 | NA |
+| Interrupt handler data/main | NA | NA | NA | NA | NA | NA | NA | NA |
+| Timers | NA | NA | NA | NA | NA | NA | NA | NA |
+| Vector digital board | NA | NA | NA | NA | NA | NA | NA | NA |
+| I/O Controller | NA | NA | NA | NA | NA | NA | NA | NA |

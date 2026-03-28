@@ -20,6 +20,10 @@ Internal debug
 5. Bit 4 save for int call
 6. Load Instruction
 
+Output debug:
+
+All 16 sequencer outputs are buffered and sent to the debug board. They are also jumpered with pulldowns.
+
 ### Call stack: (no pullup resistors in use)
 
 Internal debug
@@ -42,6 +46,33 @@ Internal debug
 5. PC MSB (AVOID PULLDOWN)
 6. Interrupt
 7. Instruction load possible
+
+### Program memory
+
+Internal debug
+
+0. Read mode
+1. Write mode
+2. D 0-7
+3. D 8-15
+4. A 0-7
+5. A 8-15
+6. Write interface select (0=bus, 1=external)
+
+### Bus / Bus sequencer
+
+All ORed inputs from all bus connections (TX Ready, etc) (except for Fault) and all outputs from the sequencer will be jumpered on the main board and buffered and sent to the LED debug board.
+
+0. TX Ready/OE/RX
+1. RX not ready
+2. RX extend to controller
+3. Bus save CLK (WARNING: Disabling may cause contention)
+4. Bus save OE
+5. Move done
+6. RX extend from controller
+7. Global enable out (from start pulse generator)
+
+Just LEDs without jumpers will be placed alongside each bus slot and indicating for each slot: Fault, RX Extend to controller, RX not ready, TX ready.
 
 ### Interrupt handler
 
