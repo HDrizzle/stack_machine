@@ -189,13 +189,23 @@ TX not ready, RX Not ready
 
 | Bus slot | TX 0 | TX 1 | TX 2 | TX 3 | RX 0 | RX 1 | RX 2 | RX 3 |
 | - | - | - | - | - | - | - | - | - |
-| Control unit main board | 3 | 15 | 16 | NA | 4 | 5 | 16 | 17 |
+| Control unit main board | 3 | 15 | 16 | NA | 4 | 5 | 16 | 17 (5th RX, 6, is GOTO decider) |
 | Program memory | NA | NA | NA | NA | 25 | NA | NA | NA |
 | GPRAM Shared memory | NA | NA | NA | NA | NA | NA | NA | NA |
 | GPRAM Sequencer & address | 4 | 5 | 6 | 7 | 7 | 8 | 9 | 10 |
 | ALU | 2 | NA | NA | NA | 2 | 3 | 14 | NA |
 | Stack data/main | 0 | 1 | 14 | NA | 1 | 12 | 13 | NA |
-| Interrupt handler data/main | NA | NA | NA | NA | NA | NA | NA | NA |
-| Timers | NA | NA | NA | NA | NA | NA | NA | NA |
-| Vector digital board | NA | NA | NA | NA | NA | NA | NA | NA |
-| I/O Controller | NA | NA | NA | NA | NA | NA | NA | NA |
+| Interrupt handler data/main | 12 | 13 | NA | NA | NA | NA | NA | NA |
+| Timers | 9 | 10 | NA | NA | 22 | 23 | 24 | NA |
+| Vector digital board | NA | NA | NA | NA | 18 | 19 | 20 | 21 |
+| I/O Controller | 8 | 11 | NA | NA | 11 | 15 | NA | NA |
+
+## Expansion slot jumper configuration
+
+There are 4 expansion slots, each with 4 TX and 4 RX connections.
+
+Extra TX addresses: 15, extra RX addresses: 6
+
+TX: 16 x 15, RX: 16 x 6
+
+On tthe bus board there are 2 pairs of 0.1" male pin headers to place jumper cables to connect the expansion slots
