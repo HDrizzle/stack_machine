@@ -7,8 +7,8 @@
 | Prog memory module | Not needed | Not needed | Not needed | Done | TODO | TODO | TODO | TODO | TODO |
 | Ctrl unit main board | Not needed | In toplevel | Done | Done | TODO | TODO | TODO | TODO | TODO |
 | Bus Sequencer | Done | Done | Done | Done | TODO | TODO | TODO | TODO | TODO |
-| Bus (Motherboard) | Not needed | In toplevel | Not needed | TODO | TODO | TODO | TODO | TODO | TODO |
-| Start pulse generator | Not needed | Done | Done | TODO | TODO | TODO | TODO | TODO | TODO |
+| Bus (Motherboard) | Not needed | In toplevel | Not needed | Done | TODO | TODO | TODO | TODO | TODO |
+| Start pulse generator | Not needed | Done | Done | Done | TODO | TODO | TODO | TODO | TODO |
 | ALU | Not needed | Done | Bus timing only | TODO | TODO | TODO | TODO | TODO | TODO |
 | Stack controller data/main | Not needed | Done | Not needed | TODO | TODO | TODO | TODO | TODO | TODO |
 | Stack controller sequencer | Done | Done | Done | TODO | TODO | TODO | TODO | TODO | TODO |
