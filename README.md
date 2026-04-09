@@ -15,6 +15,7 @@ Photo of Version 1
 * The control unit will be able to fetch instructions from the GPRAM: Program addresses starting at 2^15 (32,768, halfway through the old flash memory space) will load 2 consecutive bytes (an instruction is 2 bytes) from the GPRAM. The GPRAM address of the first byte (lower byte of the instruction) will be determined by: `(prog_addr - 32,768) * 2`. Since that will only happen at or above 32,768 then the MSB will not be used in the math and will be used to determine whether to read from flash or GPRAM.
 * Flash program space is selectable: The flash chips have 17 address lines, while 15 are used (see above about half the program address space being mapped to the GPRAM). This means that the top 2 lines can be connected to jumpers to select between 4 different programs.
 * Flash program can be written to from the bus: The programming interface takes 8 data inputs + power and GND. The old interface to plug an Aduino in to program it will still be there of course but it can be selected by a jumper to be either the external pins (to Arduino) or from the bus.
+* The stack is 32k instead of 64k so only one memory chip is used, although 32k is still incredibly excessive.
 
 ### GPRAM Parallelization
 
@@ -110,7 +111,7 @@ Devices that can write to the bus (TX):
 
 # The Stack
 
-The stack will simply be a piece of memory seperate from the program memory and managed by hardware.
+The stack will simply be a piece of memory seperate from the pGPRAM and managed by hardware, its has 32k x 8-bit words.
 
 There will be two ways to access the stack:
 
