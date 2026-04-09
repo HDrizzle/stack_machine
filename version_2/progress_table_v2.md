@@ -9,7 +9,7 @@
 | Bus Sequencer | Done | Done | Done | Done | TODO | TODO | TODO | TODO | TODO |
 | Bus (Motherboard) | Not needed | In toplevel | Not needed | Done | TODO | TODO | TODO | TODO | TODO |
 | Start pulse generator | Not needed | Done | Done | Done | TODO | TODO | TODO | TODO | TODO |
-| ALU | Not needed | Done | Bus timing only | TODO | TODO | TODO | TODO | TODO | TODO |
+| ALU | Not needed | Done | Bus timing only | Done | TODO | TODO | TODO | TODO | TODO |
 | Stack controller data/main | Not needed | Done | Not needed | TODO | TODO | TODO | TODO | TODO | TODO |
 | Stack controller sequencer | Done | Done | Done | TODO | TODO | TODO | TODO | TODO | TODO |
 | GPRAM sequencer & address | Done | Done | Sequencer only | TODO | TODO | TODO | TODO | TODO | TODO |
